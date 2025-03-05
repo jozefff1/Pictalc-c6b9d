@@ -1,0 +1,27 @@
+{
+  "name": "pictalk-root",
+  "version": "1.0.0",
+  "main": "pictalk/app/index.js",
+  "scripts": {
+    "start": "cd pictalk && expo start",
+    "android": "cd pictalk && expo start --android",
+    "ios": "cd pictalk && expo start --ios",
+    "web": "cd pictalk && expo start --web",
+    "build:web": "npx expo export --platform web",
+    "deploy": "cd pictalk && firebase deploy --only hosting",
+    "build-and-deploy": "npm run build:web && npm run deploy"
+  },
+  "dependencies": {
+    "expo": "~52.0.0",
+    "expo-router": "~3.4.8",
+    "react": "18.2.0",
+    "react-native": "0.73.4",
+    "react-native-web": "~0.19.10"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.9",
+    "@expo/webpack-config": "^19.0.1",
+    "babel-plugin-module-resolver": "^5.0.0"
+  },
+  "private": true
+} 

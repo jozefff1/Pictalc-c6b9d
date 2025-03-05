@@ -1,0 +1,97 @@
+# Pictalk Project Summary
+
+## Project Overview
+Pictalk is a React Native/Expo application designed to facilitate communication between parents/teachers and children, with a focus on accessibility and offline capabilities.
+
+## Technical Stack
+1. Framework & Core Technologies:
+   - Expo SDK 49
+   - React Native 0.72.10
+   - TypeScript
+   - Expo Router for navigation
+   - Firebase for backend services
+
+2. Key Dependencies:
+   - Firebase Authentication & Firestore
+   - AsyncStorage for offline data
+   - QR Code scanning and generation
+   - Haptics for tactile feedback
+   - Speech synthesis
+   - Various Expo modules for core functionality
+
+## Project Structure
+1. Core Application (/app):
+   - index.tsx: Main landing page with authentication/pairing options
+   - _layout.tsx: Root layout configuration
+   - Organized routes for:
+     - Authentication (/auth)
+     - Device pairing (/pairing)
+     - Main tabs (/(tabs))
+     - Modal screens (/modal)
+
+2. Supporting Directories:
+   - /components: Reusable UI components
+   - /contexts: React Context providers (Auth, etc.)
+   - /hooks: Custom React hooks
+   - /services: Business logic and API services
+   - /types: TypeScript type definitions
+   - /constants: Application constants
+   - /assets: Static assets (images, etc.)
+
+3. Configuration Files:
+   - babel.config.js: Babel configuration with module resolver
+   - tsconfig.json: TypeScript configuration
+   - metro.config.js: Metro bundler configuration
+   - app.json: Expo configuration
+   - .env: Environment variables
+   - Firebase configuration files
+
+4. Deployment Setup:
+   - Firebase hosting configuration
+   - Deployment scripts (.bat, .sh, .ps1)
+   - Build and deployment automation
+
+## Key Features
+1. Authentication System:
+   - Sign in/Sign up functionality
+   - User role management (parent/teacher/child)
+
+2. Device Pairing:
+   - QR code-based device pairing
+   - Parent-child device relationship management
+   - Offline capability for pairing data
+
+3. User Interface:
+   - Modern, clean design
+   - Responsive layout
+   - Accessibility features
+   - Haptic feedback integration
+
+4. Data Management:
+   - Offline-first architecture
+   - Local storage with AsyncStorage
+   - Firebase integration for cloud sync
+   - Real-time updates
+
+## Development Setup
+- Development server runs on port 8081
+- Supports multiple platforms:
+  - Web (http://localhost:8081)
+  - iOS (via Expo Go)
+  - Android (via Expo Go)
+- Development tools available:
+  - Hot reloading
+  - Debug menu
+  - Metro bundler
+
+## Security & Configuration
+- Firebase security rules implemented
+- Environment variables properly configured
+- TypeScript for type safety
+- Path aliases for cleaner imports
+
+## Build & Deployment
+- Multiple deployment options available
+- Firebase hosting integration
+- Automated build and deploy scripts
+- Environment-specific configurations
