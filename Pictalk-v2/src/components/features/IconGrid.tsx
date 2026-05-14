@@ -39,7 +39,7 @@ export default function IconGrid({ icons }: IconGridProps) {
             hover:border-primary hover:shadow-lg
             active:scale-95
             transition-all duration-200
-            min-h-[100px]
+            min-h-25
             focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
           "
           style={{ borderColor: `${icon.color}20` }}

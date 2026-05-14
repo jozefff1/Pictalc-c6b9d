@@ -44,16 +44,6 @@ export const APP_ROUTES = {
   },
 } as const;
 
-// Icon Categories
-export const ICON_CATEGORIES = {
-  NEEDS: { id: 'needs', name: 'Needs', color: '#FF9D4D' },
-  ACTIONS: { id: 'actions', name: 'Actions', color: '#5AC8FA' },
-  FEELINGS: { id: 'feelings', name: 'Feelings', color: '#FF6B8B' },
-  PEOPLE: { id: 'people', name: 'People', color: '#BF5AF2' },
-  PLACES: { id: 'places', name: 'Places', color: '#4CD964' },
-  CUSTOM: { id: 'custom', name: 'Custom', color: '#8E8E93' },
-} as const;
-
 // Local Storage Keys
 export const STORAGE_KEYS = {
   THEME: 'pictalk_theme',

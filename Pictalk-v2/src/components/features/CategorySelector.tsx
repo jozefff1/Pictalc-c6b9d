@@ -20,7 +20,7 @@ export default function CategorySelector() {
               key={category.id}
               onClick={() => dispatch(setSelectedCategory(category.id))}
               className={`
-                flex flex-col items-center justify-center min-w-[80px] px-4 py-3 rounded-lg
+                flex flex-col items-center justify-center min-w-20 px-4 py-3 rounded-lg
                 transition-all duration-200 shrink-0
                 ${
                   isSelected

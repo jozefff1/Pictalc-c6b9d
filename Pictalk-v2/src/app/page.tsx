@@ -23,7 +23,7 @@ export default async function Home() {
       {/* Main Content */}
       <main id="main-content" className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-black py-20 px-4">
+        <section className="bg-linear-to-b from-blue-50 to-white dark:from-gray-900 dark:to-black py-20 px-4">
           <div className="container mx-auto max-w-4xl text-center">
             <h2 className="text-4xl font-bold tracking-tight sm:text-6xl mb-6">
               Communication Made Accessible

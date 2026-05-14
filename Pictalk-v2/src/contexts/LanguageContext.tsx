@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'en' | 'no';
 
@@ -335,6 +335,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguageState(lang);
     localStorage.setItem('pictalk-language', lang);
   };
+
+  // Sync HTML lang attribute with current language for accessibility
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.lang = language;
+    }
+  }, [language]);
 
   const t = (key: string): string => {
     return translations[language][key] || key;

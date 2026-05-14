@@ -1,0 +1,64 @@
+:root {
+  --background-main: #F4F4F9;
+  --glass-background: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  
+  --color-needs: #FF9F0A;
+  --color-actions: #5E5CE6;
+  --color-feelings: #FF375F;
+  --color-people: #BF5AF2;
+  --color-places: #32D74B;
+  
+  --color-needs-light: #FFF0D9;
+  --color-actions-light: #EBEBFF;
+  --color-feelings-light: #FFE5EC;
+  --color-people-light: #F4E5FA;
+  --color-places-light: #E5F9E9;
+  
+  --text-dark: #1C1C1E;
+  --text-muted: #8E8E93;
+  --text-light: #FFFFFF;
+  
+  --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.08);
+  --shadow-medium: 0 8px 16px rgba(0, 0, 0, 0.15);
+  --shadow-heavy: 0 12px 24px rgba(0, 0, 0, 0.25);
+  
+  --color-error: #FF453A;
+  --color-success: #32D74B;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--background-main);
+  color: var(--text-dark);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: var(--glass-background);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-medium);
+}

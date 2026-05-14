@@ -88,7 +88,8 @@ export default function RegisterPage() {
       // Redirect to login page
       router.push('/login?registered=true');
     } catch (err: unknown) {
-      setError('An error occurred. Please try again.');
+      const message = err instanceof Error ? err.message : 'Network error – could not reach the server';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -110,7 +111,8 @@ export default function RegisterPage() {
               className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg"
               role="alert"
             >
-              {error}
+              <p className="font-semibold text-sm mb-0.5">Registration failed</p>
+              <p className="text-sm">{error}</p>
             </div>
           )}
 

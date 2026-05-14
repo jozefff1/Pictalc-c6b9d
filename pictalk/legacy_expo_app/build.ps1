@@ -30,7 +30,6 @@ try {
     npm run build:web
     if ($LASTEXITCODE -eq 0) {
         Write-Host "`nWeb build completed successfully!" -ForegroundColor Green
-        Write-Host "You can now run 'npm run deploy' to deploy to Firebase" -ForegroundColor Cyan
     } else {
         Write-Host "Web build failed" -ForegroundColor Red
         exit 1

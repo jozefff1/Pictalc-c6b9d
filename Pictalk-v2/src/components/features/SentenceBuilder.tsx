@@ -78,7 +78,7 @@ export default function SentenceBuilder() {
       </div>
       
       {/* Icon Sentence Display */}
-      <div className="flex items-center gap-2 mb-4 min-h-[80px] flex-wrap">
+      <div className="flex items-center gap-2 mb-4 min-h-20 flex-wrap">
         {sentence.length === 0 ? (
           <p className="text-gray-400 dark:text-gray-500 text-sm italic">
             {t('sentence.empty')}

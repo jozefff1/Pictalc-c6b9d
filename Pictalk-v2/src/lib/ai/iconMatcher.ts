@@ -3,7 +3,7 @@
  * Multilingual keyword-based matching for pilot (will upgrade to ML embeddings in Phase 5)
  */
 import type { Icon } from '@/types/models';
-import { ICON_DATABASE } from '@/lib/data/icons';
+import { ICON_DATABASE, CATEGORIES } from '@/lib/data/icons';
 import { KEYWORD_MAP_EN } from './keywordMappings/en';
 import { KEYWORD_MAP_NO } from './keywordMappings/no';
 
@@ -90,7 +90,8 @@ export function getSuggestedIcons(recentIconIds: string[], maxResults = 5): Icon
   // Phase 5: upgrade to ML pattern learning
   
   const suggestions: Icon[] = [];
-  const categories = ['needs', 'actions', 'feelings', 'people', 'places'];
+  // Use imported CATEGORIES instead of hardcoded array
+  const categories = CATEGORIES.filter(cat => cat.id !== 'custom').map(cat => cat.id);
   
   for (const category of categories) {
     const categoryIcons = ICON_DATABASE.filter(icon => icon.category === category);

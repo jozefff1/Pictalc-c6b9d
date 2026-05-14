@@ -8,6 +8,7 @@ A Progressive Web App (PWA) for Augmentative and Alternative Communication (AAC)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **State Management**: Redux Toolkit + RTK Query
+- **Internationalization**: Custom React Context (client-side)
 - **Database**: Neon Serverless Postgres
 - **ORM**: Drizzle ORM
 - **Authentication**: NextAuth.js v5
@@ -94,26 +95,33 @@ pictalk-v2/
 ## 🎯 Features
 
 ### Implemented ✅
-- Authentication (login/register)
-- Database schema with 8 tables
-- Redux store with 4 slices
-- Offline storage with IndexedDB
-- PWA configuration with manifest
-- Responsive design with Tailwind
-- Dark mode support
-- Accessibility features (WCAG 2.1 AAA)
+- **Authentication** (login/register)
+- **Multilingual Support** (English + Norwegian)
+  - Client-side i18n with React Context
+  - 90+ icon translations
+  - Category translations
+  - Full UI translation coverage
+  - localStorage persistence
+- **Database schema** with 8 tables
+- **Redux store** with 4 slices
+- **Text-to-Icons** auto-conversion
+- **Offline storage** with IndexedDB
+- **PWA configuration** with manifest
+- **Responsive design** with Tailwind
+- **Dark mode support**
+- **Accessibility features** (WCAG 2.1 AAA)
 
 ### In Progress 🚧
-- Communication interface
+- Communication interface (partially complete)
 - Icon management
 - Device pairing (QR codes)
-- Text-to-Speech integration
+- Speech-to-Icons integration
 - Offline sync engine
 
 ### Planned 📝
+- Additional languages (Spanish, French, etc.)
 - Custom icon upload
 - Session logging and analytics
-- Multi-language support
 - Progressive enhancement
 - Native app wrapper (Capacitor/Tauri)
 
@@ -136,6 +144,52 @@ pictalk-v2/
 - IndexedDB (model & pattern storage)
 - Claude API (Anthropic) for advanced features
 - Web Speech API (native TTS)
+
+## 🌍 Internationalization (i18n)
+
+### Current Implementation
+
+**Architecture**: Client-side i18n using React Context API
+
+**Supported Languages**:
+- 🇬🇧 English (default)
+- 🇳🇴 Norwegian (Norsk)
+
+**Translation Coverage**:
+- UI components (buttons, labels, placeholders, hints)
+- 90+ icon names (e.g., Water→Vann, Play→Leke, Happy→Glad)
+- Category labels (Needs→Behov, Actions→Handlinger, etc.)
+- Speech synthesis (text-to-speech in selected language)
+
+**Features**:
+- Language switcher in top navigation bar
+- Instant language switching (no page reload)
+- localStorage persistence (language choice saved)
+- No routing changes (URLs remain `/communicate`, not `/en/communicate`)
+
+**Files**:
+- `src/contexts/LanguageContext.tsx` - Language provider and translations
+- `src/components/common/LanguageSwitcher.tsx` - Language toggle UI
+
+### ⚠️ Important: next-intl Issues (Documented)
+
+**Problem**: We initially attempted to implement i18n using `next-intl` library with Next.js 15 App Router.
+
+**Issues Encountered**:
+1. **Routing Complexity**: Required `[locale]` dynamic segments in all routes
+2. **Middleware Conflicts**: Middleware configuration caused persistent 404 errors
+3. **Build Failures**: Over 200+ messages of debugging without resolution
+4. **App Router Incompatibility**: next-intl's server-side approach conflicted with Next.js 15's App Router patterns
+
+**Resolution**: Complete removal of next-intl and middleware.ts, replaced with simple client-side React Context approach.
+
+**Lesson Learned**: For AAC apps requiring instant language switching without routing complexity, client-side i18n is more reliable and performant than server-side solutions with Next.js 15.
+
+**If you need to add more languages**:
+1. Add language to `Language` type in `LanguageContext.tsx`
+2. Add translation dictionary with all keys
+3. Add language button to `LanguageSwitcher.tsx`
+4. No routing changes needed!
 
 ## 🧪 Testing
 

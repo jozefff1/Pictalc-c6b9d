@@ -1,0 +1,142 @@
+# Changelog
+
+All notable changes to Pictalk v2 will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- **Multilingual Support** (2026-02-12)
+  - Client-side internationalization using React Context API
+  - English and Norwegian language support
+  - 90+ icon name translations
+  - Category label translations (Needs, Actions, Feelings, People, Places, Custom)
+  - Full UI text translation coverage
+  - Language switcher component in top navigation (🇬🇧 EN / 🇳🇴 NO)
+  - localStorage persistence for language preference
+  - Speech synthesis support in selected language
+  
+- **Text-to-Icons Auto-Conversion** (2026-02-11)
+  - Automatic icon conversion on space key press
+  - Text remains visible while icons build up in sentence builder
+  - Confidence threshold matching (0.3 minimum)
+  - Real-time icon suggestions while typing
+  
+- **Communication Interface** (2026-02-10)
+  - Icon grid with category filtering
+  - Sentence builder with visual icon display
+  - Text-to-Icons mode
+  - Speech-to-Icons mode (placeholder)
+  - Click icon to remove from sentence
+  - Speak button with text-to-speech
+  - Clear sentence button
+
+### Changed
+- **i18n Architecture Decision** (2026-02-12)
+  - Abandoned next-intl after 200+ messages of debugging failures
+  - Implemented simple client-side React Context solution instead
+  - Removed middleware.ts and [locale] routing structure
+  - URLs remain clean: `/communicate` instead of `/en/communicate`
+
+### Fixed
+- **Text-to-Icons UX Issues** (2026-02-11)
+  - Fixed auto-conversion blocking input after first letter
+  - Fixed icons not appearing in sentence builder
+  - Fixed text visibility during typing
+  - Lowered confidence threshold to accept more matches
+  
+- **Build Errors** (2026-02-11)
+  - Fixed corrupted console.log causing parsing errors
+  - Fixed missing module imports
+  - Cleaned up duplicate navigation headers
+
+### Removed
+- **next-intl Integration** (2026-02-12)
+  - Removed next-intl package
+  - Removed src/middleware.ts
+  - Removed src/i18n.ts configuration
+  - Removed src/app/[locale] routing structure
+  - Removed src/components/features/LanguageSwitcher.tsx (old version)
+  - Removed messages/en.json and messages/no.json
+
+### Security
+- No security updates in this version
+
+## [0.1.0] - 2026-02-08
+
+### Added
+- Initial Next.js 15 project setup with App Router
+- TypeScript configuration
+- Tailwind CSS styling
+- Redux Toolkit state management
+- NextAuth.js v5 authentication
+- Drizzle ORM with Neon Postgres
+- Database schema (8 tables)
+- PWA configuration with offline support
+- IndexedDB for offline storage
+- Dark mode support
+- Basic icon database with emoji symbols
+- Icon matching algorithm with keyword mappings
+- Dashboard page structure
+- Authentication pages (login, register)
+
+### Technical Decisions
+
+#### Why Client-Side i18n Instead of next-intl?
+
+**Problem**: 
+After 200+ messages of attempting to integrate next-intl with Next.js 15 App Router, we encountered persistent failures:
+- Routing conflicts with `[locale]` dynamic segments
+- Middleware configuration incompatibilities
+- Server-side rendering issues with App Router
+- Build failures and cache corruption
+- Complex URL structure (`/en/communicate` vs `/communicate`)
+
+**Solution**: 
+Implemented simple client-side React Context for translations:
+- Instant language switching without page reload
+- No routing complexity or middleware
+- localStorage persistence
+- Perfect for AAC apps requiring quick language changes
+- More reliable with Next.js 15 App Router
+
+**Files Created**:
+- `src/contexts/LanguageContext.tsx` - Complete i18n implementation
+- `src/components/common/LanguageSwitcher.tsx` - Language toggle UI
+- `docs/i18n.md` - Comprehensive i18n documentation
+
+**Lesson Learned**:
+For authenticated PWAs with Next.js 15 App Router where SEO isn't a priority, client-side i18n is simpler, more reliable, and better suited than server-side solutions like next-intl.
+
+---
+
+## Version History
+
+- **v0.1.0** (2026-02-08) - Initial setup with auth and database
+- **Unreleased** - Multilingual support, communication interface, text-to-icons
+
+---
+
+## Future Roadmap
+
+### v0.2.0 (Planned)
+- [ ] Complete Speech-to-Icons integration
+- [ ] Device pairing with QR codes
+- [ ] Offline sync engine
+- [ ] Custom icon upload
+- [ ] Session logging
+
+### v0.3.0 (Planned)
+- [ ] Additional languages (Spanish, French, German)
+- [ ] Advanced icon matching with ML
+- [ ] Analytics dashboard
+- [ ] Therapist portal
+
+### v1.0.0 (Planned)
+- [ ] Production-ready release
+- [ ] Full offline functionality
+- [ ] Native app wrappers (iOS/Android)
+- [ ] ARASAAC icon integration
+- [ ] Multi-user support
