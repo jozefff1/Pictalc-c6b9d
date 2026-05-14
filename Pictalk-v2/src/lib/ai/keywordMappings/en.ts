@@ -98,6 +98,8 @@ export const KEYWORD_MAP_EN: Record<string, string[]> = {
   'please': ['please', 'kindly', 'plz', 'pls'],
   'thankyou': ['thank you', 'thanks', 'ty', 'thx', 'appreciate', 'grateful', 'gratitude'],
   'sorry': ['sorry', 'apologize', 'apology', 'regret', 'oops'],
+  'do': ['do', 'doing', 'did', 'does', 'action', 'perform', 'execute'],
+  'make': ['make', 'making', 'made', 'create', 'build', 'construct'],
   'want': ['want', 'desire', 'wish', 'would like', 'wanna'],
   'need': ['need', 'require', 'must have', 'necessary'],
   'like': ['like', 'enjoy', 'love', 'prefer', 'favorite'],

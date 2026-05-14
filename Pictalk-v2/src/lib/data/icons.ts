@@ -18,6 +18,8 @@ export const ICON_DATABASE: Icon[] = [
   { id: 'pain', name: 'Pain', category: 'needs', symbol: '🤕', color: '#FF9D4D', imageUrl: undefined },
   { id: 'hot', name: 'Hot', category: 'needs', symbol: '🥵', color: '#FF9D4D', imageUrl: undefined },
   { id: 'cold', name: 'Cold', category: 'needs', symbol: '🥶', color: '#FF9D4D', imageUrl: undefined },
+  { id: 'want', name: 'Want', category: 'needs', symbol: '🤲', color: '#FF9D4D', imageUrl: undefined },
+  { id: 'need', name: 'Need', category: 'needs', symbol: '🙏', color: '#FF9D4D', imageUrl: undefined },
 
   // ACTIONS Category
   { id: 'play', name: 'Play', category: 'actions', symbol: '🎮', color: '#5AC8FA', imageUrl: undefined },
@@ -34,6 +36,11 @@ export const ICON_DATABASE: Icon[] = [
   { id: 'sing', name: 'Sing', category: 'actions', symbol: '🎤', color: '#5AC8FA', imageUrl: undefined },
   { id: 'dance', name: 'Dance', category: 'actions', symbol: '💃', color: '#5AC8FA', imageUrl: undefined },
   { id: 'jump', name: 'Jump', category: 'actions', symbol: '🦘', color: '#5AC8FA', imageUrl: undefined },
+  { id: 'do', name: 'Do', category: 'actions', symbol: '💪', color: '#5AC8FA', imageUrl: undefined },
+  { id: 'make', name: 'Make', category: 'actions', symbol: '🛠️', color: '#5AC8FA', imageUrl: undefined },
+  { id: 'wait', name: 'Wait', category: 'actions', symbol: '✋', color: '#5AC8FA', imageUrl: undefined },
+  { id: 'go', name: 'Go', category: 'actions', symbol: '🟢', color: '#5AC8FA', imageUrl: undefined },
+  { id: 'stop', name: 'Stop', category: 'actions', symbol: '🛑', color: '#5AC8FA', imageUrl: undefined },
 
   // FEELINGS Category
   { id: 'happy', name: 'Happy', category: 'feelings', symbol: '😊', color: '#FFD60A', imageUrl: undefined },
@@ -48,6 +55,7 @@ export const ICON_DATABASE: Icon[] = [
   { id: 'calm', name: 'Calm', category: 'feelings', symbol: '😌', color: '#FFD60A', imageUrl: undefined },
   { id: 'proud', name: 'Proud', category: 'feelings', symbol: '🤗', color: '#FFD60A', imageUrl: undefined },
   { id: 'surprised', name: 'Surprised', category: 'feelings', symbol: '😲', color: '#FFD60A', imageUrl: undefined },
+  { id: 'like', name: 'Like', category: 'feelings', symbol: '👍', color: '#FFD60A', imageUrl: undefined },
 
   // PEOPLE Category
   { id: 'mom', name: 'Mom', category: 'people', symbol: '👩', color: '#FF6482', imageUrl: undefined },
@@ -93,6 +101,10 @@ export const ICON_DATABASE: Icon[] = [
   { id: 'no', name: 'No', category: 'custom', symbol: '❌', color: '#BF5AF2', imageUrl: undefined },
   { id: 'please', name: 'Please', category: 'custom', symbol: '🙏', color: '#BF5AF2', imageUrl: undefined },
   { id: 'thankyou', name: 'Thank You', category: 'custom', symbol: '🙏', color: '#BF5AF2', imageUrl: undefined },
+  { id: 'more', name: 'More', category: 'custom', symbol: '➕', color: '#BF5AF2', imageUrl: undefined },
+  { id: 'all', name: 'All Done', category: 'custom', symbol: '👐', color: '#BF5AF2', imageUrl: undefined },
+  { id: 'now', name: 'Now', category: 'custom', symbol: '👇', color: '#BF5AF2', imageUrl: undefined },
+  { id: 'later', name: 'Later', category: 'custom', symbol: '⏭️', color: '#BF5AF2', imageUrl: undefined },
 ];
 
 // Helper function to get icons by category

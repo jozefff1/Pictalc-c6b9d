@@ -98,6 +98,8 @@ export const KEYWORD_MAP_NO: Record<string, string[]> = {
   'please': ['vær så snill', 'takk', 'vennligst', 'please'],
   'thankyou': ['takk', 'tusen takk', 'mange takk', 'takknemlig'],
   'sorry': ['beklager', 'unnskyld', 'lei meg'],
+  'do': ['gjøre', 'gjør', 'gjort', 'handle', 'utføre'],
+  'make': ['lage', 'lager', 'lagde', 'skaper', 'skape', 'bygge'],
   'want': ['vil ha', 'ønsker', 'vil', 'ønske'],
   'need': ['trenger', 'må ha', 'behov'],
   'like': ['liker', 'elsker', 'glad i', 'favoritt'],
