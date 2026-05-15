@@ -21,32 +21,37 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = credentials.email as string;
         const password = credentials.password as string;
 
-        const user = await db
-          .select()
-          .from(users)
-          .where(eq(users.email, email))
-          .limit(1)
-          .then(rows => rows[0]);
+        try {
+          const user = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1)
+            .then(rows => rows[0]);
 
-        if (!user) {
+          if (!user) {
+            return null;
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            password,
+            user.password
+          );
+
+          if (!isPasswordValid) {
+            return null;
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role as 'child' | 'guardian' | 'therapist' | 'teacher',
+          };
+        } catch (error) {
+          console.error('[auth] Database error during authorize:', error);
           return null;
         }
-
-        const isPasswordValid = await bcrypt.compare(
-          password,
-          user.password
-        );
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role as 'child' | 'guardian' | 'therapist' | 'teacher',
-        };
       },
     }),
   ],
@@ -68,11 +73,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   pages: {
     signIn: '/login',
-    error: '/error',
+    error: '/login', // redirect errors back to login — no separate /error page
   },
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  // NextAuth v5 reads AUTH_SECRET automatically — no need to pass it here
+  trustHost: true, // Required for Vercel deployments
 });
