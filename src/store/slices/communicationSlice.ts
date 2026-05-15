@@ -12,6 +12,7 @@ interface CommunicationState {
     icons: Icon[];
     sentence: string;
   }>;
+  customIcons: Icon[];
 }
 
 const initialState: CommunicationState = {
@@ -21,6 +22,7 @@ const initialState: CommunicationState = {
   speaking: false,
   recentIcons: [],
   favoritePhrases: [],
+  customIcons: [],
 };
 
 const communicationSlice = createSlice({
@@ -32,6 +34,9 @@ const communicationSlice = createSlice({
     },
     setCurrentIcons: (state, action: PayloadAction<Icon[]>) => {
       state.currentIcons = action.payload;
+    },
+    setCustomIcons: (state, action: PayloadAction<Icon[]>) => {
+      state.customIcons = action.payload;
     },
     addIconToSentence: (state, action: PayloadAction<Icon>) => {
       state.sentence.push(action.payload);
@@ -82,6 +87,7 @@ export const {
   saveFavoritePhrase,
   removeFavoritePhrase,
   loadFavoritePhrase,
+  setCustomIcons,
 } = communicationSlice.actions;
 
 export default communicationSlice.reducer;

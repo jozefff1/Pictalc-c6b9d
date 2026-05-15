@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useAppSelector } from '@/store/hooks';
+import { useState, useEffect } from 'react';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getIconsByCategory } from '@/lib/data/icons';
+import { setCustomIcons } from '@/store/slices/communicationSlice';
 import CategorySelector from '@/components/features/CategorySelector';
 import IconGrid from '@/components/features/IconGrid';
 import SentenceBuilder from '@/components/features/SentenceBuilder';
@@ -14,9 +15,28 @@ type CommunicationMode = 'icons' | 'text' | 'speech';
 
 export default function CommunicatePage() {
   const { t } = useLanguage();
+  const dispatch = useAppDispatch();
   const [mode, setMode] = useState<CommunicationMode>('icons');
+  
   const selectedCategory = useAppSelector((state) => state.communication.selectedCategory);
-  const icons = getIconsByCategory(selectedCategory as 'needs' | 'actions' | 'feelings' | 'people' | 'places' | 'custom');
+  const customIcons = useAppSelector((state) => state.communication.customIcons);
+  
+  useEffect(() => {
+    // Fetch custom icons on mount
+    fetch('/api/icons')
+      .then(res => res.ok ? res.json() : { icons: [] })
+      .then(data => {
+        if (data.icons) {
+          dispatch(setCustomIcons(data.icons));
+        }
+      })
+      .catch(err => console.error('Failed to load custom icons:', err));
+  }, [dispatch]);
+
+  const defaultIcons = getIconsByCategory(selectedCategory as any);
+  const filteredCustomIcons = customIcons.filter(icon => icon.category === selectedCategory);
+  
+  const icons = [...defaultIcons, ...filteredCustomIcons];
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">

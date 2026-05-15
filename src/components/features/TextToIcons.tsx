@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { matchTextToIcons } from '@/lib/ai/iconMatcher';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { addIconToSentence } from '@/store/slices/communicationSlice';
 import type { IconMatch } from '@/lib/ai/iconMatcher';
@@ -10,6 +10,7 @@ import type { IconMatch } from '@/lib/ai/iconMatcher';
 export default function TextToIcons() {
   const { t, tIcon, language } = useLanguage();
   const dispatch = useAppDispatch();
+  const customIcons = useAppSelector((state) => state.communication.customIcons);
   const [inputText, setInputText] = useState('');
   const [matches, setMatches] = useState<IconMatch[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -28,7 +29,7 @@ export default function TextToIcons() {
       console.log('🔍 Auto-converting word:', completedWord);
       
       // Try to match and add to sentence
-      const results = matchTextToIcons(completedWord, 1, language);
+      const results = matchTextToIcons(completedWord, 1, language, customIcons);
       
       if (results.length > 0 && results[0].confidence >= 0.3) {
         console.log('✅ Adding icon to sentence:', results[0].icon);
@@ -45,7 +46,7 @@ export default function TextToIcons() {
     const currentWord = newText.trim().split(/\s+/).pop()?.toLowerCase() || '';
     
     if (currentWord && !newText.endsWith(' ')) {
-      const results = matchTextToIcons(currentWord, 6, language);
+      const results = matchTextToIcons(currentWord, 6, language, customIcons);
       setMatches(results);
     } else {
       setMatches([]);
@@ -65,7 +66,7 @@ export default function TextToIcons() {
     
     // Try to match and add each word to the sentence
     words.forEach((word) => {
-      const results = matchTextToIcons(word, 1, language);
+      const results = matchTextToIcons(word, 1, language, customIcons);
       console.log(`🔍 Matching "${word}":`, results);
       
       if (results.length > 0 && results[0].confidence >= 0.3) {
@@ -101,7 +102,7 @@ export default function TextToIcons() {
         const lastWord = words[words.length - 1].toLowerCase();
         console.log('🔍 Converting last word on Enter:', lastWord);
         
-        const results = matchTextToIcons(lastWord, 1, language);
+        const results = matchTextToIcons(lastWord, 1, language, customIcons);
         
         if (results.length > 0 && results[0].confidence >= 0.3) {
           console.log('✅ Adding final icon to sentence:', results[0].icon);
@@ -199,9 +200,15 @@ export default function TextToIcons() {
                     </span>
                   )}
                   
-                  <span className="text-3xl mb-1">{match.icon.symbol}</span>
+                  {match.icon.imageUrl ? (
+                    <div className="relative w-8 h-8 mb-1">
+                      <img src={match.icon.imageUrl} alt={match.icon.name} className="object-contain w-full h-full" />
+                    </div>
+                  ) : (
+                    <span className="text-3xl mb-1">{match.icon.symbol}</span>
+                  )}
                   <span className="text-xs font-medium text-center text-gray-700 dark:text-gray-300">
-                    {tIcon(match.icon.id)}
+                    {match.icon.id.startsWith('custom_') ? match.icon.name : tIcon(match.icon.id)}
                   </span>
                 </button>
               ))}

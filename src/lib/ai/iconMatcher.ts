@@ -25,7 +25,8 @@ const KEYWORD_MAPS: Record<string, Record<string, string[]>> = {
 export function matchTextToIcons(
   text: string,
   maxResults = 10,
-  locale: string = 'en'
+  locale: string = 'en',
+  customIcons: Icon[] = []
 ): IconMatch[] {
   if (!text || text.trim().length === 0) {
     return [];
@@ -37,9 +38,11 @@ export function matchTextToIcons(
 
   // Get keyword map for locale (fallback to English)
   const KEYWORD_MAP = KEYWORD_MAPS[locale] || KEYWORD_MAPS['en'];
+  
+  const combinedDatabase = [...ICON_DATABASE, ...customIcons];
 
   // Check each icon for matches
-  for (const icon of ICON_DATABASE) {
+  for (const icon of combinedDatabase) {
     const keywords = KEYWORD_MAP[icon.id] || [icon.id, icon.name.toLowerCase()];
     
     // Check for exact matches first

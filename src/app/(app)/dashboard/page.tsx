@@ -72,6 +72,16 @@ export default async function DashboardPage() {
               Customize your experience
             </p>
           </div>
+
+          <Link href="/dashboard/icons" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow border-2 border-dashed border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">🖼️</span>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Custom Icons</h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Upload your own AAC icons and images
+            </p>
+          </Link>
         </div>
       </div>
     </div>
