@@ -1,238 +1,207 @@
-# Pictalk v2 - Modern AAC PWA
+# Pictalk
 
-A Progressive Web App (PWA) for Augmentative and Alternative Communication (AAC), built with Next.js 15, TypeScript, and modern web technologies.
+> An open-source AAC (Augmentative and Alternative Communication) Progressive Web App for children and adults with communication challenges.
 
-## 🚀 Tech Stack
+Pictalk lets users express themselves through picture-based communication boards, text-to-icon conversion, and speech recognition — **online and offline**.
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: Redux Toolkit + RTK Query
-- **Internationalization**: Custom React Context (client-side)
-- **Database**: Neon Serverless Postgres
-- **ORM**: Drizzle ORM
-- **Authentication**: NextAuth.js v5
-- **Storage**: Vercel Blob
-- **Offline**: IndexedDB (via idb library)
-- **PWA**: @ducanh2912/next-pwa
+🌐 **Live**: [pictalc-c6b9d.vercel.app](https://pictalc-c6b9d.vercel.app)
 
-## 📋 Prerequisites
+---
 
-- Node.js 18+ and npm
-- A Neon database (free tier available at https://neon.tech)
-- (Optional) Vercel account for deployment
+## Features
 
-## 🛠️ Setup
+- 🎯 **Icon Board** — tap icons to build sentences across 6 AAC categories
+- ⌨️ **Text → Icons** — type a word and it auto-converts to matching icons
+- 🎤 **Speech → Icons** — speak and your words become icons instantly
+- 🖼️ **Custom Icons** — upload your own images as personal AAC symbols
+- 🔊 **Text-to-Speech** — built sentence is spoken aloud via Web Speech API
+- 🌍 **Multilingual** — English and Norwegian, with instant switching
+- 🌙 **Dark Mode** — full dark theme support
+- 📱 **PWA** — installable, works offline, mobile-first
+- 👥 **Multi-role accounts** — Child, Guardian, Therapist, Teacher
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+---
 
-2. **Set up environment variables:**
-   
-   Copy `.env.example` to `.env.local` and fill in your values:
-   
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Required variables:
-   - `DATABASE_URL`: Your Neon Postgres connection string
-   - `NEXTAUTH_SECRET`: Generate with `openssl rand -base64 32`
-   - `NEXTAUTH_URL`: `http://localhost:3000` for development
-   - `BLOB_READ_WRITE_TOKEN`: Your Vercel Blob token (optional for now)
+## Tech Stack
 
-3. **Set up the database:**
-   
-   Push the schema to your database:
-   ```bash
-   npx drizzle-kit push
-   ```
+| | |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| State | Redux Toolkit |
+| Auth | NextAuth.js v5 |
+| Database | Neon Serverless Postgres (Drizzle ORM) |
+| Storage | Vercel Blob |
+| Offline | IndexedDB (idb) |
+| PWA | @ducanh2912/next-pwa |
+| Deployment | Vercel |
 
-4. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
+---
 
-5. **Open your browser:**
-   
-   Navigate to [http://localhost:3000](http://localhost:3000)
+## Getting Started
 
-## 📁 Project Structure
+### 1. Clone and install
 
-```
-pictalk-v2/
-├── src/
-│   ├── app/                    # Next.js app router
-│   │   ├── (auth)/            # Auth routes (login, register)
-│   │   ├── (app)/             # Protected app routes (dashboard)
-│   │   ├── api/               # API routes
-│   │   ├── layout.tsx         # Root layout with providers
-│   │   └── page.tsx           # Landing page
-│   ├── components/
-│   │   ├── features/          # Feature-specific components
-│   │   ├── layout/            # Layout components (Header, Nav)
-│   │   ├── providers/         # Context providers
-│   │   └── ui/                # Reusable UI components
-│   ├── lib/
-│   │   ├── auth/              # NextAuth configuration
-│   │   ├── db/                # Database schema and client
-│   │   ├── offline/           # IndexedDB for offline storage
-│   │   ├── storage/           # Vercel Blob utilities
-│   │   └── utils/             # Utilities, validators, constants
-│   ├── store/
-│   │   ├── slices/            # Redux slices
-│   │   ├── api/               # RTK Query API definitions
-│   │   └── index.ts           # Store configuration
-│   ├── types/                 # TypeScript type definitions
-│   └── hooks/                 # Custom React hooks
-├── public/                     # Static assets
-├── drizzle/                    # Database migrations
-└── tests/                      # Test files
-```
-
-## 🎯 Features
-
-### Implemented ✅
-- **Authentication** (login/register)
-- **Multilingual Support** (English + Norwegian)
-  - Client-side i18n with React Context
-  - 90+ icon translations
-  - Category translations
-  - Full UI translation coverage
-  - localStorage persistence
-- **Database schema** with 8 tables
-- **Redux store** with 4 slices
-- **Text-to-Icons** auto-conversion
-- **Offline storage** with IndexedDB
-- **PWA configuration** with manifest
-- **Responsive design** with Tailwind
-- **Dark mode support**
-- **Accessibility features** (WCAG 2.1 AAA)
-
-### In Progress 🚧
-- Communication interface (partially complete)
-- Icon management
-- Device pairing (QR codes)
-- Speech-to-Icons integration
-- Offline sync engine
-
-### Planned 📝
-- Additional languages (Spanish, French, etc.)
-- Custom icon upload
-- Session logging and analytics
-- Progressive enhancement
-- Native app wrapper (Capacitor/Tauri)
-
-### AI-Powered Features 🤖 (Future)
-**Offline-First Architecture:**
-- **Smart Icon Suggestions** - Local ML model predicts next icon (works offline)
-- **Pattern Learning** - User-specific patterns stored in IndexedDB
-- **Sentence Completion** - Local patterns + cloud AI enhancement
-- **Contextual Awareness** - Time/location-based suggestions (offline)
-- **Voice Personalization** - Web Speech API + custom TTS
-
-**Cloud Enhancement (Optional):**
-- **Multi-Language Translation** - Cached + Claude API for new translations
-- **Advanced Reasoning** - Claude API for complex sentence generation
-- **Learning Analytics** - Sync patterns for therapist insights
-- **Model Updates** - Download improved ML models when online
-
-**Technology Stack:**
-- TensorFlow.js / ONNX Runtime Web (browser ML)
-- IndexedDB (model & pattern storage)
-- Claude API (Anthropic) for advanced features
-- Web Speech API (native TTS)
-
-## 🌍 Internationalization (i18n)
-
-### Current Implementation
-
-**Architecture**: Client-side i18n using React Context API
-
-**Supported Languages**:
-- 🇬🇧 English (default)
-- 🇳🇴 Norwegian (Norsk)
-
-**Translation Coverage**:
-- UI components (buttons, labels, placeholders, hints)
-- 90+ icon names (e.g., Water→Vann, Play→Leke, Happy→Glad)
-- Category labels (Needs→Behov, Actions→Handlinger, etc.)
-- Speech synthesis (text-to-speech in selected language)
-
-**Features**:
-- Language switcher in top navigation bar
-- Instant language switching (no page reload)
-- localStorage persistence (language choice saved)
-- No routing changes (URLs remain `/communicate`, not `/en/communicate`)
-
-**Files**:
-- `src/contexts/LanguageContext.tsx` - Language provider and translations
-- `src/components/common/LanguageSwitcher.tsx` - Language toggle UI
-
-### ⚠️ Important: next-intl Issues (Documented)
-
-**Problem**: We initially attempted to implement i18n using `next-intl` library with Next.js 15 App Router.
-
-**Issues Encountered**:
-1. **Routing Complexity**: Required `[locale]` dynamic segments in all routes
-2. **Middleware Conflicts**: Middleware configuration caused persistent 404 errors
-3. **Build Failures**: Over 200+ messages of debugging without resolution
-4. **App Router Incompatibility**: next-intl's server-side approach conflicted with Next.js 15's App Router patterns
-
-**Resolution**: Complete removal of next-intl and middleware.ts, replaced with simple client-side React Context approach.
-
-**Lesson Learned**: For AAC apps requiring instant language switching without routing complexity, client-side i18n is more reliable and performant than server-side solutions with Next.js 15.
-
-**If you need to add more languages**:
-1. Add language to `Language` type in `LanguageContext.tsx`
-2. Add translation dictionary with all keys
-3. Add language button to `LanguageSwitcher.tsx`
-4. No routing changes needed!
-
-## 🧪 Testing
-
-Run tests:
 ```bash
-npm test
+git clone https://github.com/jozefff1/Pictalc-c6b9d.git
+cd Pictalc-c6b9d
+npm install
 ```
 
-Run E2E tests:
+### 2. Configure environment variables
+
+Copy the example and fill in your values:
+
 ```bash
-npm run test:e2e
+cp .env.example .env.local
 ```
-
-## 🚢 Deployment
-
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Import project in Vercel dashboard
-3. Add environment variables in Vercel settings
-4. Deploy!
-
-The app will automatically be configured as a PWA and work offline.
-
-## 📝 Environment Variables
 
 | Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | Neon Postgres connection string | Yes |
-| `NEXTAUTH_SECRET` | Secret for JWT encryption | Yes |
-| `NEXTAUTH_URL` | App URL (with protocol) | Yes |
-| `BLOB_READ_WRITE_TOKEN` | Vercel Blob storage token | No* |
+|---|---|---|
+| `DATABASE_URL` | Neon Postgres pooled connection string | ✅ |
+| `AUTH_SECRET` | Random secret for JWT (`openssl rand -base64 32`) | ✅ |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token (for custom icon uploads) | ✅ |
+| `NEXTAUTH_URL` | `http://localhost:3000` for local dev | Dev only |
+| `NEXT_PUBLIC_APP_URL` | Public app URL | Optional |
 
-\* Required only for custom icon uploads
+> **Note**: This project uses **NextAuth.js v5**. The secret variable is `AUTH_SECRET`, not `NEXTAUTH_SECRET`.
 
-## 🤝 Contributing
+### 3. Push database schema
 
-This is a passion project to help children with communication challenges. Contributions are welcome!
+```bash
+npm run db:push
+```
 
-## 📄 License
+### 4. Run development server
 
-MIT
+```bash
+npm run dev
+```
 
-## 🙏 Acknowledgments
+Open [http://localhost:3000](http://localhost:3000).
 
-Built with love for children with communication challenges and their families.
+---
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── (auth)/              # Login, Register
+│   ├── (app)/
+│   │   ├── communicate/     # Main AAC board
+│   │   └── dashboard/       # User dashboard + custom icons
+│   ├── api/
+│   │   ├── auth/            # NextAuth + registration API
+│   │   └── icons/           # Custom icon upload/fetch API
+│   └── page.tsx             # Landing page
+├── components/
+│   ├── features/            # AAC board, sentence builder, icon upload
+│   ├── common/              # Language switcher
+│   └── layout/              # Header
+├── lib/
+│   ├── ai/                  # Icon matcher + keyword maps (EN/NO)
+│   ├── auth/                # NextAuth v5 config
+│   ├── data/icons.ts        # Built-in icon database
+│   ├── db/                  # Drizzle client + schema (8 tables)
+│   └── services/            # Web Speech API wrapper
+├── contexts/
+│   └── LanguageContext.tsx  # i18n: EN + NO (React Context)
+└── store/                   # Redux slices (auth, communication, pairing, ui)
+```
+
+---
+
+## Database Schema
+
+8 tables: `users`, `devices`, `pairings`, `pairing_requests`, `messages`, `communication_sessions`, `user_preferences`, `custom_icons`
+
+Push schema to your database:
+```bash
+npm run db:push
+```
+
+Open Drizzle Studio to inspect data:
+```bash
+npm run db:studio
+```
+
+---
+
+## Internationalization
+
+Pictalk uses a **client-side React Context** for translations (English + Norwegian).
+
+- Language choice persists via `localStorage`
+- Instant switching — no page reload
+- Icon keyword maps are locale-aware (`src/lib/ai/keywordMappings/`)
+
+> ⚠️ Do NOT use `next-intl`. It has persistent incompatibilities with Next.js 15+ App Router. See `docs/i18n.md` for full context.
+
+To add a new language:
+1. Add to `Language` type in `src/contexts/LanguageContext.tsx`
+2. Add translation dictionary
+3. Add keyword map in `src/lib/ai/keywordMappings/<lang>.ts`
+4. Add button to `src/components/common/LanguageSwitcher.tsx`
+
+---
+
+## Deployment (Vercel)
+
+1. Push to GitHub
+2. Import into Vercel — **no Root Directory setting needed** (Next.js at repo root)
+3. Add environment variables in Vercel → Settings → Environment Variables:
+   - `DATABASE_URL`
+   - `AUTH_SECRET`
+   - `BLOB_READ_WRITE_TOKEN`
+4. Deploy ✅
+
+---
+
+## Documentation
+
+| File | Description |
+|---|---|
+| `PROJECT_OVERVIEW.md` | Architecture, schema, feature status |
+| `PLAN.md` | Phased development roadmap |
+| `SUGGESTIONS.md` | Improvement ideas and technical recommendations |
+| `CHANGELOG.md` | Version history |
+| `SETUP.md` | Quick setup and troubleshooting guide |
+| `docs/i18n.md` | Comprehensive i18n guide |
+
+---
+
+## Roadmap
+
+- [ ] Email verification + password reset
+- [ ] Favourite phrases (save/load sentences)
+- [ ] Voice + accessibility preferences UI
+- [ ] ARASAAC pictogram integration (30,000+ professional AAC symbols)
+- [ ] Device pairing via QR code (guardian ↔ child)
+- [ ] Full offline sync (IndexedDB + background sync)
+- [ ] Open Board Format (OBF/OBZ) import/export
+- [ ] Switch access / scanning mode
+- [ ] iOS/Android App Store via Capacitor
+
+See [`PLAN.md`](./PLAN.md) for the full phased roadmap.
+
+---
+
+## Contributing
+
+Pictalk is a passion project to help children with communication challenges and their families. Contributions — bug fixes, translations, new icons, accessibility improvements — are very welcome.
+
+---
+
+## License
+
+MIT — free to use, modify, and distribute.
+
+---
+
+## Acknowledgements
+
+Built with love for children who communicate differently. 💙
+
+Inspired by the global AAC community and open-source tools like [Cboard](https://www.cboard.io/), [LetMeTalk](https://letstalkit.de/), and the [ARASAAC](https://arasaac.org/) pictogram library.
