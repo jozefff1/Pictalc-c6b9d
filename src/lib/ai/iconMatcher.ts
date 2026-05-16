@@ -41,12 +41,16 @@ export function matchTextToIcons(
   
   const combinedDatabase = [...ICON_DATABASE, ...customIcons];
 
+  // Words to skip entirely (stop words that cause false positives)
+  const STOP_WORDS = new Set(['i', 'a', 'an', 'to', 'the', 'of', 'and', 'or', 'is', 'it', 'in', 'on', 'at', 'by', 'for', 'with', 'as', 'be', 'was', 'are']);
+
   // Check each icon for matches
   for (const icon of combinedDatabase) {
     const keywords = KEYWORD_MAP[icon.id] || [icon.id, icon.name.toLowerCase()];
     
-    // Check for exact matches first
+    // Exact match pass — any word exactly in the keyword list
     for (const word of words) {
+      if (STOP_WORDS.has(word)) continue; // never exact-match stop words
       if (keywords.includes(word)) {
         matches.push({
           icon,
@@ -57,14 +61,20 @@ export function matchTextToIcons(
       }
     }
 
-    // If no exact match, check for partial matches
+    // Partial match pass — only if no exact match found
     if (!matches.some(m => m.icon.id === icon.id)) {
       for (const keyword of keywords) {
+        if (keyword.length < 4) continue; // skip very short keywords to avoid false substrings
         for (const word of words) {
-          if (keyword.includes(word) || word.includes(keyword)) {
+          if (STOP_WORDS.has(word)) continue; // never partial-match stop words
+          if (word.length < 3) continue;      // skip very short input words
+          // word must share a meaningful substring - require the match to cover >50% of both strings
+          const wordInKeyword = keyword.includes(word) && word.length >= 4;
+          const keywordInWord = word.includes(keyword) && keyword.length >= 4;
+          if (wordInKeyword || keywordInWord) {
             matches.push({
               icon,
-              confidence: 0.7,
+              confidence: 0.6,
               matchType: 'partial',
             });
             break;

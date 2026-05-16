@@ -53,17 +53,17 @@ export default async function DashboardPage() {
             </p>
           </Link>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <Link href="/dashboard/history" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">📊</span>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Communication History</h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              View your communication history
+              Review past sentences and replay them
             </p>
-          </div>
+          </Link>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <Link href="/dashboard/settings" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">⚙️</span>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Settings</h3>
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
             <p className="text-gray-600 dark:text-gray-400 text-sm">
               Customize your experience
             </p>
-          </div>
+          </Link>
 
           <Link href="/dashboard/icons" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow border-2 border-dashed border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-2">

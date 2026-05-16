@@ -49,9 +49,12 @@ export default async function AppLayout({
             <LanguageSwitcher />
             
             <div className="hidden sm:flex items-center gap-2 text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
+              <Link
+                href="/dashboard/profile"
+                className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
+              >
                 {session.user?.name}
-              </span>
+              </Link>
               <span className="text-gray-400 dark:text-gray-600">•</span>
               <span className="text-gray-500 dark:text-gray-500 capitalize">
                 {session.user?.role}

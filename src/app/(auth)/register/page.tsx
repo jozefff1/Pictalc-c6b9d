@@ -85,8 +85,9 @@ export default function RegisterPage() {
         return;
       }
 
-      // Redirect to login page
-      router.push('/login?registered=true');
+      // Redirect to email verification pending page
+      const encodedEmail = encodeURIComponent(formData.email);
+      router.push(`/verify-email?email=${encodedEmail}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Network error – could not reach the server';
       setError(message);

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 import { db } from '@/lib/db/client';
 import { users, userPreferences } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { sendVerificationEmail } from '@/lib/email/resend';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(255),
@@ -61,6 +63,10 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Generate email verification token (32 random bytes → 64-char hex)
+    const verificationToken = randomBytes(32).toString('hex');
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     // Insert user
     const [newUser] = await db
       .insert(users)
@@ -69,14 +75,25 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         role,
+        emailVerified: false,
+        verificationToken,
+        verificationTokenExpiry,
       })
       .returning({ id: users.id, email: users.email, name: users.name });
 
     // Create default preferences for the new user
     await db.insert(userPreferences).values({ userId: newUser.id });
 
+    // Send verification email (non-blocking — if it fails the account is still created)
+    try {
+      await sendVerificationEmail(newUser.email, newUser.name, verificationToken);
+    } catch (emailError) {
+      console.error('[register] Failed to send verification email:', emailError);
+      // Account is created; user can request a resend later
+    }
+
     return NextResponse.json(
-      { message: 'Account created successfully', userId: newUser.id },
+      { message: 'Account created. Check your email to verify your address.', userId: newUser.id },
       { status: 201 }
     );
   } catch (error) {

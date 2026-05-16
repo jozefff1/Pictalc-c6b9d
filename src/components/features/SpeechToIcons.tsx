@@ -9,7 +9,7 @@ import { addIconToSentence } from '@/store/slices/communicationSlice';
 import type { IconMatch } from '@/lib/ai/iconMatcher';
 
 export default function SpeechToIcons() {
-  const { tIcon } = useLanguage();
+  const { tIcon, language } = useLanguage();
   const dispatch = useAppDispatch();
   const customIcons = useAppSelector((state) => state.communication.customIcons);
   const [isListening, setIsListening] = useState(false);
@@ -22,27 +22,21 @@ export default function SpeechToIcons() {
   useEffect(() => {
     if (isSpeechRecognitionSupported()) {
       try {
+        const langCode = language === 'no' ? 'nb-NO' : 'en-US';
         const rec = new SpeechRecognizer({
-          lang: 'en-US',
+          lang: langCode,
           continuous: false,
           interimResults: true,
         });
         setRecognizer(rec);
+        return () => { rec.abort(); };
       } catch {
         setError('Speech recognition not available');
       }
     } else {
       setError('Speech recognition not available');
     }
-
-    // Cleanup function
-    return () => {
-      if (recognizer) {
-        recognizer.abort();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [language]);
 
   const handleStartListening = () => {
     if (!recognizer) {
@@ -64,15 +58,15 @@ export default function SpeechToIcons() {
           // Auto-convert to icons
           const words = text.toLowerCase().trim().split(/\s+/);
           words.forEach((word) => {
-            const results = matchTextToIcons(word, 1, 'en', customIcons);
-            if (results.length > 0 && results[0].confidence >= 0.7) {
+            const results = matchTextToIcons(word, 1, language, customIcons);
+            if (results.length > 0 && results[0].confidence >= 0.3) {
               dispatch(addIconToSentence(results[0].icon));
             }
           });
           
           // Show additional suggestions for unmatched words
-          const allMatches = matchTextToIcons(text, 12, 'en', customIcons);
-          const suggestions = allMatches.filter(match => match.confidence < 0.7 || match.matchType !== 'exact');
+          const allMatches = matchTextToIcons(text, 12, language, customIcons);
+          const suggestions = allMatches.filter(match => match.confidence < 1.0);
           setMatches(suggestions.slice(0, 6));
         } else {
           setInterimTranscript(text);

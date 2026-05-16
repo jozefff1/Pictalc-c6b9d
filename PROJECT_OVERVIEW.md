@@ -37,6 +37,7 @@ Augmentative and Alternative Communication (AAC) refers to all forms of communic
 | PWA | `@ducanh2912/next-pwa` |
 | Deployment | Vercel |
 | i18n | Custom React Context (client-side) |
+| Email | Resend (planned) |
 
 ---
 
@@ -46,7 +47,7 @@ Augmentative and Alternative Communication (AAC) refers to all forms of communic
 Root
 ├── src/
 │   ├── app/
-│   │   ├── (auth)/                  # Login, Register pages
+│   │   ├── (auth)/                  # Login, Register, Verify-email, Forgot/Reset-password pages
 │   │   ├── (app)/                   # Protected routes
 │   │   │   ├── communicate/         # Main AAC board
 │   │   │   └── dashboard/           # User dashboard + icons
@@ -54,7 +55,13 @@ Root
 │   │   ├── api/
 │   │   │   ├── auth/[...nextauth]/  # NextAuth handler
 │   │   │   ├── auth/register/       # Registration API
-│   │   │   └── icons/               # Custom icon API (Blob + DB)
+│   │   │   ├── auth/verify-email/   # Email token verification API
+│   │   │   ├── auth/forgot-password/ # Request password reset email
+│   │   │   ├── auth/reset-password/  # Validate token + save new password
+│   │   │   ├── icons/               # Custom icon API (Blob + DB)
+│   │   │   ├── sessions/            # Communication session log API
+│   │   │   ├── preferences/         # Voice + theme preferences API
+│   │   │   └── profile/             # User profile read/update API
 │   │   ├── layout.tsx               # Root layout
 │   │   └── page.tsx                 # Landing page
 │   ├── components/
@@ -86,8 +93,7 @@ Root
 │   │   └── LanguageContext.tsx      # i18n: EN + NO translations
 │   ├── store/
 │   │   ├── slices/
-│   │   │   ├── authSlice            # Auth state
-│   │   │   ├── communicationSlice   # Icons, sentence, customIcons
+│   │   │   ├── communicationSlice   # Icons, sentence, favoritePhrases, customIcons
 │   │   │   ├── pairingSlice         # Device pairing state
 │   │   │   └── uiSlice             # Theme, modals
 │   │   └── index.ts                 # Redux store setup
@@ -112,6 +118,7 @@ messages             → Communication history between users
 communication_sessions → Icon sentence session logs
 user_preferences     → Per-user settings (theme, language, TTS)
 custom_icons         → User-uploaded icon images (Blob URL + metadata)
+password_history     → Last 5 password hashes per user (prevents password reuse)
 ```
 
 ---
@@ -129,9 +136,18 @@ custom_icons         → User-uploaded icon images (Blob URL + metadata)
 | Custom icon upload (Vercel Blob) | ✅ |
 | Custom icons integrated into icon matcher | ✅ |
 | English + Norwegian UI and keyword matching | ✅ |
+| Language auto-detection (navigator.language) | ✅ |
 | Dark mode | ✅ |
 | PWA (installable) | ✅ |
-| Offline-first IndexedDB storage | 🚧 Partial |
+| Voice settings UI (speed, pitch) | ✅ |
+| User profile page (view / edit name) | ✅ |
+| Favourite phrases with IDB persistence | ✅ |
+| Communication sessions saved locally (IDB-first) | ✅ |
+| Offline-first IndexedDB storage | ✅ |
+| Email verification (Resend) | ✅ |
+| Password reset flow (Resend) | ✅ |
+| Password history (prevent reuse of last 5) | ✅ |
+| Forgot-password rejects unknown emails (404) | ✅ |
 | Device pairing (QR code) | ❌ Not started |
 | Guardian dashboard / analytics | ❌ Not started |
 | ARASAAC integration | ❌ Not started |
@@ -141,6 +157,11 @@ custom_icons         → User-uploaded icon images (Blob URL + metadata)
 ## Known Decisions & Constraints
 
 - **No `next-intl`**: Attempted and abandoned after persistent failures with Next.js App Router. Client-side React Context i18n is used instead. Do NOT reintroduce `next-intl`.
-- **NextAuth v5**: Uses `AUTH_SECRET` env var (not `NEXTAUTH_SECRET`). `trustHost: true` is required for Vercel.
+- **NextAuth v5**: Uses `AUTH_SECRET` env var (not `NEXTAUTH_SECRET`). `trustHost: true` is required for Vercel. Auth state is owned entirely by NextAuth — no Redux `authSlice`.
+- **No Firebase**: Firebase was removed. Deployment is Vercel, database is Neon Postgres. All Firebase workflow files have been deleted.
+- **Forgot-password validates email**: The `/api/auth/forgot-password` endpoint returns a 404 error if the submitted email is not registered. Reset links are only sent to verified, existing accounts.
+- **Password history**: The `password_history` table stores the last 5 hashes per user. On reset, the new password is checked against the current password and all stored history. Reuse returns "You cannot reuse a previous password."
+- **Email via Resend**: Email verification and password reset will use [Resend](https://resend.com). Do NOT use Nodemailer or Firebase Auth.
+- **Offline-first architecture**: IndexedDB (via `idb`) is the primary storage for sessions and favourite phrases. The DB (Neon) acts as cloud backup and research/analytics layer.
 - **Emoji symbols for built-in icons**: The built-in icon database uses emoji as symbols. Custom icons use real images via Vercel Blob.
 - **Keyword-based icon matching**: The current matcher (`iconMatcher.ts`) is keyword/string based. ML embeddings are planned for a future phase.

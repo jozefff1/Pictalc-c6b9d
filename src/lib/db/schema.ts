@@ -12,6 +12,10 @@ export const users = pgTable('users', {
   role: varchar('role', { length: 50 }).notNull(), // child, guardian, therapist, teacher
   avatar: text('avatar'),
   emailVerified: boolean('email_verified').default(false),
+  verificationToken: text('verification_token'),
+  verificationTokenExpiry: timestamp('verification_token_expiry'),
+  resetToken: text('reset_token'),
+  resetTokenExpiry: timestamp('reset_token_expiry'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -170,6 +174,23 @@ export const userPreferencesRelations = relations(userPreferences, ({ one }) => 
 export const customIconsRelations = relations(customIcons, ({ one }) => ({
   user: one(users, {
     fields: [customIcons.userId],
+    references: [users.id],
+  }),
+}));
+
+/**
+ * Password History table - stores previous password hashes to prevent reuse
+ */
+export const passwordHistory = pgTable('password_history', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  passwordHash: text('password_hash').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const passwordHistoryRelations = relations(passwordHistory, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordHistory.userId],
     references: [users.id],
   }),
 }));

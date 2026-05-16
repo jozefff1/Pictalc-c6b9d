@@ -32,6 +32,9 @@ const translations: Record<Language, Record<string, string>> = {
     'communicate.tab.icons': 'Icons',
     'communicate.tab.type': 'Type',
     'communicate.tab.speech': 'Speech',
+    'communicate.recent': 'Recently Used',
+    'communicate.searchPlaceholder': 'Search icons...',
+    'communicate.searchEmpty': 'No icons found for',
     
     // Sentence Builder
     'sentence.title': 'Your Icon Sentence:',
@@ -183,6 +186,9 @@ const translations: Record<Language, Record<string, string>> = {
     'communicate.tab.icons': 'Ikoner',
     'communicate.tab.type': 'Skriv',
     'communicate.tab.speech': 'Tale',
+    'communicate.recent': 'Nylig brukt',
+    'communicate.searchPlaceholder': 'Søk etter ikoner...',
+    'communicate.searchEmpty': 'Ingen ikoner funnet for',
     
     // Sentence Builder
     'sentence.title': 'Din ikonsetning:',
@@ -320,16 +326,22 @@ const translations: Record<Language, Record<string, string>> = {
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  // Initialize state from localStorage directly to avoid setState in useEffect
-  const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('pictalk-language') as Language;
-      if (saved && (saved === 'en' || saved === 'no')) {
-        return saved;
+  // Always start with 'en' on the server to avoid SSR/client hydration mismatch.
+  // The real preference (localStorage / browser locale) is applied client-side in useEffect.
+  const [language, setLanguageState] = useState<Language>('en');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('pictalk-language') as Language;
+    if (saved === 'en' || saved === 'no') {
+      setLanguageState(saved);
+    } else {
+      // No saved preference — auto-detect from browser locale
+      const browserLang = navigator.language?.toLowerCase() || '';
+      if (browserLang.startsWith('nb') || browserLang.startsWith('nn') || browserLang.startsWith('no')) {
+        setLanguageState('no');
       }
     }
-    return 'en';
-  });
+  }, []);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
@@ -338,9 +350,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   // Sync HTML lang attribute with current language for accessibility
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      document.documentElement.lang = language;
-    }
+    document.documentElement.lang = language;
   }, [language]);
 
   const t = (key: string): string => {

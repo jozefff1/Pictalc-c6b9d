@@ -45,7 +45,19 @@ export default function IconGrid({ icons }: IconGridProps) {
           style={{ borderColor: `${icon.color}20` }}
           aria-label={`Select ${tIcon(icon.id)}`}
         >
-          <span className="text-4xl mb-2">{icon.symbol}</span>
+          {icon.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={icon.imageUrl}
+              alt={tIcon(icon.id)}
+              width={64}
+              height={64}
+              className="mb-2 object-contain"
+              loading="lazy"
+            />
+          ) : (
+            <span className="text-4xl mb-2">{icon.symbol}</span>
+          )}
           <span className="text-sm font-medium text-center text-gray-700 dark:text-gray-300">
             {tIcon(icon.id)}
           </span>

@@ -20,6 +20,12 @@ function LoginForm() {
     if (searchParams.get('registered') === 'true') {
       setSuccess('Account created successfully! Please log in.');
     }
+    if (searchParams.get('verified') === 'true') {
+      setSuccess('Email verified! You can now sign in.');
+    }
+    if (searchParams.get('reset') === 'true') {
+      setSuccess('Password updated! You can now sign in with your new password.');
+    }
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,7 +41,7 @@ function LoginForm() {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        setError('Invalid email or password. If you just registered, check your inbox for a verification email.');
       } else {
         router.push('/dashboard');
         router.refresh();
@@ -109,6 +115,14 @@ function LoginForm() {
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700"
               placeholder="••••••••"
             />
+            <div className="text-right mt-1">
+              <Link
+                href="/forgot-password"
+                className="text-xs text-primary hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           <button

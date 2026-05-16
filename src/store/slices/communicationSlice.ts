@@ -74,6 +74,12 @@ const communicationSlice = createSlice({
         state.sentence = phrase.icons;
       }
     },
+    setFavoritePhrases: (
+      state,
+      action: PayloadAction<Array<{ id: string; icons: Icon[]; sentence: string }>>
+    ) => {
+      state.favoritePhrases = action.payload;
+    },
   },
 });
 
@@ -88,6 +94,7 @@ export const {
   removeFavoritePhrase,
   loadFavoritePhrase,
   setCustomIcons,
+  setFavoritePhrases,
 } = communicationSlice.actions;
 
 export default communicationSlice.reducer;

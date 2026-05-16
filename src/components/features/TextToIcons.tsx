@@ -26,17 +26,12 @@ export default function TextToIcons() {
       const words = previousText.trim().split(/\s+/);
       const completedWord = words[words.length - 1].toLowerCase();
       
-      console.log('🔍 Auto-converting word:', completedWord);
-      
       // Try to match and add to sentence
       const results = matchTextToIcons(completedWord, 1, language, customIcons);
       
       if (results.length > 0 && results[0].confidence >= 0.3) {
-        console.log('✅ Adding icon to sentence:', results[0].icon);
         dispatch(addIconToSentence(results[0].icon));
         setAutoConverted(true);
-      } else {
-        console.log('❌ No match for:', completedWord);
       }
     }
     
@@ -56,7 +51,6 @@ export default function TextToIcons() {
   const handleConvertToIcons = () => {
     if (!inputText.trim()) return;
 
-    console.log('🔄 Converting text to icons:', inputText);
     setIsSearching(true);
     
     // Split text into words and match each word to icons
@@ -67,27 +61,21 @@ export default function TextToIcons() {
     // Try to match and add each word to the sentence
     words.forEach((word) => {
       const results = matchTextToIcons(word, 1, language, customIcons);
-      console.log(`🔍 Matching "${word}":`, results);
-      
+
       if (results.length > 0 && results[0].confidence >= 0.3) {
-        console.log(`✅ Adding icon to sentence:`, results[0].icon);
         dispatch(addIconToSentence(results[0].icon));
         convertedCount++;
       } else {
-        console.log(`❌ No match for "${word}"`);
         failedWords.push(word);
       }
     });
 
-    console.log(`📊 Conversion complete: ${convertedCount}/${words.length} words added to sentence`);
-    
     setIsSearching(false);
     setAutoConverted(convertedCount > 0);
     
     // Always clear input and suggestions after conversion
     setInputText('');
     setMatches([]);
-    console.log('✔️ Input and suggestions cleared');
   };
 
   const handleAddIcon = (match: IconMatch) => {
@@ -100,12 +88,9 @@ export default function TextToIcons() {
       if (inputText.trim()) {
         const words = inputText.trim().split(/\s+/);
         const lastWord = words[words.length - 1].toLowerCase();
-        console.log('🔍 Converting last word on Enter:', lastWord);
-        
         const results = matchTextToIcons(lastWord, 1, language, customIcons);
-        
+
         if (results.length > 0 && results[0].confidence >= 0.3) {
-          console.log('✅ Adding final icon to sentence:', results[0].icon);
           dispatch(addIconToSentence(results[0].icon));
           setAutoConverted(true);
         }

@@ -3,7 +3,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function LanguageSwitcher() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
 
   return (
     <div className="flex items-center gap-2">
@@ -18,6 +18,7 @@ export default function LanguageSwitcher() {
           }
         `}
         aria-label="Switch to English"
+        aria-pressed={language === 'en'}
       >
         🇬🇧 EN
       </button>
@@ -32,6 +33,7 @@ export default function LanguageSwitcher() {
           }
         `}
         aria-label="Switch to Norwegian"
+        aria-pressed={language === 'no'}
       >
         🇳🇴 NO
       </button>

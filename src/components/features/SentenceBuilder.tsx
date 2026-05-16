@@ -12,10 +12,13 @@ import {
   loadFavoritePhrase,
 } from '@/store/slices/communicationSlice';
 import { speakText, isSpeechSynthesisSupported } from '@/lib/services/speechService';
-import type { Icon } from '@/types/models';
+import { indexedDB } from '@/lib/offline/indexedDB';
+import { useSession } from 'next-auth/react';
+import type { Icon, CommunicationSession } from '@/types/models';
 
 export default function SentenceBuilder() {
-  const { t, tIcon } = useLanguage();
+  const { t, tIcon, language } = useLanguage();
+  const { data: session } = useSession();
   const dispatch = useAppDispatch();
   const sentence = useAppSelector((state) => state.communication.sentence);
   const speaking = useAppSelector((state) => state.communication.speaking);
@@ -23,11 +26,20 @@ export default function SentenceBuilder() {
   const [error, setError] = useState<string>('');
   const [showFavorites, setShowFavorites] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [voiceSpeed, setVoiceSpeed] = useState(1.0);
+  const [voicePitch, setVoicePitch] = useState(1.0);
 
-  // Debug logging
   useEffect(() => {
-    console.log('📝 SentenceBuilder - Sentence updated:', sentence.length, 'icons', sentence);
-  }, [sentence]);
+    fetch('/api/preferences')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.preferences) {
+          setVoiceSpeed(data.preferences.voiceSpeed ?? 1.0);
+          setVoicePitch(data.preferences.voicePitch ?? 1.0);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const sentenceText = sentence.map((icon: Icon) =>
     icon.id.startsWith('custom_') ? icon.name : tIcon(icon.id)
@@ -48,21 +60,38 @@ export default function SentenceBuilder() {
     dispatch(setSpeaking(true));
 
     try {
+      const langMap: Record<string, string> = { en: 'en-US', no: 'nb-NO' };
       await speakText(sentenceText, {
-        speed: 0.9,
-        pitch: 1.0,
+        speed: voiceSpeed,
+        pitch: voicePitch,
         volume: 1.0,
+        lang: langMap[language] ?? 'en-US',
       });
 
-      // Save session to database (non-critical)
-      try {
-        await fetch('/api/sessions', {
+      // Save session locally first (works offline)
+      const localSession: CommunicationSession = {
+        id: crypto.randomUUID(),
+        userId: session?.user?.id ?? 'local',
+        icons: sentence,
+        sentence: sentenceText,
+        timestamp: new Date(),
+        synced: false,
+      };
+      indexedDB.saveLocalSession(localSession).catch(() => {});
+
+      // Attempt cloud backup (non-critical, best-effort)
+      if (session?.user?.id) {
+        fetch('/api/sessions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ icons: sentence, sentence: sentenceText }),
-        });
-      } catch (saveError) {
-        console.error('Failed to save session:', saveError);
+        })
+          .then((res) => {
+            if (res.ok) {
+              indexedDB.markSessionSynced(localSession.id).catch(() => {});
+            }
+          })
+          .catch(() => {});
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Speech failed');

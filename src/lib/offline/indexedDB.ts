@@ -27,7 +27,7 @@ interface PictalkDB extends DBSchema {
   };
 }
 
-export type MetadataValue = string | number | boolean | Date | Record<string, unknown> | null;
+export type MetadataValue = string | number | boolean | Date | Record<string, unknown> | unknown[] | null;
 
 export interface QueueItem<T = unknown> {
   id: string;
@@ -189,6 +189,38 @@ class IndexedDBService {
   async deleteMetadata(key: string): Promise<void> {
     const db = await this.ensureDB();
     await db.delete(IDB_CONFIG.STORES.METADATA, key);
+  }
+
+  // ========== Favourite Phrases ==========
+
+  async saveFavoritePhrases(
+    phrases: Array<{ id: string; icons: unknown[]; sentence: string }>
+  ): Promise<void> {
+    await this.setMetadata('favorite_phrases', phrases as MetadataValue);
+  }
+
+  async getFavoritePhrases(): Promise<Array<{ id: string; icons: unknown[]; sentence: string }>> {
+    const data = await this.getMetadata('favorite_phrases');
+    return (data as Array<{ id: string; icons: unknown[]; sentence: string }>) ?? [];
+  }
+
+  // ========== Local Session (offline-first) ==========
+
+  async saveLocalSession(session: CommunicationSession): Promise<void> {
+    await this.saveSession(session);
+  }
+
+  async getUnsyncedSessions(): Promise<CommunicationSession[]> {
+    const all = await this.getAllSessions();
+    return all.filter((s) => !s.synced);
+  }
+
+  async markSessionSynced(id: string): Promise<void> {
+    const db = await this.ensureDB();
+    const session = await db.get(IDB_CONFIG.STORES.SESSIONS, id);
+    if (session) {
+      await db.put(IDB_CONFIG.STORES.SESSIONS, { ...session, synced: true });
+    }
   }
 
   // ========== Utility ==========

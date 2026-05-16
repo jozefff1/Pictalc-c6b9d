@@ -1,7 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { baseApi } from './api/baseApi';
-import authReducer from './slices/authSlice';
 import communicationReducer from './slices/communicationSlice';
 import pairingReducer from './slices/pairingSlice';
 import uiReducer from './slices/uiSlice';
@@ -9,7 +8,6 @@ import uiReducer from './slices/uiSlice';
 export const store = configureStore({
   reducer: {
     [baseApi.reducerPath]: baseApi.reducer,
-    auth: authReducer,
     communication: communicationReducer,
     pairing: pairingReducer,
     ui: uiReducer,
