@@ -254,6 +254,7 @@ export default async function Home() {
         <div className="container mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-500 text-sm">
           <div className="text-xl font-bold text-white">Pictalk</div>
           <nav aria-label="Footer navigation" className="flex gap-6">
+            <Link href="/about" className="hover:text-white transition-colors">About</Link>
             <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
             <Link href="/register" className="hover:text-white transition-colors">Sign Up</Link>
             <a
@@ -265,7 +266,7 @@ export default async function Home() {
               GitHub
             </a>
           </nav>
-          <p>&copy; 2026 Pictalk. All rights reserved.</p>
+          <p>&copy; 2026 <a href="mailto:info@arken.pro" className="hover:text-white transition-colors">Digital Ark AS</a>. All rights reserved.</p>
         </div>
       </footer>
     </div>

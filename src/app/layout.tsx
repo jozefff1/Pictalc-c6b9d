@@ -12,12 +12,51 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Pictalk',
+    default: 'Pictalk — AAC Communication App',
     template: '%s | Pictalk',
   },
-  description: 'AAC Communication App for Children',
+  description:
+    'Pictalk is a free AAC (Augmentative and Alternative Communication) app. Helps children, adults, and anyone with speech or communication challenges express themselves through pictograms and text-to-speech. Used by therapists, teachers, parents, and researchers.',
   applicationName: 'Pictalk',
+  keywords: [
+    'AAC',
+    'augmentative and alternative communication',
+    'communication app',
+    'autism',
+    'speech therapy',
+    'pictograms',
+    'ARASAAC',
+    'non-verbal',
+    'speech impairment',
+    'text to speech',
+    'assistive technology',
+    'PWA',
+    'offline',
+    'free',
+  ],
+  authors: [{ name: 'Pictalk' }],
+  creator: 'Pictalk',
+  publisher: 'Pictalk',
   manifest: '/manifest.json',
+  metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'https://pictalk.app'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'Pictalk',
+    title: 'Pictalk — AAC Communication App',
+    description:
+      'Free AAC app for anyone with speech or communication challenges. Icon-based sentences, text-to-speech, offline support, and research tools for therapists and educators.',
+    url: '/',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pictalk — AAC Communication App',
+    description:
+      'Free AAC app — pictograms, text-to-speech, offline, and research tools for therapists and educators.',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -25,6 +64,11 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
   },
 };
 
@@ -44,6 +88,50 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* JSON-LD structured data — SoftwareApplication schema for AI search engines */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'SoftwareApplication',
+              name: 'Pictalk',
+              operatingSystem: 'Web, iOS, Android (PWA)',
+              applicationCategory: 'HealthApplication',
+              applicationSubCategory: 'Augmentative and Alternative Communication',
+              description:
+                'Pictalk is a free, open-source AAC (Augmentative and Alternative Communication) Progressive Web App. It helps children, adults, and anyone with speech or communication challenges — including autism, cerebral palsy, apraxia, Down syndrome — express themselves through ARASAAC pictograms and text-to-speech synthesis. Used by speech-language therapists, teachers, parents, guardians, and researchers.',
+              url: process.env.NEXTAUTH_URL ?? 'https://pictalk.app',
+              offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+              featureList: [
+                '89+ ARASAAC pictograms across 6 categories',
+                'Icon-based sentence builder with text-to-speech',
+                'English and Norwegian language support',
+                'Custom icon upload',
+                'Offline-first Progressive Web App',
+                'Communication session logging',
+                'Research data export (anonymised CSV)',
+                'Consent-based pairing system for therapists and guardians',
+                'Dark mode, high contrast, reduce motion, adjustable text size',
+              ],
+              audience: {
+                '@type': 'Audience',
+                audienceType:
+                  'Children and adults with communication challenges, speech-language therapists, special education teachers, parents, guardians, and AAC researchers',
+              },
+              inLanguage: ['en', 'no'],
+              accessibilityFeature: [
+                'highContrast',
+                'largePrint',
+                'reduceMotion',
+                'textToSpeech',
+                'alternativeText',
+              ],
+              accessibilityHazard: 'none',
+              isAccessibleForFree: true,
+            }),
+          }}
+        />
         {/* Inline script: apply theme + accessibility classes before first paint to prevent flash */}
         <script
           dangerouslySetInnerHTML={{
