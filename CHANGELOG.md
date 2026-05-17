@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (May 17, 2026 — session 4)
+- **Premium landing page redesign** (`src/app/page.tsx`)
+  - Dark glassmorphism hero (`from-slate-900 via-blue-950`) with animated floating emoji icons
+  - Stats strip: 89+ icons · 2 languages · 100% offline · Free
+  - Live demo preview: mock communication board showing 8 icon tiles
+  - 6-column feature grid with coloured icon backgrounds
+  - Persona cards for Children, Parents & Guardians, Therapists & Teachers
+  - Full-width gradient CTA banner with "Create Free Account" button
+  - Dark footer with GitHub link
+- **Icon press animation** (`src/components/features/IconGrid.tsx`, `src/app/globals.css`)
+  - `@keyframes icon-tap` — spring-feel scale snap (0.87 → 1.07 → 1) over 300 ms
+  - `tappedId` state in `IconGrid` triggers `icon-tapped` class; resets after 350 ms
+  - Animation skipped automatically when `.reduce-motion` class is present
+- **Page enter transition** (`src/app/globals.css`, `src/app/(app)/layout.tsx`)
+  - `@keyframes page-enter` — 220 ms fade + 10 px upward slide
+  - `page-enter` class applied to `<main>` in the authenticated app shell
+  - Disabled under `.reduce-motion` and `prefers-reduced-motion`
+- **Floating hero animation** (`globals.css`)
+  - `@keyframes float-drift` — gentle 6 s ease-in-out drift for background emoji icons on landing page
+
 ### Added (May 17, 2026 — session 3)
 - **Dark mode toggle button** (`src/components/common/DarkModeToggle.tsx`)
   - Sun/moon SVG button in both app header and public landing header

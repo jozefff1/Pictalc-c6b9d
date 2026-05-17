@@ -69,7 +69,7 @@ export default async function AppLayout({
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 page-enter">{children}</main>
 
       {/* Optional Footer for App Pages */}
       <footer className="border-t border-border bg-white px-4 py-6 dark:bg-black">

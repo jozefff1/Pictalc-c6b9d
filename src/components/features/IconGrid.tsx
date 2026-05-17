@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { Icon } from '@/types/models';
 import { useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -12,9 +13,12 @@ interface IconGridProps {
 export default function IconGrid({ icons }: IconGridProps) {
   const { tIcon } = useLanguage();
   const dispatch = useAppDispatch();
+  const [tappedId, setTappedId] = useState<string | null>(null);
 
   const handleIconClick = (icon: Icon) => {
     dispatch(addIconToSentence(icon));
+    setTappedId(icon.id);
+    setTimeout(() => setTappedId(null), 350);
   };
 
   if (icons.length === 0) {
@@ -31,7 +35,7 @@ export default function IconGrid({ icons }: IconGridProps) {
         <button
           key={icon.id}
           onClick={() => handleIconClick(icon)}
-          className="
+          className={`
             flex flex-col items-center justify-center
             p-4 rounded-xl
             bg-white dark:bg-gray-800
@@ -41,7 +45,8 @@ export default function IconGrid({ icons }: IconGridProps) {
             transition-all duration-200
             min-h-25
             focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-          "
+            ${tappedId === icon.id ? 'icon-tapped' : ''}
+          `}
           style={{ borderColor: `${icon.color}20` }}
           aria-label={`Select ${tIcon(icon.id)}`}
         >

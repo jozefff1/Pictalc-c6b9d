@@ -2,7 +2,7 @@
 
 This document defines the phased development roadmap for Pictalk. Each phase builds on the previous and is scoped to be achievable in focused sprints.
 
-_Last updated: May 17, 2026 (session 3)_
+_Last updated: May 17, 2026 (session 4)_
 
 ---
 
@@ -59,7 +59,7 @@ _Last updated: May 17, 2026 (session 3)_
 - [x] Preferences page (`/dashboard/settings` — voice speed, pitch, test button) ✅
 - [x] Communication history — `/dashboard/history` page: own sessions for children; supervisor (teacher/therapist/guardian) gets a patient selector showing all paired users, with pairing-verified access control ✅
 - [x] **Manage custom icons** — delete (with confirmation overlay) and inline rename on each icon card in `/dashboard/icons` ✅
-- [ ] Accessibility preferences UI (high contrast, reduce motion, text size — in DB schema, not in settings page)
+- [x] **Accessibility preferences UI** — high contrast, reduce motion, text size + haptic toggles in `/dashboard/settings`; DB-persisted via PATCH `/api/preferences`; DOM changes applied immediately with `localStorage` fallback ✅
 
 ### 2.3 Communication Board UX
 - [x] Favourite phrases — save/load icon sentences ✅
@@ -73,9 +73,9 @@ _Last updated: May 17, 2026 (session 3)_
 ### 2.4 Visual Design Upgrade
 - [x] Landing page — hero + features section + footer (basic, functional)
 - [x] **Dark mode toggle** — sun/moon button in header; `@custom-variant dark` fix for Tailwind v4 class-based switching; FOUC-prevention inline script; localStorage persistence ✅
-- [ ] Premium landing page redesign (glassmorphism, live demo preview, testimonials)
-- [ ] Animated icon press feedback (scale + colour flash on tap)
-- [ ] Smooth page transitions
+- [x] **Premium landing page redesign** — glassmorphism dark hero, floating emoji icons, demo board preview, stats strip, 6-feature grid, persona cards (children / parents / therapists), gradient CTA banner, dark footer ✅
+- [x] **Animated icon press feedback** — `icon-tapped` CSS class + `@keyframes icon-tap` spring animation; `tappedId` state in `IconGrid.tsx` clears after 350 ms; respects `.reduce-motion` ✅
+- [x] **Smooth page transitions** — `@keyframes page-enter` fade+slide animation; `page-enter` class on app `<main>`; disabled under `.reduce-motion` ✅
 - [ ] Consistent design system (Tailwind tokens for spacing, typography)
 
 ---
