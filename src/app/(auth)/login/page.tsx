@@ -59,7 +59,7 @@ function LoginForm() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary mb-2">Welcome Back</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Log in to continue to Pictalk
+            Log in to continue to Snakke
           </p>
         </div>
 

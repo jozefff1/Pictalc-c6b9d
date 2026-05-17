@@ -27,9 +27,9 @@ function applyAccessibility(prefs: Prefs) {
   html.classList.toggle('normal-contrast', !prefs.highContrast);
   html.classList.toggle('reduce-motion', prefs.reduceMotion);
   html.style.fontSize = prefs.textSize === 1.0 ? '' : `${prefs.textSize * 100}%`;
-  localStorage.setItem('pictalk-high-contrast', String(prefs.highContrast));
-  localStorage.setItem('pictalk-reduce-motion', String(prefs.reduceMotion));
-  localStorage.setItem('pictalk-text-size', String(prefs.textSize));
+  localStorage.setItem('snakke-high-contrast', String(prefs.highContrast));
+  localStorage.setItem('snakke-reduce-motion', String(prefs.reduceMotion));
+  localStorage.setItem('snakke-text-size', String(prefs.textSize));
 }
 
 export default function SettingsPage() {

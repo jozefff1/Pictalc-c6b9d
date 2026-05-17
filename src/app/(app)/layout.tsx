@@ -43,7 +43,7 @@ export default async function AppLayout({
             href="/dashboard"
             className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity"
           >
-            Pictalk
+            Snakke
           </Link>
 
           <div className="flex items-center gap-4">
@@ -74,7 +74,7 @@ export default async function AppLayout({
       {/* Optional Footer for App Pages */}
       <footer className="border-t border-border bg-white px-4 py-6 dark:bg-black">
         <div className="container mx-auto text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>© {new Date().getFullYear()} Pictalk. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Snakke by Digital Ark AS. All rights reserved.</p>
         </div>
       </footer>
     </div>

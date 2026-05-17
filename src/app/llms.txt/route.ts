@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 
-const LLMS_TXT = `# Pictalk
+const LLMS_TXT = `# Snakke
 
-> Pictalk is a free, open-source Augmentative and Alternative Communication (AAC) Progressive Web App built with Next.js. It helps individuals who have difficulty with verbal communication — including children with autism, cerebral palsy, apraxia, Down syndrome, or acquired speech impairments — express themselves through pictograms and text-to-speech synthesis.
+> Snakke is a free, open-source Augmentative and Alternative Communication (AAC) Progressive Web App built with Next.js. It helps individuals who have difficulty with verbal communication — including children with autism, cerebral palsy, apraxia, Down syndrome, or acquired speech impairments — express themselves through pictograms and text-to-speech synthesis.
 
 ## What is AAC?
 
-Augmentative and Alternative Communication (AAC) refers to all forms of communication other than verbal speech. AAC tools like Pictalk are used by speech-language therapists, special education teachers, parents, and researchers to support communication development in non-verbal or minimally verbal individuals.
+Augmentative and Alternative Communication (AAC) refers to all forms of communication other than verbal speech. AAC tools like Snakke are used by speech-language therapists, special education teachers, parents, and researchers to support communication development in non-verbal or minimally verbal individuals.
 
-## Who is Pictalk for?
+## Who is Snakke for?
 
 - **Children and adults** with communication challenges who benefit from symbol-based communication boards
 - **Parents and guardians** who want to monitor and customise their child's communication vocabulary
@@ -31,7 +31,7 @@ Augmentative and Alternative Communication (AAC) refers to all forms of communic
 
 ## Privacy Model
 
-Pictalk is designed with privacy-first principles:
+Snakke is designed with privacy-first principles:
 - All communication sessions are **private by default** and never visible to supervisors unless the patient explicitly opts in
 - Patients choose exactly what to share (session history, usage statistics, research export) when accepting a pairing invitation
 - Consent can be revoked at any time
@@ -50,7 +50,7 @@ Pictalk is designed with privacy-first principles:
 ## Key Pages
 
 - / — Public landing page with feature overview and sign-up
-- /about — Detailed description of Pictalk's purpose, research use, and privacy approach
+- /about — Detailed description of Snakke's purpose, research use, and privacy approach
 - /communicate — Main AAC communication board (authenticated)
 - /dashboard — User dashboard with quick links
 - /dashboard/patients — Manage paired patients and participants

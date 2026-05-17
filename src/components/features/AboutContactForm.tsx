@@ -7,7 +7,7 @@ type Status = 'idle' | 'sending' | 'sent' | 'error';
 const RECIPIENT = 'info@arken.pro';
 
 const SUBJECTS = [
-  'General question about Pictalk',
+  'General question about Snakke',
   'Research collaboration',
   'Accessibility feedback',
   'Feature request',

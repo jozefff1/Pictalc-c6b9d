@@ -65,7 +65,7 @@ export default async function Home() {
             </h1>
 
             <p className="text-lg sm:text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Pictalk is a modern AAC app that helps children and individuals with
+              Snakke is a modern AAC app that helps children and individuals with
               communication challenges express themselves through icons and speech —
               online or offline.
             </p>
@@ -189,7 +189,7 @@ export default async function Home() {
         {/* ── Who is it for ────────────────────────────────── */}
         <section className="py-20 px-4 bg-gray-50 dark:bg-gray-900">
           <div className="container mx-auto max-w-5xl">
-            <h2 className="text-3xl sm:text-4xl font-bold text-center mb-3">Who is Pictalk for?</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-center mb-3">Who is Snakke for?</h2>
             <p className="text-gray-500 dark:text-gray-400 text-center mb-12">Designed around the people who use it every day.</p>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -252,7 +252,7 @@ export default async function Home() {
       {/* ── Footer ───────────────────────────────────────── */}
       <footer className="bg-gray-950 py-10 px-4">
         <div className="container mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-500 text-sm">
-          <div className="text-xl font-bold text-white">Pictalk</div>
+          <div className="text-xl font-bold text-white">Snakke</div>
           <nav aria-label="Footer navigation" className="flex gap-6">
             <Link href="/about" className="hover:text-white transition-colors">About</Link>
             <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>

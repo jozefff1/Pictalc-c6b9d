@@ -12,12 +12,12 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Pictalk — AAC Communication App',
-    template: '%s | Pictalk',
+    default: 'Snakke — AAC Communication App',
+    template: '%s | Snakke',
   },
   description:
-    'Pictalk is a free AAC (Augmentative and Alternative Communication) app. Helps children, adults, and anyone with speech or communication challenges express themselves through pictograms and text-to-speech. Used by therapists, teachers, parents, and researchers.',
-  applicationName: 'Pictalk',
+    'Snakke is a free AAC (Augmentative and Alternative Communication) app. Helps children, adults, and anyone with speech or communication challenges express themselves through pictograms and text-to-speech. Used by therapists, teachers, parents, and researchers.',
+  applicationName: 'Snakke',
   keywords: [
     'AAC',
     'augmentative and alternative communication',
@@ -34,18 +34,18 @@ export const metadata: Metadata = {
     'offline',
     'free',
   ],
-  authors: [{ name: 'Pictalk' }],
-  creator: 'Pictalk',
-  publisher: 'Pictalk',
+  authors: [{ name: 'Digital Ark AS' }],
+  creator: 'Digital Ark AS',
+  publisher: 'Digital Ark AS',
   manifest: '/manifest.json',
-  metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'https://pictalk.app'),
+  metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'https://snakke.app'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
-    siteName: 'Pictalk',
-    title: 'Pictalk — AAC Communication App',
+    siteName: 'Snakke',
+    title: 'Snakke — AAC Communication App',
     description:
       'Free AAC app for anyone with speech or communication challenges. Icon-based sentences, text-to-speech, offline support, and research tools for therapists and educators.',
     url: '/',
@@ -53,14 +53,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pictalk — AAC Communication App',
+    title: 'Snakke — AAC Communication App',
     description:
       'Free AAC app — pictograms, text-to-speech, offline, and research tools for therapists and educators.',
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Pictalk',
+    title: 'Snakke',
   },
   formatDetection: {
     telephone: false,
@@ -95,13 +95,13 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'SoftwareApplication',
-              name: 'Pictalk',
+              name: 'Snakke',
               operatingSystem: 'Web, iOS, Android (PWA)',
               applicationCategory: 'HealthApplication',
               applicationSubCategory: 'Augmentative and Alternative Communication',
               description:
-                'Pictalk is a free, open-source AAC (Augmentative and Alternative Communication) Progressive Web App. It helps children, adults, and anyone with speech or communication challenges — including autism, cerebral palsy, apraxia, Down syndrome — express themselves through ARASAAC pictograms and text-to-speech synthesis. Used by speech-language therapists, teachers, parents, guardians, and researchers.',
-              url: process.env.NEXTAUTH_URL ?? 'https://pictalk.app',
+                'Snakke is a free, open-source AAC (Augmentative and Alternative Communication) Progressive Web App. It helps children, adults, and anyone with speech or communication challenges — including autism, cerebral palsy, apraxia, Down syndrome — express themselves through ARASAAC pictograms and text-to-speech synthesis. Used by speech-language therapists, teachers, parents, guardians, and researchers.',
+              url: process.env.NEXTAUTH_URL ?? 'https://snakke.app',
               offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
               featureList: [
                 '89+ ARASAAC pictograms across 6 categories',
@@ -136,13 +136,13 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{
-var t=localStorage.getItem('pictalk-theme');
+var t=localStorage.getItem('snakke-theme');
 if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}
 else if(t==='light'){document.documentElement.classList.add('light')}
-if(localStorage.getItem('pictalk-high-contrast')==='true'){document.documentElement.classList.add('high-contrast')}
-else if(localStorage.getItem('pictalk-high-contrast')==='false'){document.documentElement.classList.add('normal-contrast')}
-if(localStorage.getItem('pictalk-reduce-motion')==='true'){document.documentElement.classList.add('reduce-motion')}
-var ts=localStorage.getItem('pictalk-text-size');if(ts){document.documentElement.style.fontSize=(parseFloat(ts)*100)+'%'}
+if(localStorage.getItem('snakke-high-contrast')==='true'){document.documentElement.classList.add('high-contrast')}
+else if(localStorage.getItem('snakke-high-contrast')==='false'){document.documentElement.classList.add('normal-contrast')}
+if(localStorage.getItem('snakke-reduce-motion')==='true'){document.documentElement.classList.add('reduce-motion')}
+var ts=localStorage.getItem('snakke-text-size');if(ts){document.documentElement.style.fontSize=(parseFloat(ts)*100)+'%'}
 }catch(e){}})()`,
           }}
         />

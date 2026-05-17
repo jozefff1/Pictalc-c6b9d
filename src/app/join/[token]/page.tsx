@@ -75,7 +75,7 @@ export default function JoinPage() {
           <div className="text-4xl mb-3">🤝</div>
           <h1 className="text-2xl font-bold">You&apos;ve been invited</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            Someone wants to connect with you on Pictalk. Review and choose what you&apos;re comfortable sharing before accepting.
+            Someone wants to connect with you on Snakke. Review and choose what you&apos;re comfortable sharing before accepting.
           </p>
         </div>
 

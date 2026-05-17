@@ -18,11 +18,11 @@ export default function DarkModeToggle() {
     if (next) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
-      localStorage.setItem('pictalk-theme', 'dark');
+      localStorage.setItem('snakke-theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('light');
-      localStorage.setItem('pictalk-theme', 'light');
+      localStorage.setItem('snakke-theme', 'light');
     }
   };
 

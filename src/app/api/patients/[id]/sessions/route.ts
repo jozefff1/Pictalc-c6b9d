@@ -96,7 +96,7 @@ export async function GET(request: NextRequest, { params }: Params) {
     return new NextResponse(lines.join('\n'), {
       headers: {
         'Content-Type': 'text/csv',
-        'Content-Disposition': `attachment; filename="pictalk-participant-${patientId.slice(0, 8)}.csv"`,
+        'Content-Disposition': `attachment; filename="snakke-participant-${patientId.slice(0, 8)}.csv"`,
       },
     });
   }

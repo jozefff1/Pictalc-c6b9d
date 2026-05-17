@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
 
   if (resendKey) {
     const safeSubject = subject
-      ? `[Pictalk] ${subject}`
-      : '[Pictalk] Contact form message';
+      ? `[Snakke] ${subject}`
+      : '[Snakke] Contact form message';
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${resendKey}`,
       },
       body: JSON.stringify({
-        from: 'Pictalk Contact <admin@arken.pro>',
+        from: 'Snakke Contact <admin@arken.pro>',
         to: [RECIPIENT],
         reply_to: email,
         subject: safeSubject,

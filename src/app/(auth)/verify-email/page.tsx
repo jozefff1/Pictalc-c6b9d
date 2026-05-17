@@ -91,7 +91,7 @@ function VerifyEmailContent() {
               Email verified!
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Your account is now active. You can sign in to Pictalk.
+              Your account is now active. You can sign in to Snakke.
             </p>
             <Link
               href="/login?verified=true"

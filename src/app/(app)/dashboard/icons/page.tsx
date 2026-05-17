@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { CustomIconUpload } from '@/components/features/CustomIconUpload';
 
 export const metadata: Metadata = {
-  title: 'Custom Icons | Pictalk',
+  title: 'Custom Icons | Snakke',
   description: 'Manage and upload custom AAC icons',
 };
 

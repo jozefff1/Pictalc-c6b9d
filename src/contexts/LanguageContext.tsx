@@ -17,7 +17,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 const translations: Record<Language, Record<string, string>> = {
   en: {
     // Common
-    'app.name': 'Pictalk',
+    'app.name': 'Snakke',
     'app.description': 'AAC Communication App for Children',
     
     // Navigation
@@ -27,7 +27,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.settings': 'Settings',
     
     // Communicate page
-    'communicate.title': 'Pictalk',
+    'communicate.title': 'Snakke',
     'communicate.subtitle': 'Select icons, type, or speak to communicate',
     'communicate.tab.icons': 'Icons',
     'communicate.tab.type': 'Type',
@@ -171,7 +171,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   no: {
     // Common
-    'app.name': 'Pictalk',
+    'app.name': 'Snakke',
     'app.description': 'AAC-kommunikasjonsapp for barn',
     
     // Navigation
@@ -181,7 +181,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.settings': 'Innstillinger',
     
     // Communicate page
-    'communicate.title': 'Pictalk',
+    'communicate.title': 'Snakke',
     'communicate.subtitle': 'Velg ikoner, skriv eller snakk for å kommunisere',
     'communicate.tab.icons': 'Ikoner',
     'communicate.tab.type': 'Skriv',
@@ -331,7 +331,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>('en');
 
   useEffect(() => {
-    const saved = localStorage.getItem('pictalk-language') as Language;
+    const saved = localStorage.getItem('snakke-language') as Language;
     if (saved === 'en' || saved === 'no') {
       setLanguageState(saved);
     } else {
@@ -345,7 +345,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('pictalk-language', lang);
+    localStorage.setItem('snakke-language', lang);
   };
 
   // Sync HTML lang attribute with current language for accessibility

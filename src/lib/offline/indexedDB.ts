@@ -5,7 +5,7 @@ import type { Message, CommunicationSession } from '@/types/models';
 /**
  * IndexedDB schema definition
  */
-interface PictalkDB extends DBSchema {
+interface SnakkeDB extends DBSchema {
   messages: {
     key: string;
     value: Message;
@@ -39,7 +39,7 @@ export interface QueueItem<T = unknown> {
 }
 
 class IndexedDBService {
-  private db: IDBPDatabase<PictalkDB> | null = null;
+  private db: IDBPDatabase<SnakkeDB> | null = null;
 
   /**
    * Initialize the IndexedDB database
@@ -47,7 +47,7 @@ class IndexedDBService {
   async init(): Promise<void> {
     if (this.db) return;
 
-    this.db = await openDB<PictalkDB>(IDB_CONFIG.NAME, IDB_CONFIG.VERSION, {
+    this.db = await openDB<SnakkeDB>(IDB_CONFIG.NAME, IDB_CONFIG.VERSION, {
       upgrade(db) {
         // Messages store
         if (!db.objectStoreNames.contains(IDB_CONFIG.STORES.MESSAGES)) {
@@ -88,7 +88,7 @@ class IndexedDBService {
   /**
    * Ensure database is initialized
    */
-  private async ensureDB(): Promise<IDBPDatabase<PictalkDB>> {
+  private async ensureDB(): Promise<IDBPDatabase<SnakkeDB>> {
     if (!this.db) {
       await this.init();
     }

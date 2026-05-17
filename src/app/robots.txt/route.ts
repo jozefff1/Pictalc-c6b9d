@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'https://pictalk.app';
+  const baseUrl = process.env.NEXTAUTH_URL ?? 'https://snakke.app';
 
   const body = `User-agent: *
 Allow: /

@@ -2,7 +2,7 @@
  * Application constants
  */
 
-export const APP_NAME = 'Pictalk';
+export const APP_NAME = 'Snakke';
 export const APP_DESCRIPTION = 'Augmentative and Alternative Communication (AAC) app for accessible communication';
 
 // API Routes
@@ -46,15 +46,15 @@ export const APP_ROUTES = {
 
 // Local Storage Keys
 export const STORAGE_KEYS = {
-  THEME: 'pictalk_theme',
-  USER_PREFERENCES: 'pictalk_preferences',
-  OFFLINE_QUEUE: 'pictalk_offline_queue',
-  LAST_SYNC: 'pictalk_last_sync',
+  THEME: 'snakke_theme',
+  USER_PREFERENCES: 'snakke_preferences',
+  OFFLINE_QUEUE: 'snakke_offline_queue',
+  LAST_SYNC: 'snakke_last_sync',
 } as const;
 
 // IndexedDB Configuration
 export const IDB_CONFIG = {
-  NAME: 'pictalk_db',
+  NAME: 'snakke_db',
   VERSION: 1,
   STORES: {
     MESSAGES: 'messages',

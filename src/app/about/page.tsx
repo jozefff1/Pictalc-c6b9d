@@ -6,26 +6,26 @@ import AboutContactForm from '@/components/features/AboutContactForm';
 export const metadata: Metadata = {
   title: 'About',
   description:
-    'Learn about Pictalk — a free AAC (Augmentative and Alternative Communication) app for children, adults, therapists, teachers, parents, and researchers. Built by Digital Ark AS.',
+    'Learn about Snakke — a free AAC (Augmentative and Alternative Communication) app for children, adults, therapists, teachers, parents, and researchers. Built by Digital Ark AS.',
   openGraph: {
-    title: 'About Pictalk — AAC Communication App',
+    title: 'About Snakke — AAC Communication App',
     description:
-      'Pictalk helps anyone with speech or communication challenges express themselves through pictograms and text-to-speech. Free, offline-capable, privacy-first.',
+      'Snakke helps anyone with speech or communication challenges express themselves through pictograms and text-to-speech. Free, offline-capable, privacy-first.',
   },
 };
 
 const SECTIONS = [
   {
-    id: 'what-is-pictalk',
-    heading: 'What is Pictalk?',
-    body: `Pictalk is a free, open-source Augmentative and Alternative Communication (AAC) Progressive Web App. It provides an icon-based communication board that lets users tap pictograms to build sentences, which are then spoken aloud using text-to-speech synthesis.
+    id: 'what-is-snakke',
+    heading: 'What is Snakke?',
+    body: `Snakke is a free, open-source Augmentative and Alternative Communication (AAC) Progressive Web App. It provides an icon-based communication board that lets users tap pictograms to build sentences, which are then spoken aloud using text-to-speech synthesis.
 
-AAC tools like Pictalk are used when verbal communication is difficult or impossible — for example in autism spectrum disorder, cerebral palsy, apraxia of speech, Down syndrome, acquired brain injury, or other conditions that affect speech production.`,
+AAC tools like Snakke are used when verbal communication is difficult or impossible — for example in autism spectrum disorder, cerebral palsy, apraxia of speech, Down syndrome, acquired brain injury, or other conditions that affect speech production.`,
   },
   {
-    id: 'who-uses-pictalk',
-    heading: 'Who is Pictalk for?',
-    body: `Pictalk is designed for a broad audience:
+    id: 'who-uses-snakke',
+    heading: 'Who is Snakke for?',
+    body: `Snakke is designed for a broad audience:
 
 **Individuals with communication challenges** — children and adults who benefit from symbol-based communication boards as a primary or supplementary communication method.
 
@@ -35,7 +35,7 @@ AAC tools like Pictalk are used when verbal communication is difficult or imposs
 
 **Teachers and special educators** — supporting students with AAC needs in the classroom, with tools for vocabulary customisation and progress monitoring.
 
-**Researchers and academics** — studying AAC usage patterns, vocabulary acquisition, and communication development. Pictalk supports anonymised, consent-based data export for research purposes.`,
+**Researchers and academics** — studying AAC usage patterns, vocabulary acquisition, and communication development. Snakke supports anonymised, consent-based data export for research purposes.`,
   },
   {
     id: 'features',
@@ -48,7 +48,7 @@ AAC tools like Pictalk are used when verbal communication is difficult or imposs
 
 **Custom icons**: Upload personal photos or drawings to create a personalised communication vocabulary.
 
-**Offline-first**: Pictalk is a Progressive Web App (PWA) that works fully offline once installed. Ideal for classrooms, clinics, and homes with unreliable internet.
+**Offline-first**: Snakke is a Progressive Web App (PWA) that works fully offline once installed. Ideal for classrooms, clinics, and homes with unreliable internet.
 
 **Session history**: All communication sessions are logged locally and optionally backed up to the cloud.
 
@@ -59,7 +59,7 @@ AAC tools like Pictalk are used when verbal communication is difficult or imposs
   {
     id: 'privacy',
     heading: 'Privacy & Data Ethics',
-    body: `Pictalk is built around a consent-first privacy model:
+    body: `Snakke is built around a consent-first privacy model:
 
 **Private by default.** All communication sessions are private unless the user explicitly marks them as shared. Supervisors never see private sessions.
 
@@ -67,14 +67,14 @@ AAC tools like Pictalk are used when verbal communication is difficult or imposs
 
 **Anonymised research export.** When a user allows data export, supervisors receive a CSV file containing only a participant ID — never the user's name or email address.
 
-**No ads. No tracking.** Pictalk does not serve ads, sell data, or use third-party tracking scripts.
+**No ads. No tracking.** Snakke does not serve ads, sell data, or use third-party tracking scripts.
 
 **GDPR-aligned.** Data is stored on EU-region infrastructure. Users can delete their account and all associated data at any time.`,
   },
   {
     id: 'technology',
     heading: 'Technology',
-    body: `Pictalk is built with modern, open web technologies:
+    body: `Snakke is built with modern, open web technologies:
 
 - **Framework**: Next.js 16 (App Router, TypeScript)
 - **Styling**: Tailwind CSS v4
@@ -89,8 +89,8 @@ Source code is available on GitHub under an open-source licence.`,
   },
   {
     id: 'research',
-    heading: 'Pictalk as a Research Tool',
-    body: `Pictalk was designed from the ground up to support clinical and academic AAC research:
+    heading: 'Snakke as a Research Tool',
+    body: `Snakke was designed from the ground up to support clinical and academic AAC research:
 
 **Session data**: Every communication session records the icons used, the resulting sentence, timestamp, and task type (free, structured, or assessment).
 
@@ -117,22 +117,22 @@ export default function AboutPage() {
               Built by Digital Ark AS
             </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-5 text-gray-900 dark:text-gray-50">
-              About Pictalk
+              About Snakke
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed max-w-2xl">
-              Pictalk is a free, privacy-first AAC (Augmentative and Alternative Communication) app
+              Snakke is a free, privacy-first AAC (Augmentative and Alternative Communication) app
               that helps anyone with speech or communication challenges express themselves — and
               gives therapists, teachers, and researchers the tools to support them.
             </p>
             {/* Machine-readable summary for AI crawlers */}
             <div className="sr-only" aria-hidden="false">
               <p>
-                Pictalk is an open-source Augmentative and Alternative Communication (AAC) app.
+                Snakke is an open-source Augmentative and Alternative Communication (AAC) app.
                 It provides an icon-based sentence builder with text-to-speech output,
                 supporting individuals with autism, cerebral palsy, apraxia, Down syndrome,
                 and acquired speech impairments. It is used by speech-language therapists,
                 special educators, parents, and academic researchers.
-                Pictalk is free, works offline, and is available as a Progressive Web App.
+                Snakke is free, works offline, and is available as a Progressive Web App.
                 Built with Next.js and deployed on Vercel. Contact: info@arken.pro. Company: Digital Ark AS.
               </p>
             </div>
@@ -201,7 +201,7 @@ export default function AboutPage() {
           <section id="contact" className="scroll-mt-20 mb-14">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Contact</h2>
             <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
-              Questions about Pictalk, research collaboration, accessibility feedback, or commercial
+              Questions about Snakke, research collaboration, accessibility feedback, or commercial
               licensing? Get in touch with the team at{' '}
               <strong className="text-gray-700 dark:text-gray-300">Digital Ark AS</strong>.
             </p>

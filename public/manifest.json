@@ -1,6 +1,6 @@
 {
-  "name": "Pictalk",
-  "short_name": "Pictalk",
+  "name": "Snakke",
+  "short_name": "Snakke",
   "description": "Augmentative and Alternative Communication (AAC) app for accessible communication",
   "start_url": "/",
   "display": "standalone",

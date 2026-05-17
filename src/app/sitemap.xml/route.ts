@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const base = process.env.NEXTAUTH_URL ?? 'https://pictalk.app';
+  const base = process.env.NEXTAUTH_URL ?? 'https://snakke.app';
   const now = new Date().toISOString();
 
   const urls = [

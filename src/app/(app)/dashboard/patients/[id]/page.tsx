@@ -64,7 +64,7 @@ export default function PatientDetailPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `pictalk-participant-${patientId.slice(0, 8)}.csv`;
+      a.download = `snakke-participant-${patientId.slice(0, 8)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {

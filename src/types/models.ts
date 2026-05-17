@@ -1,5 +1,5 @@
 /**
- * Core data models for Pictalk AAC application
+ * Core data models for Snakke AAC application
  */
 
 export type UserRole = 'child' | 'guardian' | 'therapist' | 'teacher';
