@@ -16,7 +16,7 @@ import { indexedDB } from '@/lib/offline/indexedDB';
 import { useSession } from 'next-auth/react';
 import type { Icon, CommunicationSession } from '@/types/models';
 
-export default function SentenceBuilder() {
+export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boolean }) {
   const { t, tIcon, language } = useLanguage();
   const { data: session } = useSession();
   const dispatch = useAppDispatch();
@@ -84,7 +84,12 @@ export default function SentenceBuilder() {
         fetch('/api/sessions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ icons: sentence, sentence: sentenceText }),
+          body: JSON.stringify({
+            icons: sentence,
+            sentence: sentenceText,
+            visibility: isPrivate ? 'private' : 'shared',
+            taskType: 'free',
+          }),
         })
           .then((res) => {
             if (res.ok) {

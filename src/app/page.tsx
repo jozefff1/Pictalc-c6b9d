@@ -58,7 +58,7 @@ export default async function Home() {
             </div>
 
             <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-6 text-white leading-[1.1]">
-              Every child deserves<br />
+              Anyone deserves<br />
               <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent">
                 a voice.
               </span>

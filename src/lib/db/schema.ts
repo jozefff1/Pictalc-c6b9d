@@ -40,7 +40,12 @@ export const pairings = pgTable('pairings', {
   guardianId: uuid('guardian_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   childId: uuid('child_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   status: varchar('status', { length: 50 }).notNull(), // pending, accepted, rejected, expired
-  relationship: varchar('relationship', { length: 100 }).notNull(), // parent, teacher, therapist, caregiver
+  relationship: varchar('relationship', { length: 100 }).notNull(), // parent, teacher, therapist, researcher, caregiver
+  // Consent — all off by default; patient explicitly opts in on invite acceptance
+  shareHistory: boolean('share_history').default(false).notNull(),
+  shareStats: boolean('share_stats').default(false).notNull(),
+  allowExport: boolean('allow_export').default(false).notNull(),
+  consentAt: timestamp('consent_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   expiresAt: timestamp('expires_at'),
@@ -81,6 +86,10 @@ export const communicationSessions = pgTable('communication_sessions', {
   sentence: text('sentence').notNull(),
   timestamp: timestamp('timestamp').defaultNow().notNull(),
   synced: boolean('synced').default(false),
+  // Privacy: 'private' sessions are never visible to supervisors
+  visibility: varchar('visibility', { length: 20 }).default('private').notNull(), // 'private' | 'shared'
+  // Research task type — extensible for future structured tasks
+  taskType: varchar('task_type', { length: 50 }).default('free').notNull(), // 'free' | 'structured' | 'assessment'
 });
 
 /**

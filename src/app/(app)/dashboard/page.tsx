@@ -82,6 +82,16 @@ export default async function DashboardPage() {
               Upload your own AAC icons and images
             </p>
           </Link>
+
+          <Link href="/dashboard/patients" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">👥</span>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Patients &amp; Participants</h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Invite participants and manage privacy settings
+            </p>
+          </Link>
         </div>
       </div>
     </div>

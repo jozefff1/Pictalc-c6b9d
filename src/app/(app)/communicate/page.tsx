@@ -18,6 +18,7 @@ export default function CommunicatePage() {
   const dispatch = useAppDispatch();
   const [mode, setMode] = useState<CommunicationMode>('icons');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   
   const selectedCategory = useAppSelector((state) => state.communication.selectedCategory);
   const customIcons = useAppSelector((state) => state.communication.customIcons);
@@ -53,12 +54,12 @@ export default function CommunicatePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Sentence Builder - Always Visible */}
-      <SentenceBuilder />
+      <SentenceBuilder isPrivate={isPrivate} />
 
-      {/* Mode Tabs */}
+      {/* Mode Tabs + Privacy Toggle */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-1">
+        <div className="max-w-7xl mx-auto px-4 flex items-center gap-2">
+          <div className="flex gap-1 flex-1">
             <button
               onClick={() => setMode('icons')}
               className={`
@@ -105,6 +106,19 @@ export default function CommunicatePage() {
               {t('communicate.tab.speech')}
             </button>
           </div>
+          {/* Privacy toggle */}
+          <button
+            onClick={() => setIsPrivate((p) => !p)}
+            title={isPrivate ? 'Private session — not shared with supervisors' : 'Shared session — visible to supervisors'}
+            className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              isPrivate
+                ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+            }`}
+          >
+            {isPrivate ? '🔒' : '🔓'}
+            <span className="hidden sm:inline">{isPrivate ? 'Private' : 'Shared'}</span>
+          </button>
         </div>
       </div>
 

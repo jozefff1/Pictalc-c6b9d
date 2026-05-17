@@ -31,7 +31,11 @@ export interface Pairing {
   guardianId: string;
   childId: string;
   status: PairingStatus;
-  relationship: string; // 'parent', 'teacher', 'therapist', 'caregiver'
+  relationship: string; // 'parent', 'teacher', 'therapist', 'researcher', 'caregiver'
+  shareHistory: boolean;
+  shareStats: boolean;
+  allowExport: boolean;
+  consentAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   expiresAt?: Date;
@@ -71,6 +75,8 @@ export interface CommunicationSession {
   sentence: string;
   timestamp: Date;
   synced: boolean;
+  visibility?: 'private' | 'shared';
+  taskType?: 'free' | 'structured' | 'assessment';
 }
 
 export interface UserPreferences {

@@ -16,6 +16,8 @@ const sessionSchema = z.object({
     keywords: z.array(z.string()).optional(),
   })).min(1),
   sentence: z.string().min(1),
+  visibility: z.enum(['private', 'shared']).default('private'),
+  taskType: z.enum(['free', 'structured', 'assessment']).default('free'),
 });
 
 export async function POST(request: NextRequest) {
@@ -40,6 +42,8 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         icons: result.data.icons,
         sentence: result.data.sentence,
+        visibility: result.data.visibility,
+        taskType: result.data.taskType,
         synced: true,
       })
       .returning({ id: communicationSessions.id });
