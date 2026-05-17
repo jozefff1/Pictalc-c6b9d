@@ -2,6 +2,7 @@ import { auth, signOut } from '@/lib/auth/config';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import DarkModeToggle from '@/components/common/DarkModeToggle';
 
 async function SignOutButton() {
   return (
@@ -47,6 +48,7 @@ export default async function AppLayout({
 
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
+            <DarkModeToggle />
             
             <div className="hidden sm:flex items-center gap-2 text-sm">
               <Link

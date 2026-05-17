@@ -7,8 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- **Multilingual Support** (2026-02-12)
+### Added (May 17, 2026 — session 3)
+- **Dark mode toggle button** (`src/components/common/DarkModeToggle.tsx`)
+  - Sun/moon SVG button in both app header and public landing header
+  - Toggles `dark` / `light` class on `<html>` element; persists to `localStorage['pictalk-theme']`
+  - FOUC-prevention inline script in `src/app/layout.tsx` applies class before first paint
+  - `DarkModeToggle` uses `mounted` guard to avoid hydration mismatch
+- **Icon search bar** on `/communicate`
+  - Searches across all 89 built-in icons + user's custom icons by name
+  - Hides category tabs and recently-used strip while search is active
+  - `×` clear button; empty-state localised message (`communicate.searchEmpty`)
+  - New translation keys added to `LanguageContext.tsx`: `communicate.searchPlaceholder`, `communicate.searchEmpty`
+
+### Fixed (May 17, 2026 — session 3)
+- **Dark mode not working (Tailwind v4 regression)**
+  - Root cause: `darkMode: 'class'` in `tailwind.config.ts` is a Tailwind v3 option ignored by v4
+  - Fix: added `@custom-variant dark (&:where(.dark, .dark *));` to `globals.css` so `dark:` utilities respond to the `.dark` class
+  - CSS variable overrides moved from `@media (prefers-color-scheme: dark) { :root }` to a `.dark {}` selector; system preference retained as fallback via `:root:not(.dark):not(.light)`
+  - `DarkModeToggle.toggle()` now also adds/removes the `light` class to prevent the system-preference fallback from overriding an explicit light-mode choice
+- **LanguageSwitcher hydration mismatch**
+  - `useState` initialiser now always returns `'en'` (safe for SSR); `useEffect` reads `localStorage` and `navigator.language` client-side
+  - Removed unused `t` import; added `aria-pressed` to EN/NO buttons
+
+### Fixed (May 17, 2026 — session 2)
+- **Build errors** (three TypeScript errors)
+  - `communicate/page.tsx` — `icon.label` → `icon.name`
+  - `indexedDB.ts` — `MetadataValue` union extended with `unknown[]`
+  - `baseApi.ts` — removed dead `state.auth.token` reference
+
   - Client-side internationalization using React Context API
   - English and Norwegian language support
   - 90+ icon name translations

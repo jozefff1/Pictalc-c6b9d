@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   /* Light theme colors */
   --background: #ffffff;
@@ -33,8 +35,17 @@
   --font-sans: var(--font-inter);
 }
 
+/* Class-based dark mode (manual toggle) */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --muted: #1c1c1e;
+  --border: #2c2c2e;
+}
+
+/* System preference dark mode (fallback for users who never toggled) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.dark):not(.light) {
     --background: #0a0a0a;
     --foreground: #ededed;
     --muted: #1c1c1e;
@@ -42,33 +53,59 @@
   }
 }
 
-/* High contrast mode */
+/* High contrast mode — system preference */
 @media (prefers-contrast: high) {
-  :root {
+  :root:not(.high-contrast):not(.normal-contrast) {
     --background: #ffffff;
     --foreground: #000000;
     --border: #000000;
+    --muted: #f0f0f0;
   }
   
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not(.high-contrast):not(.normal-contrast) {
       --background: #000000;
       --foreground: #ffffff;
       --border: #ffffff;
+      --muted: #1a1a1a;
     }
   }
 }
 
-/* Reduced motion */
+/* High contrast mode — class-based (user toggle) */
+.high-contrast {
+  --background: #ffffff;
+  --foreground: #000000;
+  --border: #000000;
+  --muted: #f0f0f0;
+}
+.dark.high-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+  --border: #ffffff;
+  --muted: #1a1a1a;
+}
+
+/* Reduced motion — system preference */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *:not(.reduce-motion *),
+  *:not(.reduce-motion *)::before,
+  *:not(.reduce-motion *)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Reduced motion — class-based (user toggle) */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 body {

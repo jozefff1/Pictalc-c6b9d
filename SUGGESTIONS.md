@@ -2,7 +2,7 @@
 
 This document captures improvement suggestions, UX observations, and technical recommendations based on a full review of the codebase, existing documentation, and the AAC market landscape.
 
-_Last updated: May 17, 2026 (session 2)_
+_Last updated: May 17, 2026 (session 3)_
 
 ---
 
@@ -22,6 +22,12 @@ Three TypeScript/build errors resolved:
 - `communicate/page.tsx` — `icon.label` → `icon.name` (`label` doesn't exist on the `Icon` type)
 - `indexedDB.ts` — `MetadataValue` union extended with `unknown[]` so arrays can be stored (favourite phrases)
 - `baseApi.ts` — removed dead `state.auth.token` reference (auth slice was never registered; NextAuth cookie handles auth)
+
+### 3b. Dark Mode Toggle Not Applying ✅ Fixed (May 17, 2026 session 3)
+The dark mode toggle button was added but had no visual effect. Root cause: Tailwind v4 ignores the `darkMode: 'class'` option from `tailwind.config.ts` (v3 API). Fixed by:
+- Adding `@custom-variant dark (&:where(.dark, .dark *));` to `globals.css` — wires `dark:` utilities to `.dark` class on `<html>`
+- Moving CSS variable overrides to a `.dark {}` selector (class-based) with a `:root:not(.dark):not(.light)` media query fallback for users who haven't toggled
+- `DarkModeToggle` now also sets a `light` class on explicit light-mode choice, preventing the system-preference fallback from overriding it
 
 ### 4. BLOB_READ_WRITE_TOKEN for Production
 Vercel Blob uploads require `BLOB_READ_WRITE_TOKEN` in the Vercel environment. Confirm this is set — without it, all custom icon uploads will fail silently in production.

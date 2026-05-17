@@ -2,7 +2,7 @@
 
 This document defines the phased development roadmap for Pictalk. Each phase builds on the previous and is scoped to be achievable in focused sprints.
 
-_Last updated: May 17, 2026 (session 2)_
+_Last updated: May 17, 2026 (session 3)_
 
 ---
 
@@ -54,24 +54,25 @@ _Last updated: May 17, 2026 (session 2)_
 
 **Goal**: Make the app feel professional and reliable for real users.
 
-### 2.2 Communication Board UX
-- [x] Favourite phrases — save/load icon sentences ✅
-- [x] **Recently used icons row** — top 8 icons shown above category tabs, tappable to re-add to sentence ✅
-- [ ] Icon board layout improvements (larger icons, better spacing for touch)
-- [ ] Haptic feedback on icon tap (`navigator.vibrate` — schema supports `hapticEnabled` but not implemented)
-- [ ] Keyboard-accessible icon navigation (ARIA labels exist, full keyboard nav not done)
-- [ ] Long-press on icon to see icon details / delete custom icon
-- [ ] Icon search bar (search across all 89 built-in + custom icons by name — `searchIcons()` helper already exists in `src/lib/data/icons.ts`)
-
-### 2.3 Dashboard & Profile
+### 2.2 Dashboard & Profile
 - [x] User profile page (`/dashboard/profile` — name, email, role, edit name) ✅
 - [x] Preferences page (`/dashboard/settings` — voice speed, pitch, test button) ✅
 - [x] Communication history — `/dashboard/history` page: own sessions for children; supervisor (teacher/therapist/guardian) gets a patient selector showing all paired users, with pairing-verified access control ✅
 - [x] **Manage custom icons** — delete (with confirmation overlay) and inline rename on each icon card in `/dashboard/icons` ✅
 - [ ] Accessibility preferences UI (high contrast, reduce motion, text size — in DB schema, not in settings page)
 
+### 2.3 Communication Board UX
+- [x] Favourite phrases — save/load icon sentences ✅
+- [x] **Recently used icons row** — top 8 icons shown above category tabs, tappable to re-add to sentence ✅
+- [ ] Icon board layout improvements (larger icons, better spacing for touch)
+- [ ] Haptic feedback on icon tap (`navigator.vibrate` — schema supports `hapticEnabled` but not implemented)
+- [ ] Keyboard-accessible icon navigation (ARIA labels exist, full keyboard nav not done)
+- [ ] Long-press on icon to see icon details / delete custom icon
+- [x] **Icon search bar** — searches across all 89 built-in + custom icons by name; hides category tabs and recently-used strip during search; `×` clear button; empty-state message ✅
+
 ### 2.4 Visual Design Upgrade
 - [x] Landing page — hero + features section + footer (basic, functional)
+- [x] **Dark mode toggle** — sun/moon button in header; `@custom-variant dark` fix for Tailwind v4 class-based switching; FOUC-prevention inline script; localStorage persistence ✅
 - [ ] Premium landing page redesign (glassmorphism, live demo preview, testimonials)
 - [ ] Animated icon press feedback (scale + colour flash on tap)
 - [ ] Smooth page transitions

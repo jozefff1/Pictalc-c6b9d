@@ -43,6 +43,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Inline script: apply theme + accessibility classes before first paint to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{
+var t=localStorage.getItem('pictalk-theme');
+if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}
+else if(t==='light'){document.documentElement.classList.add('light')}
+if(localStorage.getItem('pictalk-high-contrast')==='true'){document.documentElement.classList.add('high-contrast')}
+else if(localStorage.getItem('pictalk-high-contrast')==='false'){document.documentElement.classList.add('normal-contrast')}
+if(localStorage.getItem('pictalk-reduce-motion')==='true'){document.documentElement.classList.add('reduce-motion')}
+var ts=localStorage.getItem('pictalk-text-size');if(ts){document.documentElement.style.fontSize=(parseFloat(ts)*100)+'%'}
+}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className={`${inter.variable} antialiased`}>
         <Providers>{children}</Providers>
       </body>

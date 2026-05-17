@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import DarkModeToggle from '@/components/common/DarkModeToggle';
 
 interface HeaderProps {
   showAuth?: boolean;
@@ -15,6 +16,7 @@ export default function Header({ showAuth = true }: HeaderProps) {
         </Link>
         
         <div className="flex items-center gap-4">
+          <DarkModeToggle />
           {showAuth && (
             <nav className="flex gap-3">
               <Link
