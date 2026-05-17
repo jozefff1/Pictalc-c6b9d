@@ -1,6 +1,6 @@
-# Pictalk — Development Plan
+# Snakke — Development Plan
 
-This document defines the phased development roadmap for Pictalk. Each phase builds on the previous and is scoped to be achievable in focused sprints.
+This document defines the phased development roadmap for Snakke. Each phase builds on the previous and is scoped to be achievable in focused sprints.
 
 _Last updated: May 17, 2026 (session 4)_
 
@@ -107,7 +107,7 @@ _Last updated: May 17, 2026 (session 4)_
 
 ## 📋 Phase 4 — Offline & PWA Hardening
 
-**Goal**: Full offline functionality — Pictalk must work with no internet connection.
+**Goal**: Full offline functionality — Snakke must work with no internet connection.
 
 > IndexedDB is wired up (sessions, favourite phrases, sync queue). Service worker is missing — PWA cannot install.
 

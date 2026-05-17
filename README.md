@@ -1,4 +1,4 @@
-# Pictalk
+# Snakke
 
 > An open-source AAC (Augmentative and Alternative Communication) Progressive Web App for children and adults with communication challenges.
 

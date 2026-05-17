@@ -1,7 +1,7 @@
-# Multilingual Setup (next-intl)
+# Multilingual Setup
 
 ## Overview
-Pictalk v2 now supports multiple languages using `next-intl`. Currently implemented:
+Snakke now supports multiple languages. Currently implemented:
 - **English (en)** - Default
 - **Norwegian (no)** - Full translation
 

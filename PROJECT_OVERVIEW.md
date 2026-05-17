@@ -158,10 +158,8 @@ password_history     → Last 5 password hashes per user (prevents password reus
 
 - **No `next-intl`**: Attempted and abandoned after persistent failures with Next.js App Router. Client-side React Context i18n is used instead. Do NOT reintroduce `next-intl`.
 - **NextAuth v5**: Uses `AUTH_SECRET` env var (not `NEXTAUTH_SECRET`). `trustHost: true` is required for Vercel. Auth state is owned entirely by NextAuth — no Redux `authSlice`.
-- **No Firebase**: Firebase was removed. Deployment is Vercel, database is Neon Postgres. All Firebase workflow files have been deleted.
 - **Forgot-password validates email**: The `/api/auth/forgot-password` endpoint returns a 404 error if the submitted email is not registered. Reset links are only sent to verified, existing accounts.
 - **Password history**: The `password_history` table stores the last 5 hashes per user. On reset, the new password is checked against the current password and all stored history. Reuse returns "You cannot reuse a previous password."
-- **Email via Resend**: Email verification and password reset will use [Resend](https://resend.com). Do NOT use Nodemailer or Firebase Auth.
 - **Offline-first architecture**: IndexedDB (via `idb`) is the primary storage for sessions and favourite phrases. The DB (Neon) acts as cloud backup and research/analytics layer.
 - **Emoji symbols for built-in icons**: The built-in icon database uses emoji as symbols. Custom icons use real images via Vercel Blob.
 - **Keyword-based icon matching**: The current matcher (`iconMatcher.ts`) is keyword/string based. ML embeddings are planned for a future phase.

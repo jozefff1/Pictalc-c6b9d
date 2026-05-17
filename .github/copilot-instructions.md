@@ -1,4 +1,4 @@
-# Pictalk v2 - Next.js PWA Setup Progress
+# Snakke - Next.js PWA Setup Progress
 
 ## Project Overview
 AAC (Augmentative and Alternative Communication) app for children with communication challenges. Modern PWA built with Next.js 15, TypeScript, Tailwind CSS, deployed on Vercel with offline-first capabilities.

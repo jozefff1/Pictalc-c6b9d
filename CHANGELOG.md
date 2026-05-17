@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Pictalk v2 will be documented in this file.
+All notable changes to Snakke will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added (May 17, 2026 — session 3)
 - **Dark mode toggle button** (`src/components/common/DarkModeToggle.tsx`)
   - Sun/moon SVG button in both app header and public landing header
-  - Toggles `dark` / `light` class on `<html>` element; persists to `localStorage['pictalk-theme']`
+  - Toggles `dark` / `light` class on `<html>` element; persists to `localStorage['snakke-theme']`
   - FOUC-prevention inline script in `src/app/layout.tsx` applies class before first paint
   - `DarkModeToggle` uses `mounted` guard to avoid hydration mismatch
 - **Icon search bar** on `/communicate`
