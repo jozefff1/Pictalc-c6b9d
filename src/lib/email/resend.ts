@@ -1,9 +1,14 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL ?? 'Snakke <admin@arken.pro>';
+const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL ?? 'Snakke <onboarding@resend.dev>';
+
+function getResend(): Resend {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY environment variable is not set');
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 export async function sendVerificationEmail(
   email: string,
@@ -12,7 +17,7 @@ export async function sendVerificationEmail(
 ): Promise<void> {
   const verifyUrl = `${APP_URL}/verify-email?token=${token}`;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM_ADDRESS,
     to: email,
     subject: 'Verify your Snakke account',
@@ -83,7 +88,7 @@ export async function sendPasswordResetEmail(
 ): Promise<void> {
   const resetUrl = `${APP_URL}/reset-password?token=${token}`;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM_ADDRESS,
     to: email,
     subject: 'Reset your Snakke password',
