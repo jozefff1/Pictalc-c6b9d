@@ -147,6 +147,17 @@ export default async function Home() {
                 ))}
               </div>
             </div>
+
+            {/* CTA */}
+            <div className="mt-8 text-center">
+              <Link
+                href="/communicate"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-lg font-semibold text-white hover:opacity-90 transition-all shadow-lg shadow-blue-900/20 hover:-translate-y-0.5"
+              >
+                Try it now — no sign up needed →
+              </Link>
+              <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">Free forever. No account required to communicate.</p>
+            </div>
           </div>
         </section>
 
@@ -197,8 +208,8 @@ export default async function Home() {
                 [
                   {
                     emoji: '👧',
-                    role: 'Children',
-                    desc: "Children with autism, cerebral palsy, apraxia, or other conditions that affect verbal communication. Simple, colourful, and fast.",
+                    role: 'Children & Individuals',
+                    desc: "Children and individuals with autism, cerebral palsy, apraxia, or other conditions that affect communication. Simple, colourful, and fast.",
                     bgClass: 'from-blue-50 to-cyan-50 dark:from-blue-950/40 dark:to-cyan-950/40',
                     borderClass: 'border-blue-200 dark:border-blue-800',
                   },

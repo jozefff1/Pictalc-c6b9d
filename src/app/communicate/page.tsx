@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getIconsByCategory, searchIcons } from '@/lib/data/icons';
@@ -15,17 +17,19 @@ type CommunicationMode = 'icons' | 'text' | 'speech';
 
 export default function CommunicatePage() {
   const { t } = useLanguage();
+  const { data: session } = useSession();
   const dispatch = useAppDispatch();
   const [mode, setMode] = useState<CommunicationMode>('icons');
   const [searchQuery, setSearchQuery] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
-  
+
   const selectedCategory = useAppSelector((state) => state.communication.selectedCategory);
   const customIcons = useAppSelector((state) => state.communication.customIcons);
   const recentIcons = useAppSelector((state) => state.communication.recentIcons);
-  
+
   useEffect(() => {
-    // Fetch custom icons on mount
+    // Only fetch custom icons for authenticated users
+    if (!session?.user?.id) return;
     fetch('/api/icons')
       .then(res => res.ok ? res.json() : { icons: [] })
       .then(data => {
@@ -34,7 +38,7 @@ export default function CommunicatePage() {
         }
       })
       .catch(err => console.error('Failed to load custom icons:', err));
-  }, [dispatch]);
+  }, [dispatch, session?.user?.id]);
 
   const defaultIcons = getIconsByCategory(selectedCategory as any);
   const filteredCustomIcons = customIcons.filter(icon => icon.category === selectedCategory);
@@ -106,19 +110,21 @@ export default function CommunicatePage() {
               {t('communicate.tab.speech')}
             </button>
           </div>
-          {/* Privacy toggle */}
-          <button
-            onClick={() => setIsPrivate((p) => !p)}
-            title={isPrivate ? 'Private session — not shared with supervisors' : 'Shared session — visible to supervisors'}
-            className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-              isPrivate
-                ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-            }`}
-          >
-            {isPrivate ? '🔒' : '🔓'}
-            <span className="hidden sm:inline">{isPrivate ? 'Private' : 'Shared'}</span>
-          </button>
+          {/* Privacy toggle — only meaningful for authenticated users */}
+          {session && (
+            <button
+              onClick={() => setIsPrivate((p) => !p)}
+              title={isPrivate ? 'Private session — not shared with supervisors' : 'Shared session — visible to supervisors'}
+              className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                isPrivate
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                  : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+              }`}
+            >
+              {isPrivate ? '🔒' : '🔓'}
+              <span className="hidden sm:inline">{isPrivate ? 'Private' : 'Shared'}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -164,13 +170,12 @@ export default function CommunicatePage() {
                       title={icon.name}
                     >
                       {icon.imageUrl ? (
-                        <img
+                        <Image
                           src={icon.imageUrl}
                           alt={icon.name}
                           width={40}
                           height={40}
                           className="object-contain"
-                          loading="lazy"
                         />
                       ) : (
                         <span className="text-2xl leading-none">{icon.symbol}</span>

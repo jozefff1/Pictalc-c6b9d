@@ -42,6 +42,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields (file, name, category)' }, { status: 400 });
     }
 
+    // Validate file type (whitelist)
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      return NextResponse.json({ error: 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP' }, { status: 400 });
+    }
+
+    // Validate file size (5 MB max)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: 'File too large. Maximum size is 5 MB' }, { status: 400 });
+    }
+
     // 1. Upload to Vercel Blob
     // We add a short nanoid to the filename to avoid collisions
     const fileExtension = file.name.split('.').pop() || 'png';

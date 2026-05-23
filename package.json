@@ -20,7 +20,7 @@
     "@vercel/blob": "^2.2.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.2",
     "html5-qrcode": "^2.3.8",
     "idb": "^8.0.3",
     "nanoid": "^5.1.6",
