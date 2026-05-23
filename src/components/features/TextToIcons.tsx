@@ -7,6 +7,15 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { addIconToSentence } from '@/store/slices/communicationSlice';
 import IconMatchGrid from '@/components/features/communication/IconMatchGrid';
 import type { IconMatch } from '@/lib/ai/iconMatcher';
+import {
+  SENTENCE_DATABASE,
+  SENTENCE_CATEGORIES,
+  SENTENCE_CATEGORY_ICONS,
+  SENTENCE_CATEGORY_LABELS,
+  getPrioritySentences,
+  getSentenceText,
+  type SentenceCategory,
+} from '@/lib/data/sentences';
 
 export default function TextToIcons() {
   const { t, language } = useLanguage();
@@ -14,8 +23,9 @@ export default function TextToIcons() {
   const customIcons = useAppSelector((state) => state.communication.customIcons);
   const [inputText, setInputText] = useState('');
   const [matches, setMatches] = useState<IconMatch[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [autoConverted, setAutoConverted] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<SentenceCategory>('needs');
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newText = e.target.value;
@@ -49,34 +59,27 @@ export default function TextToIcons() {
     }
   };
 
-  const handleConvertToIcons = () => {
-    if (!inputText.trim()) return;
-
-    setIsSearching(true);
-    
-    // Split text into words and match each word to icons
-    const words = inputText.toLowerCase().trim().split(/\s+/);
+  /** Converts a text string directly to icons and adds them to the sentence strip */
+  const convertTextToIcons = (text: string) => {
+    const words = text.toLowerCase().trim().split(/\s+/);
     let convertedCount = 0;
-    const failedWords: string[] = [];
-    
-    // Try to match and add each word to the sentence
     words.forEach((word) => {
       const results = matchTextToIcons(word, 1, language, customIcons);
-
       if (results.length > 0 && results[0].confidence >= 0.3) {
         dispatch(addIconToSentence(results[0].icon));
         convertedCount++;
-      } else {
-        failedWords.push(word);
       }
     });
-
-    setIsSearching(false);
     setAutoConverted(convertedCount > 0);
-    
-    // Always clear input and suggestions after conversion
     setInputText('');
     setMatches([]);
+  };
+
+  const handleConvertToIcons = () => {
+    if (!inputText.trim()) return;
+    setIsSearching(true);
+    convertTextToIcons(inputText);
+    setIsSearching(false);
   };
 
   const handleAddIcon = (match: IconMatch) => {
@@ -172,38 +175,63 @@ export default function TextToIcons() {
           </div>
         )}
 
-        {/* Help Text */}
+        {/* Sentence Browser — shown when input is empty */}
         {!autoConverted && matches.length === 0 && !inputText && (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <p className="text-lg mb-4">✨ Type to automatically convert text to icons</p>
-            <div className="text-sm space-y-2">
-              <p className="font-medium">Try these examples:</p>
-              <div className="flex flex-wrap gap-2 justify-center mt-3">
+          <div className="mt-4">
+
+            {/* ── Quick Phrases ─────────────────────────────────────── */}
+            <p className="text-xs font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
+              ⚡ {t('type.quickPhrases')}
+            </p>
+            <div className="flex flex-wrap gap-2 mb-5">
+              {getPrioritySentences().map((sentence) => (
                 <button
-                  onClick={() => setInputText('I want to eat pizza')}
-                  className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  key={sentence.id}
+                  onClick={() => convertTextToIcons(getSentenceText(sentence, language))}
+                  className="px-4 py-2.5 bg-primary/10 dark:bg-primary/20 border-2 border-primary/30 hover:border-primary hover:bg-primary/20 dark:hover:bg-primary/30 rounded-2xl text-sm font-semibold text-primary transition-all active:scale-95"
                 >
-                  &quot;I want to eat pizza&quot;
+                  {getSentenceText(sentence, language)}
                 </button>
+              ))}
+            </div>
+
+            {/* ── Category browser ──────────────────────────────────── */}
+            <p className="text-xs font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
+              {t('type.examples')}
+            </p>
+
+            {/* Category tabs */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {SENTENCE_CATEGORIES.map((cat) => (
                 <button
-                  onClick={() => setInputText('I feel happy')}
-                  className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                    activeCategory === cat
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
+                  }`}
                 >
-                  &quot;I feel happy&quot;
+                  <span>{SENTENCE_CATEGORY_ICONS[cat]}</span>
+                  <span>{SENTENCE_CATEGORY_LABELS[cat][language] ?? SENTENCE_CATEGORY_LABELS[cat].en}</span>
                 </button>
+              ))}
+            </div>
+
+            {/* Sentence grid — click goes directly to icons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {SENTENCE_DATABASE.filter((s) => s.category === activeCategory).map((sentence) => (
                 <button
-                  onClick={() => setInputText('help me please')}
-                  className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  key={sentence.id}
+                  onClick={() => convertTextToIcons(getSentenceText(sentence, language))}
+                  className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all active:scale-95 text-sm text-left group"
                 >
-                  &quot;help me please&quot;
+                  <span className="text-xl">{SENTENCE_CATEGORY_ICONS[activeCategory]}</span>
+                  <span className="font-medium leading-snug group-hover:text-primary transition-colors">
+                    {getSentenceText(sentence, language)}
+                  </span>
                 </button>
-                <button
-                  onClick={() => setInputText('I want water')}
-                  className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                >
-                  &quot;I want water&quot;
-                </button>
-              </div>
+              ))}
             </div>
           </div>
         )}

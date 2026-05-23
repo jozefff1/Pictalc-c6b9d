@@ -4,11 +4,12 @@ import { useState, useCallback, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { useLanguage, LANGUAGES, type Language } from '@/contexts/LanguageContext';
 import { ICON_DATABASE } from '@/lib/data/icons';
+import { SENTENCE_DATABASE, getSentenceText } from '@/lib/data/sentences';
 import type { IconCategory } from '@/types/models';
 
 type Mode = 'flashcard' | 'writing' | 'speaking';
 
-const CATEGORY_ICONS: Record<IconCategory | 'all', string> = {
+const CATEGORY_ICONS: Record<IconCategory | 'all' | 'sentences', string> = {
   all: '🌐',
   needs: '🍽️',
   actions: '🎮',
@@ -16,9 +17,10 @@ const CATEGORY_ICONS: Record<IconCategory | 'all', string> = {
   people: '👫',
   places: '🏠',
   custom: '⭐',
+  sentences: '💬',
 };
 
-const CATEGORIES: (IconCategory | 'all')[] = ['all', 'needs', 'actions', 'feelings', 'people', 'places'];
+const CATEGORIES: (IconCategory | 'all' | 'sentences')[] = ['all', 'needs', 'actions', 'feelings', 'people', 'places', 'sentences'];
 
 const LANG_BCP47: Record<Language, string> = {
   en: 'en-US', no: 'nb-NO', es: 'es-ES', fr: 'fr-FR', de: 'de-DE',
@@ -41,7 +43,7 @@ export default function FlashcardDeck() {
   const { t, tLang, learnFrom, learnTarget } = useLanguage();
 
   const [mode, setMode] = useState<Mode>('flashcard');
-  const [category, setCategory] = useState<IconCategory | 'all'>('all');
+  const [category, setCategory] = useState<IconCategory | 'all' | 'sentences'>('all');
   const [index, setIndex] = useState(0);
   const [knew, setKnew] = useState(0);
   const [didntKnow, setDidntKnow] = useState(0);
@@ -60,12 +62,18 @@ export default function FlashcardDeck() {
   const [heardText, setHeardText] = useState('');
   const recognitionRef = useRef<{ stop: () => void } | null>(null);
 
+  const sentenceDeck = useMemo(() => SENTENCE_DATABASE, []);
+  const sentenceCard = category === 'sentences' ? sentenceDeck[index] ?? null : null;
+
   const deck = useMemo(() => {
+    if (category === 'sentences') return [];
     const base = category === 'all'
       ? ICON_DATABASE.filter((ic) => ic.category !== 'custom')
       : ICON_DATABASE.filter((ic) => ic.category === category);
     return base.filter((ic) => tLang(`icon.${ic.id}`, learnTarget) !== `icon.${ic.id}`);
   }, [category, learnTarget, tLang]);
+
+  const effectiveDeckLength = category === 'sentences' ? sentenceDeck.length : deck.length;
 
   const card = deck[index];
 
@@ -78,7 +86,7 @@ export default function FlashcardDeck() {
     setImgError(false);
   }, []);
 
-  const reset = useCallback((newCategory?: IconCategory | 'all') => {
+  const reset = useCallback((newCategory?: IconCategory | 'all' | 'sentences') => {
     setIndex(0);
     setKnew(0);
     setDidntKnow(0);
@@ -91,21 +99,32 @@ export default function FlashcardDeck() {
     if (gotIt) setKnew((k) => k + 1);
     else setDidntKnow((d) => d + 1);
 
-    if (index + 1 >= deck.length) {
+    if (index + 1 >= effectiveDeckLength) {
       setDone(true);
     } else {
       setIndex((i) => i + 1);
       resetCardState();
     }
-  }, [index, deck.length, resetCardState]);
+  }, [index, effectiveDeckLength, resetCardState]);
 
   // --- Writing mode ---
   const handleWriteSubmit = () => {
-    if (!card || !input.trim()) return;
-    const correct = normalize(tLang(`icon.${card.id}`, learnTarget));
-    const isCorrect = normalize(input) === correct;
+    if (!input.trim()) return;
+    let correctText: string;
+    if (sentenceCard) {
+      correctText = normalize(getSentenceText(sentenceCard, learnTarget));
+    } else {
+      if (!card) return;
+      correctText = normalize(tLang(`icon.${card.id}`, learnTarget));
+    }
+    const isCorrect = normalize(input) === correctText;
     setWriteResult(isCorrect ? 'correct' : 'wrong');
-    if (isCorrect) speak(tLang(`icon.${card.id}`, learnTarget), learnTarget);
+    if (isCorrect) {
+      const textToSpeak = sentenceCard
+        ? getSentenceText(sentenceCard, learnTarget)
+        : (card ? tLang(`icon.${card.id}`, learnTarget) : '');
+      speak(textToSpeak, learnTarget);
+    }
   };
 
   // --- Speaking mode ---
@@ -129,11 +148,19 @@ export default function FlashcardDeck() {
       const transcripts = Array.from({ length: event.results[0].length }, (_: unknown, i: number) =>
         event.results[0][i].transcript as string
       );
-      const target = normalize(tLang(`icon.${card!.id}`, learnTarget));
-      const matched = transcripts.some((tr) => normalize(tr) === target);
+      let targetNorm: string;
+      let textToSpeak: string;
+      if (sentenceCard) {
+        textToSpeak = getSentenceText(sentenceCard, learnTarget);
+        targetNorm = normalize(textToSpeak);
+      } else {
+        textToSpeak = card ? tLang(`icon.${card!.id}`, learnTarget) : '';
+        targetNorm = normalize(textToSpeak);
+      }
+      const matched = transcripts.some((tr) => normalize(tr) === targetNorm);
       setHeardText(transcripts[0] ?? '');
       setListenState(matched ? 'correct' : 'wrong');
-      if (matched) speak(tLang(`icon.${card!.id}`, learnTarget), learnTarget);
+      if (matched) speak(textToSpeak, learnTarget);
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rec.onerror = (event: any) => {
@@ -145,7 +172,7 @@ export default function FlashcardDeck() {
     rec.start();
   };
 
-  if (deck.length === 0) {
+  if (category !== 'sentences' && deck.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
         No cards available for this category and language combination.
@@ -156,6 +183,8 @@ export default function FlashcardDeck() {
   const fromFlag = LANGUAGES[learnFrom].flag;
   const targetFlag = LANGUAGES[learnTarget].flag;
   const targetWord = card ? tLang(`icon.${card.id}`, learnTarget) : '';
+  const targetSentence = sentenceCard ? getSentenceText(sentenceCard, learnTarget) : '';
+  const fromSentence = sentenceCard ? getSentenceText(sentenceCard, learnFrom) : '';
 
   // --- Session complete screen ---
   if (done) {
@@ -164,7 +193,7 @@ export default function FlashcardDeck() {
         <div className="text-5xl mb-4">🎉</div>
         <h2 className="text-2xl font-bold mb-2">{t('learn.sessionDone')}</h2>
         <p className="text-gray-500 dark:text-gray-400 mb-6">
-          {t('learn.score')}: <span className="text-green-500 font-bold">{knew}</span> / {deck.length}
+          {t('learn.score')}: <span className="text-green-500 font-bold">{knew}</span> / {effectiveDeckLength}
         </p>
         <button
           onClick={() => reset()}
@@ -218,7 +247,7 @@ export default function FlashcardDeck() {
 
       {/* Progress bar */}
       <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
-        <span>{index + 1} {t('learn.cardOf')} {deck.length}</span>
+        <span>{index + 1} {t('learn.cardOf')} {effectiveDeckLength}</span>
         <span className="flex gap-3">
           <span className="text-green-500">✓ {knew}</span>
           <span className="text-red-400">✗ {didntKnow}</span>
@@ -227,7 +256,7 @@ export default function FlashcardDeck() {
       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-6">
         <div
           className="bg-primary h-1.5 rounded-full transition-all"
-          style={{ width: `${(index / deck.length) * 100}%` }}
+          style={{ width: `${(index / effectiveDeckLength) * 100}%` }}
         />
       </div>
 
@@ -237,27 +266,33 @@ export default function FlashcardDeck() {
         <div className="border-b border-gray-100 dark:border-gray-700 px-6 py-3 flex items-center gap-2 text-sm text-gray-500">
           <span>{fromFlag}</span>
           <span className="font-medium text-gray-800 dark:text-gray-200">
-            {card && tLang(`icon.${card.id}`, learnFrom)}
+            {sentenceCard ? fromSentence : (card && tLang(`icon.${card.id}`, learnFrom))}
           </span>
         </div>
 
-        {/* Icon image */}
-        <div className="flex items-center justify-center p-10">
-          {!imgError && card?.imageUrl ? (
-            <div className="relative w-36 h-36">
-              <Image
-                src={card.imageUrl}
-                alt={card ? tLang(`icon.${card.id}`, learnFrom) : ''}
-                fill
-                className="object-contain"
-                onError={() => setImgError(true)}
-                unoptimized
-              />
-            </div>
-          ) : (
-            <span className="text-8xl" aria-hidden="true">{card?.symbol}</span>
-          )}
-        </div>
+        {/* Icon image / sentence display */}
+        {sentenceCard ? (
+          <div className="flex items-center justify-center px-8 py-12">
+            <p className="text-3xl font-bold text-center leading-snug">{fromSentence}</p>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center p-10">
+            {!imgError && card?.imageUrl ? (
+              <div className="relative w-36 h-36">
+                <Image
+                  src={card.imageUrl}
+                  alt={card ? tLang(`icon.${card.id}`, learnFrom) : ''}
+                  fill
+                  className="object-contain"
+                  onError={() => setImgError(true)}
+                  unoptimized
+                />
+              </div>
+            ) : (
+              <span className="text-8xl" aria-hidden="true">{card?.symbol}</span>
+            )}
+          </div>
+        )}
 
         {/* Bottom action area */}
         <div className="border-t border-gray-100 dark:border-gray-700 px-6 py-5">
@@ -267,16 +302,21 @@ export default function FlashcardDeck() {
             <div className="text-center">
               {!revealed ? (
                 <button
-                  onClick={() => { setRevealed(true); speak(targetWord, learnTarget); }}
+                  onClick={() => {
+                    setRevealed(true);
+                    speak(sentenceCard ? targetSentence : targetWord, learnTarget);
+                  }}
                   className="rounded-xl bg-primary px-8 py-3 text-white font-semibold hover:opacity-90 transition-opacity"
                 >
                   {t('learn.tapToReveal')} {targetFlag}
                 </button>
               ) : (
                 <>
-                  <p className="text-2xl font-bold mb-1">{targetFlag} {targetWord}</p>
+                  <p className={`font-bold mb-1 ${sentenceCard ? 'text-xl' : 'text-2xl'}`}>
+                    {targetFlag} {sentenceCard ? targetSentence : targetWord}
+                  </p>
                   <button
-                    onClick={() => speak(targetWord, learnTarget)}
+                    onClick={() => speak(sentenceCard ? targetSentence : targetWord, learnTarget)}
                     className="text-primary text-sm hover:underline mb-4 inline-block"
                     aria-label="Hear pronunciation"
                   >
@@ -332,7 +372,7 @@ export default function FlashcardDeck() {
               ) : writeResult === 'correct' ? (
                 <div className="flex flex-col items-center gap-3">
                   <p className="text-2xl font-bold text-green-500">{t('learn.correct')}</p>
-                  <p className="text-lg">{targetFlag} {targetWord}</p>
+                  <p className="text-lg">{targetFlag} {sentenceCard ? targetSentence : targetWord}</p>
                   <button
                     onClick={() => advance(true)}
                     className="rounded-xl bg-green-500 px-8 py-2.5 text-white font-semibold hover:opacity-90 transition-opacity"
@@ -343,9 +383,9 @@ export default function FlashcardDeck() {
               ) : (
                 <div className="flex flex-col items-center gap-3">
                   <p className="text-red-500 font-medium">{t('learn.tryAgain')}</p>
-                  <p className="text-2xl font-bold">{targetFlag} {targetWord}</p>
+                  <p className="text-xl font-bold">{targetFlag} {sentenceCard ? targetSentence : targetWord}</p>
                   <button
-                    onClick={() => speak(targetWord, learnTarget)}
+                    onClick={() => speak(sentenceCard ? targetSentence : targetWord, learnTarget)}
                     className="text-primary text-sm hover:underline"
                     aria-label="Hear pronunciation"
                   >
@@ -416,7 +456,7 @@ export default function FlashcardDeck() {
               {listenState === 'correct' && (
                 <div className="flex flex-col items-center gap-3">
                   <p className="text-2xl font-bold text-green-500">{t('learn.correct')}</p>
-                  <p className="text-lg">{targetFlag} {targetWord}</p>
+                  <p className="text-lg">{targetFlag} {sentenceCard ? targetSentence : targetWord}</p>
                   {heardText && (
                     <p className="text-sm text-gray-400">🎤 &ldquo;{heardText}&rdquo;</p>
                   )}
@@ -432,12 +472,12 @@ export default function FlashcardDeck() {
               {listenState === 'wrong' && (
                 <div className="flex flex-col items-center gap-3">
                   <p className="text-red-500 font-medium">{t('learn.tryAgain')}</p>
-                  <p className="text-2xl font-bold">{targetFlag} {targetWord}</p>
+                  <p className="text-xl font-bold">{targetFlag} {sentenceCard ? targetSentence : targetWord}</p>
                   {heardText && (
                     <p className="text-sm text-gray-400">🎤 &ldquo;{heardText}&rdquo;</p>
                   )}
                   <button
-                    onClick={() => speak(targetWord, learnTarget)}
+                    onClick={() => speak(sentenceCard ? targetSentence : targetWord, learnTarget)}
                     className="text-primary text-sm hover:underline"
                     aria-label="Hear pronunciation"
                   >

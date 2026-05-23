@@ -88,7 +88,8 @@ const translations: Record<Language, Record<string, string>> = {
     'type.allConverted': '✓ All words converted to icons!',
     'type.typeAnother': 'Type another sentence to continue',
     'type.help': '✨ Type to automatically convert text to icons',
-    'type.examples': 'Try these examples:',
+    'type.examples': 'Browse phrases by category:',
+    'type.quickPhrases': 'Quick phrases',
     
     // Categories
     'category.needs': 'Needs',
@@ -97,6 +98,7 @@ const translations: Record<Language, Record<string, string>> = {
     'category.people': 'People',
     'category.places': 'Places',
     'category.custom': 'Custom',
+    'category.sentences': 'Sentences',
     
     // Dashboard
     'dashboard.welcome': 'Welcome back',
@@ -212,6 +214,9 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.ball': 'Ball',
     'icon.phone': 'Phone',
     'icon.music': 'Music',
+    'icon.wait': 'Wait',
+    'icon.go': 'Go',
+    'icon.stop': 'Stop',
     'icon.yes': 'Yes',
     'icon.no': 'No',
     'icon.please': 'Please',
@@ -416,7 +421,8 @@ const translations: Record<Language, Record<string, string>> = {
     'type.allConverted': '✓ Alle ord konvertert til ikoner!',
     'type.typeAnother': 'Skriv en ny setning for å fortsette',
     'type.help': '✨ Skriv for å automatisk konvertere tekst til ikoner',
-    'type.examples': 'Prøv disse eksemplene:',
+    'type.examples': 'Velg kategori:',
+    'type.quickPhrases': 'Raske fraser',
     
     // Categories
     'category.needs': 'Behov',
@@ -425,6 +431,7 @@ const translations: Record<Language, Record<string, string>> = {
     'category.people': 'Personer',
     'category.places': 'Steder',
     'category.custom': 'Tilpasset',
+    'category.sentences': 'Setninger',
     
     // Dashboard
     'dashboard.welcome': 'Velkommen tilbake',
@@ -540,6 +547,9 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.ball': 'Ball',
     'icon.phone': 'Telefon',
     'icon.music': 'Musikk',
+    'icon.wait': 'Vent',
+    'icon.go': 'Gå',
+    'icon.stop': 'Stopp',
     'icon.yes': 'Ja',
     'icon.no': 'Nei',
     'icon.please': 'Vær så snill',

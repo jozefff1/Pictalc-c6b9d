@@ -67,7 +67,9 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
 
       // Save session locally first (works offline)
       const localSession: CommunicationSession = {
-        id: crypto.randomUUID(),
+        id: (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         userId: session?.user?.id ?? 'local',
         icons: sentence,
         sentence: sentenceText,
