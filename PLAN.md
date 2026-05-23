@@ -60,6 +60,7 @@ _Last updated: May 23, 2026 (session 5)_
 - [x] Communication history — `/dashboard/history` page: own sessions for children; supervisor (teacher/therapist/guardian) gets a patient selector showing all paired users, with pairing-verified access control ✅
 - [x] **Manage custom icons** — delete (with confirmation overlay) and inline rename on each icon card in `/dashboard/icons` ✅
 - [x] **Accessibility preferences UI** — high contrast, reduce motion, text size + haptic toggles in `/dashboard/settings`; DB-persisted via PATCH `/api/preferences`; DOM changes applied immediately with `localStorage` fallback ✅
+- [x] **Dashboard pages fully translated (EN + NO)** — all 5 dashboard pages (dashboard, profile, settings, patients, history) use `t()` throughout; 80+ new translation keys added to `LanguageContext.tsx` ✅
 
 ### 2.3 Communication Board UX
 - [x] Favourite phrases — save/load icon sentences ✅
@@ -123,11 +124,13 @@ _Last updated: May 23, 2026 (session 5)_
 - [ ] QR code generation for pairing request
 - [ ] QR code scanner (`html5-qrcode` already installed)
 - [ ] Accept/reject pairing on guardian's device
-- [ ] List of paired users in dashboard
-- [ ] Unpair / revoke access
+- [x] List of paired users in dashboard (`/dashboard/patients`) ✅
+- [x] Invite via magic link or email ✅
+- [x] Unpair / revoke access ✅
+- [x] Privacy settings per pairing ✅
 
 ### 3.2 Guardian Dashboard
-- [ ] View child's communication sessions
+- [x] View child's communication sessions (supervisor patient selector in `/dashboard/history`) ✅
 - [ ] See which icons the child uses most (frequency chart)
 - [ ] Add/curate custom icons for a paired child
 - [ ] Set vocabulary restrictions per child
@@ -197,6 +200,8 @@ _Last updated: May 23, 2026 (session 5)_
 |---|---|---|---|---|
 | Recently used icons UI row | High | Low | **P1** | ✅ Done |
 | Communication history view | High | Low | **P1** | ✅ Done |
+| Dashboard i18n (EN + NO, all pages) | High | Low | **P1** | ✅ Done |
+| Supervisor pairing (invite + access + history) | High | Medium | **P1** | ✅ Done |
 | Manage custom icons (delete/rename) | Medium | Low | **P1** | ✅ Done |
 | Service worker (PWA install) | Critical | Medium | **P1** | ✅ Done |
 | Icon search bar | High | Low | **P1** | ✅ Done |
@@ -222,6 +227,7 @@ _Last updated: May 23, 2026 (session 5)_
 |---|---|---|
 | **v0.2.0** | ✅ Done | Recently used icons, history view, manage custom icons, service worker |
 | **v0.3.0** | ✅ Done | Language learning (flashcard / writing / speaking), 5-language support, premium landing page |
-| **v0.4.0** | Near-term | Full ES/FR/DE translations, spaced repetition, device pairing, guardian dashboard |
-| **v0.5.0** | Mid-term | Dynamic ARASAAC search, OBF import/export, full offline sync |
+| **v0.4.0** | ✅ Done | Dashboard i18n (EN+NO), supervisor pairing + patient history, accessibility preferences |
+| **v0.5.0** | Near-term | Full ES/FR/DE translations, spaced repetition, QR device pairing, guardian dashboard |
+| **v0.6.0** | Mid-term | Dynamic ARASAAC search, OBF import/export, full offline sync |
 | **v1.0.0** | Long-term | Production-ready, WCAG 2.1 AAA, App Store ready |

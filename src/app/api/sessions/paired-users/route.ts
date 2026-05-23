@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/config';
+import { requireAuth } from '@/lib/auth/requireAuth';
+import { handleApiError } from '@/lib/api/errorHandler';
 import { db } from '@/lib/db/client';
 import { pairings, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
 
     // Return all children/patients that have an accepted pairing with this user
     const paired = await db
@@ -23,7 +23,7 @@ export async function GET() {
       .innerJoin(users, eq(users.id, pairings.childId))
       .where(
         and(
-          eq(pairings.guardianId, session.user.id),
+          eq(pairings.guardianId, userId),
           eq(pairings.status, 'accepted')
         )
       )
@@ -31,7 +31,6 @@ export async function GET() {
 
     return NextResponse.json({ users: paired });
   } catch (error) {
-    console.error('[GET /api/sessions/paired-users] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'GET /api/sessions/paired-users');
   }
 }

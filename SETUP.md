@@ -86,17 +86,15 @@ When signing up, your password **must** include:
 ## 🎨 Features to Try
 
 After logging in:
-- ✓ Landing page with features showcase
-- ✓ Registration with role selection (Child/Guardian/Teacher/Therapist)
-- ✓ Login with success message
-- ✓ Protected dashboard (requires authentication)
-- ✓ Dark mode support
-- ✓ Responsive design
-
-## 🚀 Next Steps
-
-Communication interface coming soon with:
-- Icon-based sentence building
-- Text-to-speech
-- Device pairing with QR codes
-- Offline mode with sync
+- ✓ AAC icon board — 89 pictograms across 6 categories
+- ✓ Sentence builder with text-to-speech (speed + pitch configurable)
+- ✓ Text → icons and Speech → icons conversion
+- ✓ Custom icon upload (your own photos as AAC symbols)
+- ✓ Favourite phrases — save and reload icon sentences
+- ✓ Recently used icons row and icon search
+- ✓ Language learning mode — 5 languages, 3 modes (flashcard / writing / speaking)
+- ✓ Communication session history with supervisor patient selector
+- ✓ Supervisor pairing — invite participants via link or email (`/dashboard/patients`)
+- ✓ Voice + accessibility preferences (`/dashboard/settings`)
+- ✓ Dark mode and language switcher (EN / NO / ES / FR / DE)
+- ✓ PWA — installable from browser, works offline

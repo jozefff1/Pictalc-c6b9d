@@ -34,7 +34,7 @@ Pictalk lets users express themselves through picture-based communication boards
 | Database | Neon Serverless Postgres (Drizzle ORM) |
 | Storage | Vercel Blob |
 | Offline | IndexedDB (idb) |
-| PWA | @ducanh2912/next-pwa |
+| PWA | @serwist/next v9.5.11 |
 | Deployment | Vercel |
 
 ---
@@ -61,11 +61,12 @@ cp .env.example .env.local
 |---|---|---|
 | `DATABASE_URL` | Neon Postgres pooled connection string | ✅ |
 | `AUTH_SECRET` | Random secret for JWT (`openssl rand -base64 32`) | ✅ |
+| `AUTH_URL` | `http://localhost:3001` for local dev | Dev only |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob token (for custom icon uploads) | ✅ |
-| `NEXTAUTH_URL` | `http://localhost:3000` for local dev | Dev only |
-| `NEXT_PUBLIC_APP_URL` | Public app URL | Optional |
+| `RESEND_API_KEY` | Resend API key (for email verification + password reset) | ✅ |
+| `NEXT_PUBLIC_APP_URL` | Public app URL (used in invite emails) | Optional |
 
-> **Note**: This project uses **NextAuth.js v5**. The secret variable is `AUTH_SECRET`, not `NEXTAUTH_SECRET`.
+> **Note**: This project uses **NextAuth.js v5**. The secret variable is `AUTH_SECRET` and the URL variable is `AUTH_URL` (not `NEXTAUTH_SECRET` / `NEXTAUTH_URL`).
 
 ### 3. Push database schema
 
@@ -79,7 +80,7 @@ npm run db:push
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3001](http://localhost:3001).
 
 ---
 
@@ -88,34 +89,45 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 src/
 ├── app/
-│   ├── (auth)/              # Login, Register
+│   ├── (auth)/              # Login, Register, Verify-email, Forgot/Reset-password
 │   ├── (app)/
 │   │   ├── communicate/     # Main AAC board
-│   │   └── dashboard/       # User dashboard + custom icons
+│   │   └── dashboard/       # User dashboard
+│   │       ├── history/     # Communication session history
+│   │       ├── icons/       # Custom icon upload + management
+│   │       ├── patients/    # Pairing management (invite, access control)
+│   │       ├── profile/     # User profile (view/edit)
+│   │       └── settings/    # Voice + accessibility preferences
 │   ├── api/
-│   │   ├── auth/            # NextAuth + registration API
-│   │   └── icons/           # Custom icon upload/fetch API
+│   │   ├── auth/            # NextAuth + registration + verify/reset API
+│   │   ├── icons/           # Custom icon upload/fetch/rename/delete API
+│   │   ├── pairings/        # Pairing invite + accept API
+│   │   ├── patients/        # Patient session access API
+│   │   ├── preferences/     # Voice + accessibility preferences API
+│   │   ├── profile/         # User profile read/update API
+│   │   └── sessions/        # Communication session log API
+│   ├── learn/               # Language learning mode
 │   └── page.tsx             # Landing page
 ├── components/
-│   ├── features/            # AAC board, sentence builder, icon upload
-│   ├── common/              # Language switcher
+│   ├── features/            # AAC board, sentence builder, icon upload, learning, pairing
+│   ├── common/              # Language switcher, dark mode toggle
 │   └── layout/              # Header
 ├── lib/
 │   ├── ai/                  # Icon matcher + keyword maps (EN/NO)
 │   ├── auth/                # NextAuth v5 config
 │   ├── data/icons.ts        # Built-in icon database
-│   ├── db/                  # Drizzle client + schema (8 tables)
+│   ├── db/                  # Drizzle client + schema (9 tables)
 │   └── services/            # Web Speech API wrapper
 ├── contexts/
-│   └── LanguageContext.tsx  # i18n: EN + NO (React Context)
-└── store/                   # Redux slices (auth, communication, pairing, ui)
+│   └── LanguageContext.tsx  # i18n: EN/NO full + ES/FR/DE icon labels (React Context)
+└── store/                   # Redux slices (communication, pairing, ui)
 ```
 
 ---
 
 ## Database Schema
 
-8 tables: `users`, `devices`, `pairings`, `pairing_requests`, `messages`, `communication_sessions`, `user_preferences`, `custom_icons`
+9 tables: `users`, `devices`, `pairings`, `pairing_requests`, `messages`, `communication_sessions`, `user_preferences`, `custom_icons`, `password_history`
 
 Push schema to your database:
 ```bash
@@ -174,11 +186,18 @@ To add a new language:
 
 ## Roadmap
 
-- [ ] Email verification + password reset
-- [ ] Favourite phrases (save/load sentences)
-- [ ] Voice + accessibility preferences UI
-- [ ] ARASAAC pictogram integration (30,000+ professional AAC symbols)
-- [ ] Device pairing via QR code (guardian ↔ child)
+- [x] Email verification + password reset (Resend)
+- [x] Favourite phrases (save/load sentences, IndexedDB-persisted)
+- [x] Voice + accessibility preferences UI (`/dashboard/settings`)
+- [x] ARASAAC pictogram integration (89 built-in icons via static CDN)
+- [x] Communication session history with supervisor patient selector
+- [x] Supervisor/guardian pairing flow (invite link + email + accept/revoke)
+- [x] Language learning mode — 5 languages, 3 modes (flashcard/writing/speaking)
+- [x] Fully translated dashboard (EN + NO) — profile, settings, patients, history
+- [ ] Dynamic ARASAAC search (30,000+ symbols at runtime)
+- [ ] Full ES/FR/DE UI translations (icon labels only for now)
+- [ ] Device pairing via QR code (schema + API done; QR UI not started)
+- [ ] Spaced repetition for language learning (SM-2)
 - [ ] Full offline sync (IndexedDB + background sync)
 - [ ] Open Board Format (OBF/OBZ) import/export
 - [ ] Switch access / scanning mode

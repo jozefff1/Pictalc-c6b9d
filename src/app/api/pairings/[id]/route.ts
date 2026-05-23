@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { auth } from '@/lib/auth/config';
+import { requireAuth } from '@/lib/auth/requireAuth';
 import { db } from '@/lib/db/client';
 import { pairings } from '@/lib/db/schema';
 import { eq, and, or } from 'drizzle-orm';
@@ -9,13 +9,11 @@ type Params = { params: Promise<{ id: string }> };
 
 // DELETE /api/pairings/[id] — remove a pairing (either party can remove)
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
+  const { userId } = authResult;
 
   const { id } = await params;
-  const userId = session.user.id;
 
   const [row] = await db
     .select({ id: pairings.id })
@@ -44,13 +42,11 @@ const consentSchema = z.object({
 
 // PATCH /api/pairings/[id]/consent — update consent choices (only the child/patient can change)
 export async function PATCH(request: NextRequest, { params }: Params) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
+  const { userId } = authResult;
 
   const { id } = await params;
-  const userId = session.user.id;
 
   // Only the patient (childId) can modify consent
   const [row] = await db

@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Refactored (May 23, 2026 — session 6: deduplication)
+- **Shared utility: `src/lib/auth/requireAuth.ts`**
+  - Extracted repeated 3-line auth guard (`auth()` + null check + 401 response) into a single helper
+  - Applied to all 10 protected API route files: `preferences`, `profile`, `icons`, `icons/[id]`, `pairings`, `pairings/[id]`, `pairings/accept`, `sessions`, `sessions/paired-users`, `patients/[id]/sessions`
+- **Shared utility: `src/lib/api/errorHandler.ts`**
+  - Extracted repeated `console.error + NextResponse 500` two-liner into `handleApiError(error, context)`
+  - Applied to 6 route files (11 catch blocks): `icons`, `icons/[id]`, `preferences`, `profile`, `sessions`, `sessions/paired-users`
+- **Shared utility: `src/lib/utils/formatters.ts`**
+  - Extracted `formatDate(iso)` and `formatTime(iso)` from inline functions in `history/page.tsx`
+  - Applied to `dashboard/history/page.tsx` (removed local functions) and `dashboard/patients/[id]/page.tsx` (replaced inline expressions)
+- **Hook: `src/hooks/useFlashMessage.ts`**
+  - Extracted auto-reset boolean flag pattern (`useState(false)` + `setTimeout(() => setX(false), 2000)`) into `useFlashMessage(duration?)`
+  - Applied to `SentenceBuilder.tsx`, `dashboard/profile/page.tsx`, `dashboard/settings/page.tsx`
+- **Hook: `src/hooks/useFetch.ts`**
+  - Created generic GET-on-mount fetch hook with `data`, `loading`, `error`, `refetch`
+  - Applied to `dashboard/profile/page.tsx` (replaces manual loading state + fetch useEffect)
+- **Shared utility: `src/lib/utils/labels.ts`** (from prior session)
+  - `RELATIONSHIP_LABELS`, `ROLE_LABELS`, `ROLE_COLORS`, `getInitials` extracted from 3 files
+  - Applied to `patients/page.tsx`, `join/[token]/page.tsx`, `profile/page.tsx`
+
+### Added (session — i18n dashboard pages)
+- **Full EN/NO translation for all dashboard pages**
+  - `dashboard/page.tsx` — Converted to client component; translated 8 strings (role, cards, nav)
+  - `dashboard/profile/page.tsx` — Translated loading, error, labels, buttons, quick links
+  - `dashboard/settings/page.tsx` — Translated voice settings, accessibility, text-size controls
+  - `dashboard/patients/page.tsx` — Translated full invite modal, badges, action buttons, access section
+  - `dashboard/history/page.tsx` — Translated title, back button, viewing-for label, empty states, replay button
+- **80+ new translation keys** added to `LanguageContext.tsx` for both EN and NO
+  - Sections: `profile.*`, `settings.*`, `patients.*`, `history.*`, extended `dashboard.*`, `nav.*`
+- **Navigation header fixes**
+  - `communicate/layout.tsx` — Added Dashboard + Learn links to the communicator header
+  - `(app)/layout.tsx` — Added 💬 Communicate + Learn links to the dashboard header
+
 ### Added (May 17, 2026 — session 4)
 - **Premium landing page redesign** (`src/app/page.tsx`)
   - Dark glassmorphism hero (`from-slate-900 via-blue-950`) with animated floating emoji icons

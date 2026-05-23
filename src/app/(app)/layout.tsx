@@ -39,30 +39,49 @@ export default async function AppLayout({
       {/* Header */}
       <header className="border-b border-border bg-white px-4 py-4 dark:bg-black sticky top-0 z-40">
         <div className="container mx-auto flex items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity"
-          >
-            Snakke
-          </Link>
-
-          <div className="flex items-center gap-4">
-            <LanguageSwitcher />
+          {/* Left: logo + dark mode toggle */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity"
+            >
+              Snakke
+            </Link>
             <DarkModeToggle />
-            
-            <div className="hidden sm:flex items-center gap-2 text-sm">
+          </div>
+
+          {/* Right: nav + language + profile + sign out */}
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1">
               <Link
-                href="/dashboard/profile"
-                className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors"
+                href="/communicate"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                title="Communicate"
               >
-                {session.user?.name}
+                💬
               </Link>
-              <span className="text-gray-400 dark:text-gray-600">•</span>
-              <span className="text-gray-500 dark:text-gray-500 capitalize">
-                {session.user?.role}
-              </span>
+              <Link
+                href="/learn"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                Learn
+              </Link>
             </div>
-            
+
+            <LanguageSwitcher />
+
+            {/* Profile — icon on mobile, name on sm+ */}
+            <Link
+              href="/dashboard/profile"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Profile"
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+              <span className="hidden sm:inline">{session.user?.name}</span>
+            </Link>
+
             <SignOutButton />
           </div>
         </div>

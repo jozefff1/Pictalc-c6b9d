@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { auth } from '@/lib/auth/config';
+import { requireAuth } from '@/lib/auth/requireAuth';
+import { handleApiError } from '@/lib/api/errorHandler';
 import { db } from '@/lib/db/client';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
 
     const user = await db
       .select({
@@ -21,7 +21,7 @@ export async function GET() {
         createdAt: users.createdAt,
       })
       .from(users)
-      .where(eq(users.id, session.user.id))
+      .where(eq(users.id, userId))
       .limit(1)
       .then((rows) => rows[0]);
 
@@ -31,8 +31,7 @@ export async function GET() {
 
     return NextResponse.json({ user });
   } catch (error) {
-    console.error('[GET /api/profile] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'GET /api/profile');
   }
 }
 
@@ -42,10 +41,9 @@ const patchSchema = z.object({
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
 
     const body = await request.json();
     const result = patchSchema.safeParse(body);
@@ -59,11 +57,10 @@ export async function PATCH(request: NextRequest) {
     await db
       .update(users)
       .set({ name: result.data.name, updatedAt: new Date() })
-      .where(eq(users.id, session.user.id));
+      .where(eq(users.id, userId));
 
     return NextResponse.json({ success: true, name: result.data.name });
   } catch (error) {
-    console.error('[PATCH /api/profile] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'PATCH /api/profile');
   }
 }

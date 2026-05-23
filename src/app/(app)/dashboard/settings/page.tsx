@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { speakText, isSpeechSynthesisSupported } from '@/lib/services/speechService';
 import { STORAGE_KEYS } from '@/lib/utils/constants';
 import { usePreferences, type Preferences } from '@/hooks/usePreferences';
+import { useFlashMessage } from '@/hooks/useFlashMessage';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Prefs = Preferences;
 
@@ -19,10 +21,11 @@ function applyAccessibility(prefs: Prefs) {
 }
 
 export default function SettingsPage() {
+  const { t } = useLanguage();
   const { preferences, setPreferences, loading } = usePreferences();
   const [prefs, setPrefs] = useState<Prefs>(preferences);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saved, triggerSaved] = useFlashMessage();
 
   // Sync local prefs state once hook resolves and apply accessibility settings
   useEffect(() => {
@@ -34,15 +37,13 @@ export default function SettingsPage() {
 
   const save = useCallback(async (patch: Partial<Prefs>) => {
     setSaving(true);
-    setSaved(false);
     try {
       await fetch('/api/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(patch),
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      triggerSaved();
     } catch {
       // silently fail — prefs are non-critical
     } finally {
@@ -65,7 +66,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">Loading settings...</p>
+        <p className="text-gray-500 dark:text-gray-400">{t('settings.loading')}</p>
       </div>
     );
   }
@@ -74,22 +75,22 @@ export default function SettingsPage() {
     <div className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Adjust your voice, speech, and accessibility preferences</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('settings.title')}</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">{t('settings.subtitle')}</p>
         </div>
 
         <div className="space-y-6">
           {/* Voice Settings */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 space-y-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <span>🔊</span> Voice Settings
+              <span>🔊</span> {t('settings.voice.title')}
             </h2>
 
             {/* Speed */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Speaking Speed
+                  {t('settings.voice.speed')}
                 </label>
                 <span className="text-sm font-mono bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-700 dark:text-gray-300">
                   {prefs.voiceSpeed.toFixed(1)}×
@@ -105,9 +106,9 @@ export default function SettingsPage() {
                 className="w-full accent-primary"
               />
               <div className="flex justify-between text-xs text-gray-400 mt-1">
-                <span>Slow (0.5×)</span>
-                <span>Normal (1.0×)</span>
-                <span>Fast (2.0×)</span>
+                <span>{t('settings.voice.slow')}</span>
+                <span>{t('settings.voice.normal')}</span>
+                <span>{t('settings.voice.fast')}</span>
               </div>
             </div>
 
@@ -115,7 +116,7 @@ export default function SettingsPage() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Voice Pitch
+                  {t('settings.voice.pitch')}
                 </label>
                 <span className="text-sm font-mono bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-700 dark:text-gray-300">
                   {prefs.voicePitch.toFixed(1)}
@@ -131,9 +132,9 @@ export default function SettingsPage() {
                 className="w-full accent-primary"
               />
               <div className="flex justify-between text-xs text-gray-400 mt-1">
-                <span>Low (0.5)</span>
-                <span>Normal (1.0)</span>
-                <span>High (2.0)</span>
+                <span>{t('settings.voice.low')}</span>
+                <span>{t('settings.voice.normal')}</span>
+                <span>{t('settings.voice.high')}</span>
               </div>
             </div>
 
@@ -144,39 +145,39 @@ export default function SettingsPage() {
                 disabled={!isSpeechSynthesisSupported()}
                 className="px-5 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors"
               >
-                🎤 Test Voice
+                {t('settings.voice.test')}
               </button>
-              {saving && <span className="text-sm text-gray-400">Saving...</span>}
-              {saved && !saving && <span className="text-sm text-green-600 dark:text-green-400">✓ Saved</span>}
+              {saving && <span className="text-sm text-gray-400">{t('settings.voice.saving')}</span>}
+              {saved && !saving && <span className="text-sm text-green-600 dark:text-green-400">{t('settings.voice.saved')}</span>}
             </div>
           </div>
 
           {/* Accessibility Settings */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 space-y-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <span>♿</span> Accessibility
+              <span>♿</span> {t('settings.accessibility.title')}
             </h2>
 
             {/* Haptic Feedback */}
             <ToggleRow
-              label="Haptic Feedback"
-              description="Vibrate the device briefly when tapping an icon (supported devices only)"
+              label={t('settings.haptic.label')}
+              description={t('settings.haptic.desc')}
               checked={prefs.hapticEnabled}
               onChange={(v) => update('hapticEnabled', v)}
             />
 
             {/* High Contrast */}
             <ToggleRow
-              label="High Contrast"
-              description="Increase colour contrast for text and borders — helps with visual impairments"
+              label={t('settings.highContrast.label')}
+              description={t('settings.highContrast.desc')}
               checked={prefs.highContrast}
               onChange={(v) => update('highContrast', v)}
             />
 
             {/* Reduce Motion */}
             <ToggleRow
-              label="Reduce Motion"
-              description="Disable animations and transitions throughout the app"
+              label={t('settings.reduceMotion.label')}
+              description={t('settings.reduceMotion.desc')}
               checked={prefs.reduceMotion}
               onChange={(v) => update('reduceMotion', v)}
             />
@@ -185,8 +186,8 @@ export default function SettingsPage() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Text Size</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Scale all text in the app</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('settings.textSize.label')}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{t('settings.textSize.desc')}</p>
                 </div>
                 <span className="text-sm font-mono bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-700 dark:text-gray-300">
                   {prefs.textSize.toFixed(1)}×
@@ -202,9 +203,9 @@ export default function SettingsPage() {
                 className="w-full accent-primary"
               />
               <div className="flex justify-between text-xs text-gray-400 mt-1">
-                <span>Small (0.8×)</span>
-                <span>Normal (1.0×)</span>
-                <span>Large (2.0×)</span>
+                <span>{t('settings.small')}</span>
+                <span>{t('settings.voice.normal')}</span>
+                <span>{t('settings.large')}</span>
               </div>
             </div>
           </div>

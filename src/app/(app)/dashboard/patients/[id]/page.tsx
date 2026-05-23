@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { formatDate, formatTime } from '@/lib/utils/formatters';
 
 interface SessionRow {
   id: string;
@@ -181,7 +182,7 @@ export default function PatientDetailPage() {
                 <p className="font-medium text-gray-800 dark:text-gray-200 leading-snug">{s.sentence}</p>
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <span className="text-xs text-gray-400">
-                    {new Date(s.timestamp).toLocaleDateString()} {new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {formatDate(s.timestamp)} {formatTime(s.timestamp)}
                   </span>
                   {s.taskType !== 'free' && (
                     <span className="text-xs rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 px-2 py-0.5 capitalize">

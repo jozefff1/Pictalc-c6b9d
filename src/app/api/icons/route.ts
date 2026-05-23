@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/config';
+import { requireAuth } from '@/lib/auth/requireAuth';
+import { handleApiError } from '@/lib/api/errorHandler';
 import { put } from '@vercel/blob';
 import { db } from '@/lib/db/client';
 import { customIcons } from '@/lib/db/schema';
@@ -8,30 +9,27 @@ import { nanoid } from 'nanoid';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
 
     const icons = await db
       .select()
       .from(customIcons)
-      .where(eq(customIcons.userId, session.user.id))
+      .where(eq(customIcons.userId, userId))
       .orderBy(desc(customIcons.createdAt));
 
     return NextResponse.json({ icons });
   } catch (error) {
-    console.error('[GET /api/icons] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'GET /api/icons');
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
 
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -54,10 +52,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large. Maximum size is 5 MB' }, { status: 400 });
     }
 
-    // 1. Upload to Vercel Blob
-    // We add a short nanoid to the filename to avoid collisions
+    // Build a readable blob filename from the user-given name + short ID to avoid collisions
+    const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').slice(0, 40);
     const fileExtension = file.name.split('.').pop() || 'png';
-    const blobFilename = `icons/${session.user.id}/${nanoid(8)}.${fileExtension}`;
+    const blobFilename = `icons/${userId}/${safeName}-${nanoid(6)}.${fileExtension}`;
     
     const blob = await put(blobFilename, file, {
       access: 'public',
@@ -67,7 +65,7 @@ export async function POST(request: NextRequest) {
     const [newIcon] = await db
       .insert(customIcons)
       .values({
-        userId: session.user.id,
+        userId: userId,
         name: name.toLowerCase(),
         category: category.toLowerCase(),
         imageUrl: blob.url,
@@ -76,7 +74,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ icon: newIcon }, { status: 201 });
   } catch (error) {
-    console.error('[POST /api/icons] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'POST /api/icons');
   }
 }

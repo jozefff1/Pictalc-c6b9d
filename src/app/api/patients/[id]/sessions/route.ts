@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth/config';
+import { requireAuth } from '@/lib/auth/requireAuth';
 import { db } from '@/lib/db/client';
 import { communicationSessions, pairings, users } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
@@ -10,13 +10,11 @@ type Params = { params: Promise<{ id: string }> };
 // Returns shared sessions for a paired patient. Enforces pairing + shareHistory permission.
 // Add ?export=csv to download anonymised CSV.
 export async function GET(request: NextRequest, { params }: Params) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
+  const { userId: supervisorId } = authResult;
 
   const { id: patientId } = await params;
-  const supervisorId = session.user.id;
 
   // Verify an active accepted pairing exists and shareHistory is on
   const [pairing] = await db

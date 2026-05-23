@@ -217,13 +217,12 @@ Replace the keyword matching engine with a lightweight semantic embedding model 
 
 | Issue | File | Recommendation |
 |---|---|---|
-| Service worker not generated | `public/` | Verify `next-pwa` build output; `sw.js` must exist for PWA install |
+| Service worker ✅ Fixed | `public/` | Migrated to `@serwist/next`; `public/sw.js` generated at build time |
 | `turbopack.root` warning in build | `next.config.ts` | Set `turbopack.root` to suppress warning |
 | `MULTILINGUAL_SETUP.md` is outdated | `MULTILINGUAL_SETUP.md` | Update to reflect current React Context approach (not next-intl) |
 | `plan.txt` at root is empty | `plan.txt` | Delete or migrate to `PLAN.md` |
-| `summary 03.03.2025.txt` at root | root | Archive or delete — stale Expo-era summary |
 | `olama chat` folder at root | root | Should be gitignored or removed |
-| `NEXTAUTH_SECRET` in README.md | `README.md` | Update to `AUTH_SECRET` (NextAuth v5) |
+| `NEXTAUTH_SECRET` in README ✅ Fixed | `README.md` | Updated to `AUTH_SECRET` + `AUTH_URL` (NextAuth v5) |
 | RTK Query `baseApi` | `src/store/api/baseApi.ts` | Configured but no endpoints defined — either add endpoints or remove if unused |
 | icon-192.png 404 | `public/` | `/icon-192.png` returns 404 — referenced in manifest but file missing |
 

@@ -12,15 +12,18 @@ export default function Header({ showAuth = true }: HeaderProps) {
   return (
     <header className="border-b border-border bg-white px-4 py-4 dark:bg-black">
       <div className="container mx-auto flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
-          Snakke
-        </Link>
-        
-        <div className="flex items-center gap-4">
-          <LanguageSwitcher />
+        {/* Left: logo + dark mode toggle */}
+        <div className="flex items-center gap-3">
+          <Link href="/" className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+            Snakke
+          </Link>
           <DarkModeToggle />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           {showAuth && (
-            <nav className="flex items-center gap-3">
+            <nav className="flex items-center gap-2">
               <Link
                 href="/communicate"
                 title="Communication board"

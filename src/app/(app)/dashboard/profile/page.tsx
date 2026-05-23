@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { ROLE_LABELS, ROLE_COLORS, getInitials } from '@/lib/utils/labels';
+import { useFlashMessage } from '@/hooks/useFlashMessage';
+import { useFetch } from '@/hooks/useFetch';
 
 interface UserProfile {
   id: string;
@@ -11,50 +15,22 @@ interface UserProfile {
   createdAt: string;
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  child: 'Child',
-  guardian: 'Guardian',
-  therapist: 'Therapist',
-  teacher: 'Teacher',
-};
-
-const ROLE_COLORS: Record<string, string> = {
-  child: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  guardian: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  therapist: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-  teacher: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
-};
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((word) => word[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
-
 export default function ProfilePage() {
+  const { t } = useLanguage();
+  const { data: profileData, loading } = useFetch<{ user: UserProfile }>('/api/profile');
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [savedFlash, setSavedFlash] = useState(false);
+  const [savedFlash, triggerSavedFlash] = useFlashMessage();
 
   useEffect(() => {
-    fetch('/api/profile')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.user) {
-          setProfile(data.user);
-          setNameInput(data.user.name);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    if (profileData?.user) {
+      setProfile(profileData.user);
+      setNameInput(profileData.user.name);
+    }
+  }, [profileData]);
 
   const handleSaveName = async () => {
     if (!nameInput.trim() || nameInput === profile?.name) {
@@ -81,8 +57,7 @@ export default function ProfilePage() {
 
       setProfile((prev) => prev ? { ...prev, name: data.name } : prev);
       setEditingName(false);
-      setSavedFlash(true);
-      setTimeout(() => setSavedFlash(false), 2000);
+      triggerSavedFlash();
     } catch {
       setSaveError('Something went wrong. Please try again.');
     } finally {
@@ -102,7 +77,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">Loading profile...</p>
+        <p className="text-gray-500 dark:text-gray-400">{t('profile.loading')}</p>
       </div>
     );
   }
@@ -110,7 +85,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <p className="text-red-500">Could not load profile.</p>
+        <p className="text-red-500">{t('profile.error')}</p>
       </div>
     );
   }
@@ -129,10 +104,10 @@ export default function ProfilePage() {
             href="/dashboard"
             className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
           >
-            ← Dashboard
+            ← {t('nav.dashboard')}
           </Link>
           <span className="text-gray-300 dark:text-gray-600">/</span>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('profile.title')}</h1>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-8">
@@ -166,13 +141,13 @@ export default function ProfilePage() {
                     disabled={saving}
                     className="px-3 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover disabled:opacity-50 transition-colors"
                   >
-                    {saving ? '...' : 'Save'}
+                    {saving ? t('profile.saving') : t('profile.save')}
                   </button>
                   <button
                     onClick={() => { setNameInput(profile.name); setEditingName(false); setSaveError(''); }}
                     className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
-                    Cancel
+                    {t('profile.cancel')}
                   </button>
                 </div>
               ) : (
@@ -185,7 +160,7 @@ export default function ProfilePage() {
                     className="text-xs text-gray-400 hover:text-primary transition-colors"
                     aria-label="Edit name"
                   >
-                    ✏️ Edit
+                    {t('profile.edit')}
                   </button>
                 </div>
               )}
@@ -194,7 +169,7 @@ export default function ProfilePage() {
                 <p className="text-sm text-red-500 mt-1">{saveError}</p>
               )}
               {savedFlash && !saveError && (
-                <p className="text-sm text-green-600 dark:text-green-400 mt-1">✓ Name updated</p>
+                <p className="text-sm text-green-600 dark:text-green-400 mt-1">{t('profile.saved')}</p>
               )}
 
               <span className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${ROLE_COLORS[profile.role] ?? ROLE_COLORS.child}`}>
@@ -206,15 +181,15 @@ export default function ProfilePage() {
           {/* Details */}
           <div className="space-y-4 border-t border-gray-100 dark:border-gray-700 pt-6">
             <div className="flex justify-between items-center py-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Email</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('profile.email')}</span>
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{profile.email}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-700">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Role</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('profile.role')}</span>
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">{ROLE_LABELS[profile.role] ?? profile.role}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-700">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Member since</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('profile.memberSince')}</span>
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{memberSince}</span>
             </div>
           </div>
@@ -225,13 +200,13 @@ export default function ProfilePage() {
               href="/dashboard/settings"
               className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
-              ⚙️ Voice Settings
+              {t('profile.voiceSettings')}
             </Link>
             <Link
               href="/communicate"
               className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors"
             >
-              💬 Communicate
+              {t('profile.communicate')}
             </Link>
           </div>
         </div>

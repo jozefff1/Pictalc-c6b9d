@@ -1,25 +1,24 @@
-import { auth } from '@/lib/auth/config';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-export default async function DashboardPage() {
-  const session = await auth();
-
-  if (!session) {
-    redirect('/login');
-  }
+export default function DashboardPage() {
+  const { data: session } = useSession();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen p-8 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">Dashboard</h1>
+        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h1>
         
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
           <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-            Welcome back, {session.user?.name}!
+            {t('dashboard.welcome')}, {session?.user?.name}!
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Role: <span className="font-medium capitalize">{session.user?.role}</span>
+            {t('dashboard.role')}: <span className="font-medium capitalize">{session?.user?.role}</span>
           </p>
         </div>
 
@@ -38,7 +37,7 @@ export default async function DashboardPage() {
             "
           >
             <span className="text-2xl">💬</span>
-            Start Communicating
+            {t('dashboard.start')}
           </Link>
         </div>
 
@@ -46,60 +45,60 @@ export default async function DashboardPage() {
           <Link href="/communicate" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">🎯</span>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.cards.communicate.title')}</h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Start communicating with icons
+              {t('dashboard.cards.communicate.desc')}
             </p>
           </Link>
 
           <Link href="/dashboard/history" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">📊</span>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Communication History</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.cards.history.title')}</h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Review past sentences and replay them
+              {t('dashboard.cards.history.desc')}
             </p>
           </Link>
 
           <Link href="/dashboard/settings" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">⚙️</span>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Settings</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.cards.settings.title')}</h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Customize your experience
+              {t('dashboard.cards.settings.desc')}
             </p>
           </Link>
 
           <Link href="/dashboard/icons" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow border-2 border-dashed border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">🖼️</span>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Custom Icons</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.cards.icons.title')}</h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Upload your own AAC icons and images
+              {t('dashboard.cards.icons.desc')}
             </p>
           </Link>
 
           <Link href="/dashboard/patients" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">👥</span>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Patients &amp; Participants</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.cards.patients.title')}</h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Invite participants and manage privacy settings
+              {t('dashboard.cards.patients.desc')}
             </p>
           </Link>
 
           <Link href="/learn" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow border-2 border-primary/20 dark:border-primary/30">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">🎓</span>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Language Learning</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.cards.learn.title')}</h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Practice vocabulary in 5 languages with flashcards, writing, and speaking
+              {t('dashboard.cards.learn.desc')}
             </p>
           </Link>
         </div>

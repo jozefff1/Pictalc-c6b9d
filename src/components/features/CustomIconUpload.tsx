@@ -10,6 +10,40 @@ interface CustomIcon {
   imageUrl: string;
 }
 
+/**
+ * Resizes an image file to a square canvas of `size × size` px and returns a PNG Blob.
+ * The image is scaled to cover the square (object-fit: cover) so it fills without distortion.
+ */
+function resizeImage(file: File, size: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('Canvas not supported')); return; }
+
+      // Scale to cover the square, centred
+      const scale = Math.max(size / img.width, size / img.height);
+      const sw = img.width * scale;
+      const sh = img.height * scale;
+      const sx = (size - sw) / 2;
+      const sy = (size - sh) / 2;
+      ctx.drawImage(img, sx, sy, sw, sh);
+
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Failed to convert canvas to blob'));
+      }, 'image/png');
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to load image')); };
+    img.src = url;
+  });
+}
+
 export function CustomIconUpload() {
   const [icons, setIcons] = useState<CustomIcon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,9 +96,14 @@ export function CustomIconUpload() {
       const file = e.target.files[0];
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      // Only auto-fill the name if the field is empty and the filename looks human-readable
+      // (skip hash-like names: long strings of hex/digits, IMG_*, DSC_*, etc.)
       if (!name) {
-        const filename = file.name.split('.')[0].replace(/[-_]/g, ' ');
-        setName(filename.toLowerCase());
+        const stem = file.name.split('.')[0].replace(/[-_]/g, ' ').trim();
+        const looksLikeHash = /^(img|dsc|pic|photo|screenshot|image|file|upload|tmp|temp)?[\s_-]?[\da-f]{6,}$/i.test(stem.replace(/\s/g, ''));
+        if (!looksLikeHash && stem.length > 0 && stem.length <= 40) {
+          setName(stem.toLowerCase());
+        }
       }
     }
   };
@@ -80,12 +119,16 @@ export function CustomIconUpload() {
     setError('');
     setSuccess('');
 
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    formData.append('name', name);
-    formData.append('category', category);
-
     try {
+      // Resize to 128×128 px (covers 64px picker + 48px sentence builder at 2× retina)
+      const resizedBlob = await resizeImage(selectedFile, 128);
+      const resizedFile = new File([resizedBlob], selectedFile.name.replace(/\.[^.]+$/, '.png'), { type: 'image/png' });
+
+      const formData = new FormData();
+      formData.append('file', resizedFile);
+      formData.append('name', name);
+      formData.append('category', category);
+
       const res = await fetch('/api/icons', { method: 'POST', body: formData });
       if (!res.ok) {
         const data = await res.json();

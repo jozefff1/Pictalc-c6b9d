@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useIconLabels } from '@/hooks/useIconLabels';
 import {
   removeIconFromSentence,
   clearSentence,
@@ -16,10 +16,12 @@ import { speakText, isSpeechSynthesisSupported } from '@/lib/services/speechServ
 import { indexedDB } from '@/lib/offline/indexedDB';
 import { useSession } from 'next-auth/react';
 import { usePreferences } from '@/hooks/usePreferences';
+import { useFlashMessage } from '@/hooks/useFlashMessage';
 import type { Icon, CommunicationSession } from '@/types/models';
 
 export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boolean }) {
   const { t, tIcon, language } = useLanguage();
+  const { labels } = useIconLabels();
   const { data: session } = useSession();
   const dispatch = useAppDispatch();
   const sentence = useAppSelector((state) => state.communication.sentence);
@@ -27,14 +29,18 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
   const favoritePhrases = useAppSelector((state) => state.communication.favoritePhrases);
   const [error, setError] = useState<string>('');
   const [showFavorites, setShowFavorites] = useState(false);
-  const [savedFlash, setSavedFlash] = useState(false);
+  const [savedFlash, triggerSavedFlash] = useFlashMessage();
   const { preferences } = usePreferences();
   const voiceSpeed = preferences.voiceSpeed;
   const voicePitch = preferences.voicePitch;
 
-  const sentenceText = sentence.map((icon: Icon) =>
-    icon.id.startsWith('custom_') ? icon.name : tIcon(icon.id)
-  ).join(' ');
+  const getDisplayName = (icon: Icon) => {
+    if (labels[icon.id]) return labels[icon.id];
+    const translated = tIcon(icon.id);
+    return translated !== icon.id ? translated : icon.name;
+  };
+
+  const sentenceText = sentence.map((icon: Icon) => getDisplayName(icon)).join(' ');
 
   const handleSpeak = async () => {
     if (!isSpeechSynthesisSupported()) {
@@ -104,8 +110,7 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
   const handleSaveFavorite = () => {
     if (sentence.length === 0) return;
     dispatch(saveFavoritePhrase({ icons: sentence, sentence: sentenceText }));
-    setSavedFlash(true);
-    setTimeout(() => setSavedFlash(false), 2000);
+    triggerSavedFlash();
   };
 
   const handleLoadFavorite = (id: string) => {
@@ -184,21 +189,22 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
                 transition-colors
                 group
               "
-              aria-label={`Remove ${tIcon(icon.id)}`}
+              aria-label={`Remove ${getDisplayName(icon)}`}
             >
               {icon.imageUrl ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   src={icon.imageUrl}
-                  alt={icon.name}
-                  width={32}
-                  height={32}
+                  alt={getDisplayName(icon)}
+                  width={48}
+                  height={48}
                   className="object-contain"
                 />
               ) : (
                 <span className="text-3xl">{icon.symbol}</span>
               )}
               <span className="text-xs text-gray-600 dark:text-gray-300 group-hover:text-red-600 dark:group-hover:text-red-400">
-                {icon.id.startsWith('custom_') ? icon.name : tIcon(icon.id)}
+                {getDisplayName(icon)}
               </span>
             </button>
           ))

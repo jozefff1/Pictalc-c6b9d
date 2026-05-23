@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { auth } from '@/lib/auth/config';
+import { requireAuth } from '@/lib/auth/requireAuth';
+import { handleApiError } from '@/lib/api/errorHandler';
 import { db } from '@/lib/db/client';
 import { communicationSessions, pairings } from '@/lib/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
@@ -22,10 +23,9 @@ const sessionSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
 
     const body = await request.json();
     const result = sessionSchema.safeParse(body);
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const [newSession] = await db
       .insert(communicationSessions)
       .values({
-        userId: session.user.id,
+        userId: userId,
         icons: result.data.icons,
         sentence: result.data.sentence,
         visibility: result.data.visibility,
@@ -50,29 +50,27 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ sessionId: newSession.id }, { status: 201 });
   } catch (error) {
-    console.error('[POST /api/sessions] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'POST /api/sessions');
   }
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId: currentUserId } = authResult;
 
     const { searchParams } = new URL(request.url);
     const targetUserId = searchParams.get('userId');
 
-    if (targetUserId && targetUserId !== session.user.id) {
+    if (targetUserId && targetUserId !== currentUserId) {
       // Verify a valid accepted pairing exists: current user is the guardian/therapist/teacher
       const [pairing] = await db
         .select({ id: pairings.id })
         .from(pairings)
         .where(
           and(
-            eq(pairings.guardianId, session.user.id),
+            eq(pairings.guardianId, currentUserId),
             eq(pairings.childId, targetUserId),
             eq(pairings.status, 'accepted')
           )
@@ -84,7 +82,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const userId = targetUserId ?? session.user.id;
+    const userId = targetUserId ?? currentUserId;
 
     const sessions = await db
       .select()
@@ -95,8 +93,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ sessions });
   } catch (error) {
-    console.error('[GET /api/sessions] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'GET /api/sessions');
   }
 }
 

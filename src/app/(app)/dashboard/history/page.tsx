@@ -5,6 +5,8 @@ import { useAppDispatch } from '@/store/hooks';
 import { addIconToSentence, clearSentence } from '@/store/slices/communicationSlice';
 import { useRouter } from 'next/navigation';
 import type { Icon } from '@/types/models';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { formatDate, formatTime } from '@/lib/utils/formatters';
 
 interface CommunicationSession {
   id: string;
@@ -22,6 +24,7 @@ interface PairedUser {
 }
 
 export default function HistoryPage() {
+  const { t } = useLanguage();
   const dispatch = useAppDispatch();
   const router = useRouter();
 
@@ -84,16 +87,6 @@ export default function HistoryPage() {
     setTimeout(() => router.push('/communicate'), 800);
   };
 
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-  };
-
-  const formatTime = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-  };
-
   // Group sessions by date
   const grouped = sessions.reduce<Record<string, CommunicationSession[]>>((acc, s) => {
     const key = formatDate(s.timestamp);
@@ -113,10 +106,10 @@ export default function HistoryPage() {
             className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             aria-label="Back to dashboard"
           >
-            ← Back
+            {t('history.back')}
           </button>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Communication History
+            {t('history.title')}
           </h1>
         </div>
 
@@ -124,7 +117,7 @@ export default function HistoryPage() {
         {isSupervisor && pairedUsers.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Viewing history for
+              {t('history.viewingFor')}
             </label>
             <select
               value={selectedUserId}
@@ -151,11 +144,11 @@ export default function HistoryPage() {
         {!loading && sessions.length === 0 && (
           <div className="text-center py-16">
             <p className="text-5xl mb-4">💬</p>
-            <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">No sessions yet</p>
+            <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">{t('history.noSessions')}</p>
             <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
               {isSupervisor
-                ? `${selectedUserName} hasn't spoken any sentences yet.`
-                : 'Start communicating and your sentences will be saved here.'}
+                ? `${selectedUserName} ${t('history.empty.supervisor')}`
+                : t('history.empty.user')}
             </p>
           </div>
         )}
@@ -216,7 +209,7 @@ export default function HistoryPage() {
                       onClick={() => handleReplay(s)}
                       className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
                     >
-                      <span>▶</span> Replay in communicator
+                      <span>▶</span> {replayedId === s.id ? t('history.replaying') : t('history.replay')}
                     </button>
                   </div>
                 </div>

@@ -4,14 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-
-const RELATIONSHIP_LABELS: Record<string, string> = {
-  parent: 'Parent / Guardian',
-  therapist: 'Therapist',
-  teacher: 'Teacher',
-  researcher: 'Researcher',
-  caregiver: 'Caregiver',
-};
+import { RELATIONSHIP_LABELS } from '@/lib/utils/labels';
 
 export default function JoinPage() {
   const { token } = useParams<{ token: string }>();
@@ -111,6 +104,20 @@ export default function JoinPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 max-w-md w-full">
+        {/* Signed-in user banner */}
+        <div className="flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 px-3 py-2 mb-5 text-sm">
+          <span className="text-gray-500 dark:text-gray-400 truncate">
+            Signed in as <strong className="text-gray-800 dark:text-gray-200">{session?.user?.email}</strong>
+          </span>
+          <a
+            href={`/login?callbackUrl=${encodeURIComponent(`/join/${token}`)}`}
+            onClick={async (e) => { e.preventDefault(); const { signOut } = await import('next-auth/react'); await signOut({ redirect: false }); window.location.href = `/login?callbackUrl=${encodeURIComponent(`/join/${token}`)}`; }}
+            className="ml-3 shrink-0 text-xs text-primary hover:underline"
+          >
+            Switch account
+          </a>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-6">
           <div className="text-4xl mb-3">🤝</div>

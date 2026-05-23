@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { auth } from '@/lib/auth/config';
+import { requireAuth } from '@/lib/auth/requireAuth';
 import { db } from '@/lib/db/client';
 import { pairings, pairingRequests, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -15,10 +15,8 @@ const acceptSchema = z.object({
 
 // POST /api/pairings/accept — accept a pairing invite
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
 
   const body = await request.json().catch(() => ({}));
   const result = acceptSchema.safeParse(body);
@@ -30,7 +28,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { token, relationship, shareHistory, shareStats, allowExport } = result.data;
-  const acceptorId = session.user.id;
+  const { userId: acceptorId } = authResult as { userId: string };
 
   // Look up the invite token
   const [invite] = await db

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
-import { auth } from '@/lib/auth/config';
+import { requireAuth } from '@/lib/auth/requireAuth';
 import { db } from '@/lib/db/client';
 import { pairings, pairingRequests, users } from '@/lib/db/schema';
 import { eq, or, and } from 'drizzle-orm';
@@ -9,12 +9,9 @@ import { sendInviteEmail } from '@/lib/email/resend';
 
 // GET /api/pairings — list all pairings for the current user (as guardian or child)
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const userId = session.user.id;
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
+  const { userId } = authResult;
 
   const rows = await db
     .select({
@@ -65,10 +62,9 @@ const inviteSchema = z.object({
 
 // POST /api/pairings — generate a pairing invite token
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
+  const { userId } = authResult;
 
   const body = await request.json().catch(() => ({}));
   const result = inviteSchema.safeParse(body);
@@ -83,7 +79,7 @@ export async function POST(request: NextRequest) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
   await db.insert(pairingRequests).values({
-    requesterId: session.user.id,
+    requesterId: userId,
     token,
     status: 'pending',
     expiresAt,
@@ -98,7 +94,7 @@ export async function POST(request: NextRequest) {
       const [inviter] = await db
         .select({ name: users.name })
         .from(users)
-        .where(eq(users.id, session.user.id))
+        .where(eq(users.id, userId))
         .limit(1);
       await sendInviteEmail(
         result.data.email,

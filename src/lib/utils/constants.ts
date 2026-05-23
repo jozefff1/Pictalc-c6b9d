@@ -59,6 +59,7 @@ export const STORAGE_KEYS = {
   USER_PREFERENCES: 'snakke-preferences',
   OFFLINE_QUEUE: 'snakke-offline-queue',
   LAST_SYNC: 'snakke-last-sync',
+  ICON_LABELS: 'snakke-icon-labels',
 } as const;
 
 // IndexedDB Configuration

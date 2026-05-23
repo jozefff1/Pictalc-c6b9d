@@ -39,6 +39,7 @@ Augmentative and Alternative Communication (AAC) refers to all forms of communic
 | i18n | Custom React Context (client-side, **not** next-intl) |
 | Languages | EN, NO, ES, FR, DE |
 | Email | Resend |
+| Email templates | Resend (verification + password reset + invite links) |
 
 ---
 
@@ -89,13 +90,27 @@ Root
 │   │   │   └── keywordMappings/
 │   │   │       ├── en.ts            # English keyword map
 │   │   │       └── no.ts            # Norwegian keyword map
-│   │   ├── auth/config.ts           # NextAuth v5 config
+│   │   ├── api/
+│   │   │   └── errorHandler.ts      # handleApiError(error, context) — shared 500 helper
+│   │   ├── auth/
+│   │   │   ├── config.ts            # NextAuth v5 config
+│   │   │   └── requireAuth.ts       # Auth guard for API routes → { userId } | 401 response
 │   │   ├── data/icons.ts            # Built-in icon database
 │   │   ├── db/
 │   │   │   ├── client.ts            # Neon Drizzle client
 │   │   │   └── schema.ts            # All DB table definitions
 │   │   ├── offline/indexedDB.ts     # Offline storage utilities
-│   │   └── services/speechService   # Web Speech API wrapper
+│   │   ├── services/speechService   # Web Speech API wrapper
+│   │   └── utils/
+│   │       ├── cn.ts                # Tailwind class merge helper
+│   │       ├── constants.ts         # App-wide constants
+│   │       ├── formatters.ts        # formatDate / formatTime helpers
+│   │       ├── labels.ts            # RELATIONSHIP_LABELS, ROLE_LABELS, ROLE_COLORS, getInitials
+│   │       └── validators.ts        # Zod schemas / validation helpers
+│   ├── hooks/
+│   │   ├── useFlashMessage.ts       # Auto-reset boolean for transient UI feedback
+│   │   ├── useFetch.ts              # Generic GET-on-mount fetch hook
+│   │   └── usePreferences.ts        # User preferences (voice, a11y) + Redux sync
 │   ├── contexts/
 │   │   └── LanguageContext.tsx      # i18n: EN/NO/ES/FR/DE + learnFrom/learnTarget state
 │   ├── store/
@@ -160,6 +175,10 @@ password_history     → Last 5 password hashes per user (prevents password reus
 | Accessibility preferences (high contrast, reduce motion, text size, haptic) | ✅ |
 | Premium landing page (translated, glassmorphism) | ✅ |
 | Security headers (CSP-ready, X-Frame, Referrer-Policy) | ✅ |
+| Fully translated dashboard — all pages (EN + NO) | ✅ |
+| Supervisor pairing — invite via link or email | ✅ |
+| Supervisor history with patient selector | ✅ |
+| Pairing access control (accept/revoke, privacy settings) | ✅ |
 | Device pairing (QR code) | ❌ Not started |
 | Guardian real-time dashboard | ❌ Not started |
 | Dynamic ARASAAC API search (30,000+ symbols) | ❌ Not started |
@@ -171,7 +190,7 @@ password_history     → Last 5 password hashes per user (prevents password reus
 - **No `next-intl`**: Attempted and abandoned after persistent failures with Next.js App Router (routing conflicts, middleware issues, build failures). Client-side React Context i18n is used instead. **Do NOT reintroduce `next-intl`.**
 - **Build flags**: Must use `next build --webpack` and `next dev --webpack` — Serwist (PWA) is incompatible with Next.js 16's default Turbopack.
 - **Git remotes**: `origin` → `Pictalc-copy.git` (backup), `snakke` → `snakke.git` (Vercel deployment). Always push to `snakke` to trigger a deploy.
-- **NextAuth v5**: Uses `AUTH_SECRET` env var (not `NEXTAUTH_SECRET`). `trustHost: true` required for Vercel. Auth state is owned by NextAuth — no Redux `authSlice`.
+- **NextAuth v5**: Uses `AUTH_SECRET` env var (not `NEXTAUTH_SECRET`) and `AUTH_URL` (not `NEXTAUTH_URL`). `trustHost: true` required for Vercel. Auth state is owned by NextAuth — no Redux `authSlice`.
 - **Forgot-password validates email**: `/api/auth/forgot-password` returns 404 if the email is not registered. Reset links are only sent to verified, existing accounts.
 - **Password history**: `password_history` table stores last 5 hashes per user. Reuse returns "You cannot reuse a previous password."
 - **Offline-first**: IndexedDB (via `idb`) is the primary store for sessions and favourite phrases. Neon DB is the cloud backup and analytics layer.

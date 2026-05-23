@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { RELATIONSHIP_LABELS } from '@/lib/utils/labels';
 
 interface OtherUser {
   id: string;
@@ -24,15 +26,8 @@ interface PairingRow {
   otherUser: OtherUser | null;
 }
 
-const RELATIONSHIP_LABELS: Record<string, string> = {
-  parent: 'Parent',
-  therapist: 'Therapist',
-  teacher: 'Teacher',
-  researcher: 'Researcher',
-  caregiver: 'Caregiver',
-};
-
 export default function PatientsPage() {
+  const { t } = useLanguage();
   const [pairingsList, setPairingsList] = useState<PairingRow[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
@@ -112,35 +107,35 @@ export default function PatientsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Patients &amp; Participants</h1>
+          <h1 className="text-2xl font-bold">{t('patients.title')}</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Manage who you monitor and who can see your data
+            {t('patients.subtitle')}
           </p>
         </div>
         <button
           onClick={() => { setShowInvite(true); setInviteResult(null); setInviteEmail(''); }}
           className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-all"
         >
-          + Invite Participant
+          {t('patients.invite')}
         </button>
       </div>
 
       {/* ── Supervised patients (I am the supervisor) ── */}
       <section className="mb-10">
         <h2 className="text-base font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-4">
-          My Patients / Participants
+          {t('patients.mine')}
         </h2>
 
         {loading && (
-          <div className="text-sm text-gray-400 py-8 text-center">Loading…</div>
+          <div className="text-sm text-gray-400 py-8 text-center">{t('patients.loading')}</div>
         )}
 
         {!loading && supervisorPairings.length === 0 && (
           <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-10 text-center">
             <div className="text-4xl mb-3">👥</div>
-            <p className="font-medium text-gray-600 dark:text-gray-400">No participants yet</p>
+            <p className="font-medium text-gray-600 dark:text-gray-400">{t('patients.empty')}</p>
             <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-              Click &ldquo;Invite Participant&rdquo; to generate a link for a child or patient.
+              {t('patients.empty.desc')}
             </p>
           </div>
         )}
@@ -165,12 +160,12 @@ export default function PatientsPage() {
                   </span>
                   {p.shareHistory && (
                     <span className="text-xs rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-2 py-0.5">
-                      History shared
+                      {t('patients.historyShared')}
                     </span>
                   )}
                   {p.allowExport && (
                     <span className="text-xs rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 px-2 py-0.5">
-                      Export allowed
+                      {t('patients.exportAllowed')}
                     </span>
                   )}
                 </div>
@@ -181,7 +176,7 @@ export default function PatientsPage() {
                     href={`/dashboard/patients/${p.childId}`}
                     className="rounded-lg px-3 py-1.5 text-sm font-medium bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                   >
-                    View
+                    {t('patients.view')}
                   </Link>
                 )}
                 <button
@@ -189,7 +184,7 @@ export default function PatientsPage() {
                   disabled={removing === p.id}
                   className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
                 >
-                  {removing === p.id ? '…' : 'Remove'}
+                  {removing === p.id ? '…' : t('patients.remove')}
                 </button>
               </div>
             </div>
@@ -200,12 +195,12 @@ export default function PatientsPage() {
       {/* ── People who can see my data ── */}
       <section>
         <h2 className="text-base font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-4">
-          People With Access to My Data
+          {t('patients.accessTitle')}
         </h2>
 
         {!loading && supervisedBy.length === 0 && (
           <p className="text-sm text-gray-400 dark:text-gray-500 py-4">
-            No one currently has access to your communication data.
+            {t('patients.noAccess')}
           </p>
         )}
 
@@ -240,14 +235,14 @@ export default function PatientsPage() {
                   href={`/dashboard/patients/${p.childId}/privacy?pairing=${p.id}`}
                   className="rounded-lg px-3 py-1.5 text-sm font-medium bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 >
-                  Edit Privacy
+                  {t('patients.editPrivacy')}
                 </Link>
                 <button
                   onClick={() => handleRemove(p.id)}
                   disabled={removing === p.id}
                   className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
                 >
-                  {removing === p.id ? '…' : 'Revoke'}
+                  {removing === p.id ? '…' : t('patients.revoke')}
                 </button>
               </div>
             </div>
@@ -259,14 +254,14 @@ export default function PatientsPage() {
       {showInvite && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold mb-1">Invite a Participant</h2>
+            <h2 className="text-xl font-bold mb-1">{t('patients.modal.title')}</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-              Share this link with the patient or their parent. They will choose exactly what data to share when they accept.
+              {t('patients.modal.subtitle')}
             </p>
 
             {!inviteResult ? (
               <>
-                <label className="block text-sm font-medium mb-1">Your role / relationship</label>
+                <label className="block text-sm font-medium mb-1">{t('patients.modal.role')}</label>
                 <select
                   value={relationship}
                   onChange={(e) => setRelationship(e.target.value)}
@@ -280,13 +275,13 @@ export default function PatientsPage() {
                 </select>
 
                 <label className="block text-sm font-medium mb-1">
-                  Send invite by email <span className="text-gray-400 font-normal">(optional)</span>
+                  {t('patients.modal.emailLabel')} <span className="text-gray-400 font-normal">{t('patients.modal.emailOptional')}</span>
                 </label>
                 <input
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="participant@example.com"
+                  placeholder={t('patients.modal.emailPlaceholder')}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm mb-5 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
 
@@ -295,14 +290,14 @@ export default function PatientsPage() {
                     onClick={() => setShowInvite(false)}
                     className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-2.5 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
-                    Cancel
+                    {t('patients.modal.cancel')}
                   </button>
                   <button
                     onClick={handleGenerateInvite}
                     disabled={inviting}
                     className="flex-1 rounded-xl bg-primary text-white px-4 py-2.5 text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60"
                   >
-                    {inviting ? 'Generating…' : 'Generate Link'}
+                    {inviting ? t('patients.modal.generating') : t('patients.modal.generate')}
                   </button>
                 </div>
               </>
@@ -310,7 +305,7 @@ export default function PatientsPage() {
               <>
                 {inviteResult.emailSent && inviteEmail && (
                   <div className="rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 mb-4 text-sm text-green-700 dark:text-green-300">
-                    ✓ Invitation email sent to <strong>{inviteEmail}</strong>
+                    ✓ {t('patients.modal.emailSent')} <strong>{inviteEmail}</strong>
                   </div>
                 )}
                 <div className="rounded-xl bg-gray-50 dark:bg-gray-800 p-3 mb-3 flex items-center gap-2">
@@ -321,17 +316,17 @@ export default function PatientsPage() {
                     onClick={handleCopy}
                     className="shrink-0 rounded-lg bg-primary text-white px-3 py-1.5 text-xs font-semibold hover:opacity-90 transition-all"
                   >
-                    {copied ? '✓ Copied' : 'Copy'}
+                    {copied ? t('patients.modal.copied') : t('patients.modal.copy')}
                   </button>
                 </div>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mb-5">
-                  Expires {new Date(inviteResult.expiresAt).toLocaleDateString()}. Valid for 7 days.
+                  {t('patients.modal.expires')} {new Date(inviteResult.expiresAt).toLocaleDateString()}. {t('patients.modal.expiry')}
                 </p>
                 <button
                   onClick={() => { setShowInvite(false); setInviteResult(null); }}
                   className="w-full rounded-xl bg-primary text-white px-4 py-2.5 text-sm font-semibold hover:opacity-90 transition-all"
                 >
-                  Done
+                  {t('patients.modal.done')}
                 </button>
               </>
             )}

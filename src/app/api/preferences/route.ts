@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { auth } from '@/lib/auth/config';
+import { requireAuth } from '@/lib/auth/requireAuth';
+import { handleApiError } from '@/lib/api/errorHandler';
 import { db } from '@/lib/db/client';
 import { userPreferences } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
 
     const prefs = await db
       .select()
       .from(userPreferences)
-      .where(eq(userPreferences.userId, session.user.id))
+      .where(eq(userPreferences.userId, userId))
       .limit(1)
       .then((rows) => rows[0]);
 
@@ -39,8 +39,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('[GET /api/preferences] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'GET /api/preferences');
   }
 }
 
@@ -56,10 +55,9 @@ const patchSchema = z.object({
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
 
     const body = await request.json();
     const result = patchSchema.safeParse(body);
@@ -82,11 +80,10 @@ export async function PATCH(request: NextRequest) {
     await db
       .update(userPreferences)
       .set(updates)
-      .where(eq(userPreferences.userId, session.user.id));
+      .where(eq(userPreferences.userId, userId));
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[PATCH /api/preferences] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'PATCH /api/preferences');
   }
 }

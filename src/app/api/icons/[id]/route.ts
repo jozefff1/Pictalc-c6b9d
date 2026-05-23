@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { auth } from '@/lib/auth/config';
+import { requireAuth } from '@/lib/auth/requireAuth';
+import { handleApiError } from '@/lib/api/errorHandler';
 import { db } from '@/lib/db/client';
 import { customIcons } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -11,16 +12,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
 
     const { id } = await params;
 
     const [deleted] = await db
       .delete(customIcons)
-      .where(and(eq(customIcons.id, id), eq(customIcons.userId, session.user.id)))
+      .where(and(eq(customIcons.id, id), eq(customIcons.userId, userId)))
       .returning({ id: customIcons.id });
 
     if (!deleted) {
@@ -29,8 +29,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[DELETE /api/icons/:id] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'DELETE /api/icons/:id');
   }
 }
 
@@ -44,10 +43,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authResult = await requireAuth();
+    if (authResult instanceof NextResponse) return authResult;
+    const { userId } = authResult;
 
     const { id } = await params;
 
@@ -60,7 +58,7 @@ export async function PATCH(
     const [updated] = await db
       .update(customIcons)
       .set({ name: result.data.name.toLowerCase() })
-      .where(and(eq(customIcons.id, id), eq(customIcons.userId, session.user.id)))
+      .where(and(eq(customIcons.id, id), eq(customIcons.userId, userId)))
       .returning({ id: customIcons.id, name: customIcons.name });
 
     if (!updated) {
@@ -69,7 +67,6 @@ export async function PATCH(
 
     return NextResponse.json({ icon: updated });
   } catch (error) {
-    console.error('[PATCH /api/icons/:id] error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error, 'PATCH /api/icons/:id');
   }
 }
