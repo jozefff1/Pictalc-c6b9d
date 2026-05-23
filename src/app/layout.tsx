@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'Digital Ark AS' }],
   creator: 'Digital Ark AS',
   publisher: 'Digital Ark AS',
-  metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'https://snakke.app'),
+  metadataBase: new URL(process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://snakke.vercel.app'),
   alternates: {
     canonical: '/',
   },
@@ -101,7 +101,7 @@ export default function RootLayout({
               applicationSubCategory: 'Augmentative and Alternative Communication',
               description:
                 'Snakke is a free, open-source AAC (Augmentative and Alternative Communication) Progressive Web App. It helps children, adults, and anyone with speech or communication challenges — including autism, cerebral palsy, apraxia, Down syndrome — express themselves through ARASAAC pictograms and text-to-speech synthesis. Used by speech-language therapists, teachers, parents, guardians, and researchers.',
-              url: process.env.NEXTAUTH_URL ?? 'https://snakke.app',
+              url: process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://snakke.vercel.app',
               offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
               featureList: [
                 APP_FEATURE_SUMMARY,

@@ -1,6 +1,6 @@
-# Pictalk — Project Overview
+# Snakke — Project Overview
 
-> **Pictalk** is an open-source Augmentative and Alternative Communication (AAC) Progressive Web App designed for children and adults with communication challenges. It allows users to express themselves through icons, text-to-icon conversion, and speech recognition — both online and offline.
+> **Snakke** is an open-source Augmentative and Alternative Communication (AAC) Progressive Web App designed for children and adults with communication challenges. It allows users to express themselves through icons, text-to-icon conversion, and speech recognition — both online and offline. It also includes a language learning module to help users (and their caregivers) build vocabulary across five languages.
 
 ---
 
@@ -25,19 +25,20 @@ Augmentative and Alternative Communication (AAC) refers to all forms of communic
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript |
+| Framework | Next.js 16.2.6 (App Router, webpack) |
+| Language | TypeScript (strict mode) |
 | Styling | Tailwind CSS v4 |
-| State | Redux Toolkit |
-| Auth | NextAuth.js v5 beta |
+| State | Redux Toolkit + RTK Query |
+| Auth | NextAuth.js v5 |
 | Database | Neon Serverless Postgres |
-| ORM | Drizzle ORM |
+| ORM | Drizzle ORM ^0.45.2 |
 | Storage | Vercel Blob |
 | Offline | IndexedDB (via `idb`) |
-| PWA | `@serwist/next` + `serwist` |
-| Deployment | Vercel |
-| i18n | Custom React Context (client-side) |
-| Email | Resend (planned) |
+| PWA | `@serwist/next` v9.5.11 + `serwist` |
+| Deployment | Vercel (auto-deploy from `snakke` remote) |
+| i18n | Custom React Context (client-side, **not** next-intl) |
+| Languages | EN, NO, ES, FR, DE |
+| Email | Resend |
 
 ---
 
@@ -71,11 +72,17 @@ Root
 │   │   │   ├── SentenceBuilder      # Built sentence + TTS
 │   │   │   ├── TextToIcons          # Type → icons
 │   │   │   ├── SpeechToIcons        # Speak → icons
-│   │   │   └── CustomIconUpload     # Upload personal icons
+│   │   │   ├── CustomIconUpload     # Upload personal icons
+│   │   │   ├── LandingPage.tsx      # Client-side landing page
+│   │   │   └── learning/
+│   │   │       ├── LearnPage.tsx        # /learn page wrapper
+│   │   │       ├── LanguagePicker.tsx   # Pick learnFrom / learnTarget
+│   │   │       └── FlashcardDeck.tsx    # Flashcard/Writing/Speaking modes
 │   │   ├── common/
-│   │   │   └── LanguageSwitcher     # EN/NO toggle
+│   │   │   ├── LanguageSwitcher.tsx # Language selector (EN/NO/ES/FR/DE)
+│   │   │   └── DarkModeToggle.tsx   # Sun/moon toggle
 │   │   └── layout/
-│   │       └── Header               # Top nav
+│   │       └── Header.tsx           # Top nav (💬 communicate + Learn links)
 │   ├── lib/
 │   │   ├── ai/
 │   │   │   ├── iconMatcher.ts       # Text → icon matching engine
@@ -90,7 +97,7 @@ Root
 │   │   ├── offline/indexedDB.ts     # Offline storage utilities
 │   │   └── services/speechService   # Web Speech API wrapper
 │   ├── contexts/
-│   │   └── LanguageContext.tsx      # i18n: EN + NO translations
+│   │   └── LanguageContext.tsx      # i18n: EN/NO/ES/FR/DE + learnFrom/learnTarget state
 │   ├── store/
 │   │   ├── slices/
 │   │   │   ├── communicationSlice   # Icons, sentence, favoritePhrases, customIcons
@@ -128,38 +135,47 @@ password_history     → Last 5 password hashes per user (prevents password reus
 | Feature | Status |
 |---|---|
 | Email/password registration and login | ✅ |
+| Email verification + password reset (Resend) | ✅ |
+| Password history — prevent reuse of last 5 | ✅ |
 | Role-based accounts (child/guardian/teacher/therapist) | ✅ |
-| AAC icon board with 6 categories | ✅ |
-| Text → Icon auto-conversion | ✅ |
+| AAC icon board — 89 icons, 6 categories | ✅ |
+| ARASAAC pictograms (static CDN, CC BY-NC-SA 4.0) | ✅ |
+| Text → Icon auto-conversion (keyword matcher) | ✅ |
 | Speech → Icon conversion (Web Speech API) | ✅ |
 | Sentence builder with TTS playback | ✅ |
-| Custom icon upload (Vercel Blob) | ✅ |
-| Custom icons integrated into icon matcher | ✅ |
-| English + Norwegian UI and keyword matching | ✅ |
-| Language auto-detection (navigator.language) | ✅ |
-| Dark mode | ✅ |
-| PWA (installable) | ✅ |
-| Voice settings UI (speed, pitch) | ✅ |
-| User profile page (view / edit name) | ✅ |
-| Favourite phrases with IDB persistence | ✅ |
-| Communication sessions saved locally (IDB-first) | ✅ |
+| Custom icon upload (Vercel Blob, MIME/size validated) | ✅ |
+| Custom icons in matcher + manage (rename/delete) | ✅ |
+| Recently used icons row | ✅ |
+| Icon search bar | ✅ |
+| Favourite phrases (IDB-persisted) | ✅ |
+| Communication session history | ✅ |
+| Multilingual UI — EN + NO full, ES/FR/DE icon labels | ✅ |
+| Language switcher in header (all pages) | ✅ |
+| 5-language learning mode — Flashcard / Writing / Speaking | ✅ |
+| Dark mode (Tailwind v4 class-based, FOUC-free) | ✅ |
+| PWA — installable, service worker (Serwist) | ✅ |
 | Offline-first IndexedDB storage | ✅ |
-| Email verification (Resend) | ✅ |
-| Password reset flow (Resend) | ✅ |
-| Password history (prevent reuse of last 5) | ✅ |
-| Forgot-password rejects unknown emails (404) | ✅ |
+| Voice settings UI (speed, pitch, test) | ✅ |
+| User profile page (view / edit name) | ✅ |
+| Accessibility preferences (high contrast, reduce motion, text size, haptic) | ✅ |
+| Premium landing page (translated, glassmorphism) | ✅ |
+| Security headers (CSP-ready, X-Frame, Referrer-Policy) | ✅ |
 | Device pairing (QR code) | ❌ Not started |
-| Guardian dashboard / analytics | ❌ Not started |
-| ARASAAC integration | ❌ Not started |
+| Guardian real-time dashboard | ❌ Not started |
+| Dynamic ARASAAC API search (30,000+ symbols) | ❌ Not started |
 
 ---
 
 ## Known Decisions & Constraints
 
-- **No `next-intl`**: Attempted and abandoned after persistent failures with Next.js App Router. Client-side React Context i18n is used instead. Do NOT reintroduce `next-intl`.
-- **NextAuth v5**: Uses `AUTH_SECRET` env var (not `NEXTAUTH_SECRET`). `trustHost: true` is required for Vercel. Auth state is owned entirely by NextAuth — no Redux `authSlice`.
-- **Forgot-password validates email**: The `/api/auth/forgot-password` endpoint returns a 404 error if the submitted email is not registered. Reset links are only sent to verified, existing accounts.
-- **Password history**: The `password_history` table stores the last 5 hashes per user. On reset, the new password is checked against the current password and all stored history. Reuse returns "You cannot reuse a previous password."
-- **Offline-first architecture**: IndexedDB (via `idb`) is the primary storage for sessions and favourite phrases. The DB (Neon) acts as cloud backup and research/analytics layer.
-- **Emoji symbols for built-in icons**: The built-in icon database uses emoji as symbols. Custom icons use real images via Vercel Blob.
-- **Keyword-based icon matching**: The current matcher (`iconMatcher.ts`) is keyword/string based. ML embeddings are planned for a future phase.
+- **No `next-intl`**: Attempted and abandoned after persistent failures with Next.js App Router (routing conflicts, middleware issues, build failures). Client-side React Context i18n is used instead. **Do NOT reintroduce `next-intl`.**
+- **Build flags**: Must use `next build --webpack` and `next dev --webpack` — Serwist (PWA) is incompatible with Next.js 16's default Turbopack.
+- **Git remotes**: `origin` → `Pictalc-copy.git` (backup), `snakke` → `snakke.git` (Vercel deployment). Always push to `snakke` to trigger a deploy.
+- **NextAuth v5**: Uses `AUTH_SECRET` env var (not `NEXTAUTH_SECRET`). `trustHost: true` required for Vercel. Auth state is owned by NextAuth — no Redux `authSlice`.
+- **Forgot-password validates email**: `/api/auth/forgot-password` returns 404 if the email is not registered. Reset links are only sent to verified, existing accounts.
+- **Password history**: `password_history` table stores last 5 hashes per user. Reuse returns "You cannot reuse a previous password."
+- **Offline-first**: IndexedDB (via `idb`) is the primary store for sessions and favourite phrases. Neon DB is the cloud backup and analytics layer.
+- **ARASAAC pictograms**: Built-in icons use `https://static.arasaac.org/pictograms/{id}/{id}_500.png`. Emoji symbol is the fallback on image error. License: CC BY-NC-SA 4.0.
+- **Keyword-based icon matching**: `iconMatcher.ts` is keyword/string based. ML embeddings planned for Phase 6.
+- **Language learning**: `learnFrom` / `learnTarget` are any two of EN/NO/ES/FR/DE, freely swappable. Persisted in `localStorage`. ES/FR/DE currently only have icon-label translations — UI strings remain English for those languages until professional translators contribute.
+- **`Permissions-Policy`**: `microphone=(self)` is set in security headers — required for the speaking mode in the learning feature.

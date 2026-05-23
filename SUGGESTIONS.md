@@ -1,8 +1,8 @@
-# Pictalk — Suggestions & Improvement Ideas
+# Snakke — Suggestions & Improvement Ideas
 
 This document captures improvement suggestions, UX observations, and technical recommendations based on a full review of the codebase, existing documentation, and the AAC market landscape.
 
-_Last updated: May 17, 2026 (session 3)_
+_Last updated: May 23, 2026 (session 5)_
 
 ---
 
@@ -44,13 +44,8 @@ Vercel Blob uploads require `BLOB_READ_WRITE_TOKEN` in the Vercel environment. C
 
 ## 🟠 High Priority Improvements
 
-### 5. Landing Page Redesign ⚠️ Partially Done
-The current landing page has a basic hero section and a 3-card features block — functional but not compelling. First impressions matter enormously for an app aimed at caregivers and therapists evaluating AAC tools. Recommend:
-- Live demo / preview of the icon board (screenshot or interactive embed)
-- Clear value proposition ("Works offline, always ready")
-- "Who is this for?" section (child, guardian, therapist, teacher)
-- Testimonials or trust signals
-- Glassmorphism / premium dark design matching the app
+### 5. Landing Page ✅ Complete
+The landing page has been fully redesigned and translated. It is now a `'use client'` component (`LandingPage.tsx`) that uses the `LanguageContext` for full EN/NO translation. The `page.tsx` server component acts as a thin auth guard that renders `<LandingPage />` for unauthenticated users and redirects to `/dashboard` for signed-in users.
 
 ### 6. ARASAAC Integration ✅ Implemented (Static CDN)
 All 89 built-in icons now use real ARASAAC pictograms (CC BY-NC-SA 4.0):
@@ -78,6 +73,34 @@ The Web Speech API supports `rate`, `pitch`, and `voice` selection. Fully implem
 - Recognizer now uses `nb-NO` when Norwegian is active, `en-US` for English
 - Recognizer is recreated when language changes (proper `useEffect` dependency)
 - `matchTextToIcons` receives the current locale
+
+---
+
+## 🟡 Medium Priority Improvements
+
+### 9. Language Learning — Pedagogy & Content ⚠️ Needs Domain Experts
+The technical framework for language learning is complete (flashcard / writing / speaking modes, 5 languages). What is missing is domain expertise:
+- **Vocabulary ordering** — core/functional words should come before abstract ones. An SLP or language teacher should define the progression per language pair.
+- **Spaced repetition** — implement SM-2 or Leitner algorithm so difficult cards reappear sooner. The current deck is sequential.
+- **Native speaker review** — ES/FR/DE icon labels were machine-translated; native speakers should verify accuracy and natural phrasing.
+- **Audio samples** — TTS is a good start but recorded audio from native speakers is more reliable for learners, especially for non-standard accents.
+
+### 10. Full ES / FR / DE UI Translations
+Currently ES, FR, and DE only have icon-label translations. All navigation, learning mode labels, auth pages, and dashboard text remain in English for those languages. A professional translator or bilingual contributor is needed per language. The contribution path is straightforward — add keys to the dictionary in `LanguageContext.tsx` matching the EN/NO pattern.
+
+### 11. Collaboration & Contributor Onboarding
+As the project grows it needs non-developer contributors:
+- **SLPs (Speech-Language Pathologists)** — core AAC vocabulary curation, icon categorisation, learning progression
+- **Special education teachers** — classroom-specific icon sets, difficulty levels
+- **AAC users and families** — usability testing, real-world feedback
+- **Translators** (ES, FR, DE, and future languages) — UI strings and icon labels
+- Useful resources: [ISAAC](https://www.isaac-online.org), [ARASAAC](https://arasaac.org), [Cboard](https://www.cboard.io) community
+
+### 12. Haptic Feedback
+The DB schema already has `hapticEnabled`. `navigator.vibrate` is available in Android Chrome and most mobile browsers. A simple `vibrate(30)` on icon tap would improve the tactile experience for motor-impaired users. The accessibility preferences UI toggle is already wired to the DB — just needs the `vibrate` call in `IconGrid.tsx`.
+
+### 13. Keyboard-Accessible Icon Navigation
+ARIA labels exist on all icons but full keyboard nav (Tab to focus, Enter to select, arrow keys between icons) is not implemented. This is important for users with motor impairments who use keyboards or switch access devices.
 - Confidence threshold lowered from `0.7` to `0.3` (matching `TextToIcons`) — partial matches now auto-add to sentence
 
 ### 9. Email Verification ✅ Implemented

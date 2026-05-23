@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'https://snakke.app';
+  const baseUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://snakke.vercel.app';
 
   const body = `User-agent: *
 Allow: /

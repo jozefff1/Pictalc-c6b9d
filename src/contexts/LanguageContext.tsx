@@ -263,6 +263,18 @@ const translations: Record<Language, Record<string, string>> = {
     'learn.restart': 'Restart',
     'learn.filterAll': 'All',
     'learn.hint': 'Hint',
+    'learn.modeFlashcard': 'Flashcard',
+    'learn.modeWriting': 'Writing',
+    'learn.modeSpeaking': 'Speaking',
+    'learn.typeAnswer': 'Type the word…',
+    'learn.submit': 'Check',
+    'learn.correct': 'Correct!',
+    'learn.tryAgain': 'Not quite — the answer was',
+    'learn.speakNow': 'Speak now',
+    'learn.listening': 'Listening…',
+    'learn.noSpeech': 'Nothing heard, try again',
+    'learn.speechUnsupported': 'Speech recognition not supported in this browser',
+    'learn.next': 'Next',
   },
   no: {
     // Common
@@ -480,6 +492,18 @@ const translations: Record<Language, Record<string, string>> = {
     'learn.restart': 'Start på nytt',
     'learn.filterAll': 'Alle',
     'learn.hint': 'Hint',
+    'learn.modeFlashcard': 'Flashkort',
+    'learn.modeWriting': 'Skriving',
+    'learn.modeSpeaking': 'Tale',
+    'learn.typeAnswer': 'Skriv ordet…',
+    'learn.submit': 'Sjekk',
+    'learn.correct': 'Riktig!',
+    'learn.tryAgain': 'Ikke helt — svaret var',
+    'learn.speakNow': 'Si ordet nå',
+    'learn.listening': 'Lytter…',
+    'learn.noSpeech': 'Ingenting hørt, prøv igjen',
+    'learn.speechUnsupported': 'Talegjenkjenning støttes ikke i denne nettleseren',
+    'learn.next': 'Neste',
   },
   es: {
     // Icons - NEEDS
@@ -590,16 +614,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     window.dispatchEvent(new Event(LANG_EVENT));
   };
 
-  // Learn mode: learnFrom / learnTarget — simple useState with localStorage persistence
-  const [learnFrom, setLearnFromState] = useState<Language>('en');
-  const [learnTarget, setLearnTargetState] = useState<Language>('no');
-
-  useEffect(() => {
-    const from = localStorage.getItem(STORAGE_KEYS.LEARN_FROM) as Language | null;
-    const target = localStorage.getItem(STORAGE_KEYS.LEARN_TARGET) as Language | null;
-    if (from && from in translations) setLearnFromState(from);
-    if (target && target in translations) setLearnTargetState(target);
-  }, []);
+  // Learn mode: learnFrom / learnTarget — lazy initialisation from localStorage (no effect needed)
+  const [learnFrom, setLearnFromState] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'en';
+    const saved = localStorage.getItem(STORAGE_KEYS.LEARN_FROM) as Language | null;
+    return saved && saved in translations ? saved : 'en';
+  });
+  const [learnTarget, setLearnTargetState] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'no';
+    const saved = localStorage.getItem(STORAGE_KEYS.LEARN_TARGET) as Language | null;
+    return saved && saved in translations ? saved : 'no';
+  });
 
   const setLearnFrom = (lang: Language) => {
     setLearnFromState(lang);

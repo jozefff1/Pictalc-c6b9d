@@ -92,6 +92,16 @@ export default async function DashboardPage() {
               Invite participants and manage privacy settings
             </p>
           </Link>
+
+          <Link href="/learn" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow border-2 border-primary/20 dark:border-primary/30">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">🎓</span>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Language Learning</h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Practice vocabulary in 5 languages with flashcards, writing, and speaking
+            </p>
+          </Link>
         </div>
       </div>
     </div>

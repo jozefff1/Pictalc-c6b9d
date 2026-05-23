@@ -20,7 +20,15 @@ export default function Header({ showAuth = true }: HeaderProps) {
           <LanguageSwitcher />
           <DarkModeToggle />
           {showAuth && (
-            <nav className="flex gap-3">
+            <nav className="flex items-center gap-3">
+              <Link
+                href="/communicate"
+                title="Communication board"
+                aria-label="Open communication board"
+                className="rounded-lg p-2 text-xl leading-none hover:bg-muted transition-colors"
+              >
+                💬
+              </Link>
               <Link
                 href="/learn"
                 className="rounded-lg px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"

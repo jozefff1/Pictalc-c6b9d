@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const base = process.env.NEXTAUTH_URL ?? 'https://snakke.app';
+  const base = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://snakke.vercel.app';
   const now = new Date().toISOString();
 
   const urls = [

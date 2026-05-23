@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     expiresAt,
   });
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
+  const baseUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://snakke.vercel.app';
   const inviteUrl = `${baseUrl}/join/${token}`;
 
   return NextResponse.json({ token, inviteUrl, expiresAt, relationship: result.data.relationship }, { status: 201 });

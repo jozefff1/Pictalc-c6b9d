@@ -2,7 +2,7 @@
 
 This document defines the phased development roadmap for Snakke. Each phase builds on the previous and is scoped to be achievable in focused sprints.
 
-_Last updated: May 17, 2026 (session 4)_
+_Last updated: May 23, 2026 (session 5)_
 
 ---
 
@@ -13,7 +13,7 @@ _Last updated: May 17, 2026 (session 4)_
 - [x] Redux Toolkit state management (4 slices: communication, pairing, ui, auth)
 - [x] NextAuth v5 authentication (login / register)
 - [x] Drizzle ORM + Neon Serverless Postgres (9-table schema incl. passwordHistory)
-- [x] PWA manifest + `@ducanh2912/next-pwa`
+- [x] PWA manifest + `@serwist/next` (migrated from `@ducanh2912/next-pwa`)
 - [x] Dark mode support
 - [x] Clean monorepo structure (legacy Expo code removed)
 - [x] Vercel deployment (zero-config, auto-detects Next.js)
@@ -64,19 +64,52 @@ _Last updated: May 17, 2026 (session 4)_
 ### 2.3 Communication Board UX
 - [x] Favourite phrases — save/load icon sentences ✅
 - [x] **Recently used icons row** — top 8 icons shown above category tabs, tappable to re-add to sentence ✅
+- [x] **Icon search bar** — searches across all 89 built-in + custom icons by name; hides category tabs and recently-used strip during search; `×` clear button; empty-state message ✅
 - [ ] Icon board layout improvements (larger icons, better spacing for touch)
 - [ ] Haptic feedback on icon tap (`navigator.vibrate` — schema supports `hapticEnabled` but not implemented)
 - [ ] Keyboard-accessible icon navigation (ARIA labels exist, full keyboard nav not done)
 - [ ] Long-press on icon to see icon details / delete custom icon
-- [x] **Icon search bar** — searches across all 89 built-in + custom icons by name; hides category tabs and recently-used strip during search; `×` clear button; empty-state message ✅
 
 ### 2.4 Visual Design Upgrade
 - [x] Landing page — hero + features section + footer (basic, functional)
-- [x] **Dark mode toggle** — sun/moon button in header; `@custom-variant dark` fix for Tailwind v4 class-based switching; FOUC-prevention inline script; localStorage persistence ✅
-- [x] **Premium landing page redesign** — glassmorphism dark hero, floating emoji icons, demo board preview, stats strip, 6-feature grid, persona cards (children / parents / therapists), gradient CTA banner, dark footer ✅
-- [x] **Animated icon press feedback** — `icon-tapped` CSS class + `@keyframes icon-tap` spring animation; `tappedId` state in `IconGrid.tsx` clears after 350 ms; respects `.reduce-motion` ✅
-- [x] **Smooth page transitions** — `@keyframes page-enter` fade+slide animation; `page-enter` class on app `<main>`; disabled under `.reduce-motion` ✅
+- [x] **Dark mode toggle** — sun/moon button in header; `@custom-variant dark` fix for Tailwind v4; FOUC-prevention inline script; localStorage persistence ✅
+- [x] **Premium landing page redesign** — glassmorphism dark hero, floating emoji icons, demo board preview, stats strip, 6-feature grid, persona cards, gradient CTA banner, dark footer ✅
+- [x] **Landing page fully translated** — extracted to `LandingPage.tsx` client component; all text uses `t('home.*')` keys; EN + NO coverage ✅
+- [x] **Animated icon press feedback** — `icon-tapped` CSS class + `@keyframes icon-tap` spring animation; respects `.reduce-motion` ✅
+- [x] **Smooth page transitions** — `@keyframes page-enter` fade+slide; disabled under `.reduce-motion` ✅
+- [x] **Header** — LanguageSwitcher visible on all pages; 💬 communicate shortcut + Learn nav link added ✅
 - [ ] Consistent design system (Tailwind tokens for spacing, typography)
+
+---
+
+## ✅ Phase 2.5 — Language Learning (Complete)
+
+**Goal**: Help AAC users and caregivers build vocabulary across languages using the same icon set.
+
+- [x] Extended `Language` type: `'en' | 'no' | 'es' | 'fr' | 'de'`
+- [x] `LANGUAGES` map with name, nativeName, flag for all 5 languages
+- [x] Icon translations for ES, FR, DE (all 89 icons)
+- [x] `learnFrom` / `learnTarget` state in `LanguageContext` — any two languages, freely swappable
+- [x] `tLang(key, lang)` helper — translate any key into any language explicitly
+- [x] `swapLearnLanguages()` — one-click swap
+- [x] `STORAGE_KEYS.LEARN_FROM` + `LEARN_TARGET` — persisted to localStorage
+- [x] `/learn` route — server component with metadata
+- [x] `LearnPage.tsx` — client wrapper with Header + LanguagePicker + FlashcardDeck
+- [x] `LanguagePicker.tsx` — 3-column grid, flag + nativeName, same-lang disabled, swap button
+- [x] `FlashcardDeck.tsx` — 3 modes:
+  - **Flashcard** — tap to reveal, TTS on reveal, knew/didn’t know scoring
+  - **Writing** — type the target-language word, normalized match, retry or advance
+  - **Speaking** — Web Speech API mic, up to 3 alternatives matched, graceful fallback
+- [x] Category filter (All / Needs / Actions / Feelings / People / Places)
+- [x] Progress bar + session score, session-complete screen with restart
+- [x] 💬 communicate shortcut icon + Learn nav link in Header
+- [x] `learn.*` translation keys for EN + NO
+
+**Pending (needs domain experts):**
+- [ ] Full ES / FR / DE UI translations (currently only icon labels)
+- [ ] Pedagogically sound vocabulary ordering (intro easy/core words first)
+- [ ] Spaced repetition algorithm (SM-2 or similar)
+- [ ] Audio recordings from native speakers (supplement TTS)
 
 ---
 
@@ -109,10 +142,8 @@ _Last updated: May 17, 2026 (session 4)_
 
 **Goal**: Full offline functionality — Snakke must work with no internet connection.
 
-> IndexedDB is wired up (sessions, favourite phrases, sync queue). Service worker is missing — PWA cannot install.
-
-- [ ] **Service worker** — `public/sw.js` does not exist; PWA install will fail without it
-- [ ] Service worker caching strategy (stale-while-revalidate for icons)
+- [x] **Service worker** — `@serwist/next` + `src/app/sw.ts`; `public/sw.js` generated at build time; correct `Cache-Control: no-cache` headers ✅
+- [x] Service worker caching strategy — `defaultCache` (stale-while-revalidate for assets) ✅
 - [ ] Background sync — upload sessions when back online
 - [ ] Offline-capable custom icon upload queue
 - [ ] Install prompt / "Add to Home Screen" guidance
@@ -166,12 +197,15 @@ _Last updated: May 17, 2026 (session 4)_
 |---|---|---|---|---|
 | Recently used icons UI row | High | Low | **P1** | ✅ Done |
 | Communication history view | High | Low | **P1** | ✅ Done |
-| Manage custom icons (delete/rename) | Medium | Low | **P1** | 🔲 |
-| Service worker (PWA install) | Critical | Medium | **P1** | 🔲 |
-| Icon search bar | High | Low | **P1** | 🔲 |
+| Manage custom icons (delete/rename) | Medium | Low | **P1** | ✅ Done |
+| Service worker (PWA install) | Critical | Medium | **P1** | ✅ Done |
+| Icon search bar | High | Low | **P1** | ✅ Done |
+| Language learning mode (5 langs) | High | Medium | **P1** | ✅ Done |
+| Full ES/FR/DE UI translations | High | Medium | **P1** | 🕐 Needs translators |
 | Haptic feedback | Medium | Low | **P2** | 🔲 |
-| Accessibility prefs UI | High | Medium | **P2** | 🔲 |
-| Premium landing page redesign | Medium | Medium | **P2** | 🔲 |
+| Accessibility prefs UI | High | Medium | **P2** | ✅ Done |
+| Premium landing page redesign | Medium | Medium | **P2** | ✅ Done |
+| Spaced repetition for learning | High | Medium | **P2** | 🔲 |
 | Device pairing (QR) | High | High | **P3** | 🔲 |
 | Dynamic ARASAAC search | High | Medium | **P3** | 🔲 |
 | OBF import/export | Medium | Medium | **P3** | 🔲 |
@@ -186,7 +220,8 @@ _Last updated: May 17, 2026 (session 4)_
 
 | Milestone | Target | Description |
 |---|---|---|
-| **v0.2.0** | Near-term | ~~Recently used icons UI~~ ✅, ~~history view~~ ✅, manage custom icons, service worker |
-| **v0.3.0** | Mid-term | Device pairing, guardian dashboard, dynamic ARASAAC search |
-| **v0.4.0** | Mid-term | Full offline PWA, OBF import/export |
-| **v1.0.0** | Long-term | Production-ready, accessible, App Store ready |
+| **v0.2.0** | ✅ Done | Recently used icons, history view, manage custom icons, service worker |
+| **v0.3.0** | ✅ Done | Language learning (flashcard / writing / speaking), 5-language support, premium landing page |
+| **v0.4.0** | Near-term | Full ES/FR/DE translations, spaced repetition, device pairing, guardian dashboard |
+| **v0.5.0** | Mid-term | Dynamic ARASAAC search, OBF import/export, full offline sync |
+| **v1.0.0** | Long-term | Production-ready, WCAG 2.1 AAA, App Store ready |

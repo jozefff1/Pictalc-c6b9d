@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { useLanguage, LANGUAGES, type Language } from '@/contexts/LanguageContext';
 import { ICON_DATABASE } from '@/lib/data/icons';
 import type { IconCategory } from '@/types/models';
+
+type Mode = 'flashcard' | 'writing' | 'speaking';
 
 const CATEGORY_ICONS: Record<IconCategory | 'all', string> = {
   all: '🌐',
@@ -18,55 +20,74 @@ const CATEGORY_ICONS: Record<IconCategory | 'all', string> = {
 
 const CATEGORIES: (IconCategory | 'all')[] = ['all', 'needs', 'actions', 'feelings', 'people', 'places'];
 
+const LANG_BCP47: Record<Language, string> = {
+  en: 'en-US', no: 'nb-NO', es: 'es-ES', fr: 'fr-FR', de: 'de-DE',
+};
+
 function speak(text: string, lang: Language) {
   if (typeof window === 'undefined' || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
-  const langMap: Record<Language, string> = {
-    en: 'en-US', no: 'nb-NO', es: 'es-ES', fr: 'fr-FR', de: 'de-DE',
-  };
-  utter.lang = langMap[lang];
+  utter.lang = LANG_BCP47[lang];
   utter.rate = 0.9;
   window.speechSynthesis.speak(utter);
+}
+
+function normalize(s: string) {
+  return s.trim().toLowerCase().replace(/[^a-z0-9\u00c0-\u024f\u1e00-\u1eff]/gi, '');
 }
 
 export default function FlashcardDeck() {
   const { t, tLang, learnFrom, learnTarget } = useLanguage();
 
+  const [mode, setMode] = useState<Mode>('flashcard');
   const [category, setCategory] = useState<IconCategory | 'all'>('all');
   const [index, setIndex] = useState(0);
-  const [revealed, setRevealed] = useState(false);
   const [knew, setKnew] = useState(0);
   const [didntKnow, setDidntKnow] = useState(0);
   const [done, setDone] = useState(false);
   const [imgError, setImgError] = useState(false);
 
+  // Flashcard state
+  const [revealed, setRevealed] = useState(false);
+
+  // Writing state
+  const [input, setInput] = useState('');
+  const [writeResult, setWriteResult] = useState<'correct' | 'wrong' | null>(null);
+
+  // Speaking state
+  const [listenState, setListenState] = useState<'idle' | 'listening' | 'correct' | 'wrong' | 'unsupported' | 'nospeech'>('idle');
+  const [heardText, setHeardText] = useState('');
+  const recognitionRef = useRef<{ stop: () => void } | null>(null);
+
   const deck = useMemo(() => {
     const base = category === 'all'
       ? ICON_DATABASE.filter((ic) => ic.category !== 'custom')
       : ICON_DATABASE.filter((ic) => ic.category === category);
-    // Only include icons that have a translation in the target language
     return base.filter((ic) => tLang(`icon.${ic.id}`, learnTarget) !== `icon.${ic.id}`);
   }, [category, learnTarget, tLang]);
 
   const card = deck[index];
 
+  const resetCardState = useCallback(() => {
+    setRevealed(false);
+    setInput('');
+    setWriteResult(null);
+    setListenState('idle');
+    setHeardText('');
+    setImgError(false);
+  }, []);
+
   const reset = useCallback((newCategory?: IconCategory | 'all') => {
     setIndex(0);
-    setRevealed(false);
     setKnew(0);
     setDidntKnow(0);
     setDone(false);
-    setImgError(false);
+    resetCardState();
     if (newCategory !== undefined) setCategory(newCategory);
-  }, []);
+  }, [resetCardState]);
 
-  const handleReveal = () => {
-    setRevealed(true);
-    if (card) speak(tLang(`icon.${card.id}`, learnTarget), learnTarget);
-  };
-
-  const advance = (gotIt: boolean) => {
+  const advance = useCallback((gotIt: boolean) => {
     if (gotIt) setKnew((k) => k + 1);
     else setDidntKnow((d) => d + 1);
 
@@ -74,9 +95,54 @@ export default function FlashcardDeck() {
       setDone(true);
     } else {
       setIndex((i) => i + 1);
-      setRevealed(false);
-      setImgError(false);
+      resetCardState();
     }
+  }, [index, deck.length, resetCardState]);
+
+  // --- Writing mode ---
+  const handleWriteSubmit = () => {
+    if (!card || !input.trim()) return;
+    const correct = normalize(tLang(`icon.${card.id}`, learnTarget));
+    const isCorrect = normalize(input) === correct;
+    setWriteResult(isCorrect ? 'correct' : 'wrong');
+    if (isCorrect) speak(tLang(`icon.${card.id}`, learnTarget), learnTarget);
+  };
+
+  // --- Speaking mode ---
+  const startListening = () => {
+    const SR = (typeof window !== 'undefined') &&
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+    if (!SR) { setListenState('unsupported'); return; }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rec: any = new SR();
+    recognitionRef.current = rec;
+    rec.lang = LANG_BCP47[learnTarget];
+    rec.interimResults = false;
+    rec.maxAlternatives = 3;
+
+    setListenState('listening');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (event: any) => {
+      const transcripts = Array.from({ length: event.results[0].length }, (_: unknown, i: number) =>
+        event.results[0][i].transcript as string
+      );
+      const target = normalize(tLang(`icon.${card!.id}`, learnTarget));
+      const matched = transcripts.some((tr) => normalize(tr) === target);
+      setHeardText(transcripts[0] ?? '');
+      setListenState(matched ? 'correct' : 'wrong');
+      if (matched) speak(tLang(`icon.${card!.id}`, learnTarget), learnTarget);
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onerror = (event: any) => {
+      setListenState(event.error === 'no-speech' ? 'nospeech' : 'idle');
+    };
+    rec.onend = () => {
+      if (recognitionRef.current === rec) recognitionRef.current = null;
+    };
+    rec.start();
   };
 
   if (deck.length === 0) {
@@ -89,9 +155,49 @@ export default function FlashcardDeck() {
 
   const fromFlag = LANGUAGES[learnFrom].flag;
   const targetFlag = LANGUAGES[learnTarget].flag;
+  const targetWord = card ? tLang(`icon.${card.id}`, learnTarget) : '';
+
+  // --- Session complete screen ---
+  if (done) {
+    return (
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-10 text-center">
+        <div className="text-5xl mb-4">🎉</div>
+        <h2 className="text-2xl font-bold mb-2">{t('learn.sessionDone')}</h2>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">
+          {t('learn.score')}: <span className="text-green-500 font-bold">{knew}</span> / {deck.length}
+        </p>
+        <button
+          onClick={() => reset()}
+          className="rounded-xl bg-primary px-8 py-3 text-white font-semibold hover:opacity-90 transition-opacity"
+        >
+          {t('learn.restart')}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
+      {/* Mode switcher */}
+      <div className="flex justify-center gap-2 mb-5">
+        {(['flashcard', 'writing', 'speaking'] as Mode[]).map((m) => (
+          <button
+            key={m}
+            onClick={() => { setMode(m); reset(); }}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors
+              ${mode === m
+                ? 'bg-primary text-white shadow-sm'
+                : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary/50'
+              }`}
+          >
+            {m === 'flashcard' && '🃏'}
+            {m === 'writing' && '✏️'}
+            {m === 'speaking' && '🎤'}
+            <span>{t(`learn.mode${m.charAt(0).toUpperCase() + m.slice(1)}`)}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Category filter */}
       <div className="flex flex-wrap gap-2 justify-center mb-6">
         {CATEGORIES.map((cat) => (
@@ -110,83 +216,67 @@ export default function FlashcardDeck() {
         ))}
       </div>
 
-      {/* Session complete */}
-      {done ? (
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-10 text-center">
-          <div className="text-5xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold mb-2">{t('learn.sessionDone')}</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            {t('learn.score')}: <span className="text-green-500 font-bold">{knew}</span> / {deck.length}
-          </p>
-          <button
-            onClick={() => reset()}
-            className="rounded-xl bg-primary px-8 py-3 text-white font-semibold hover:opacity-90 transition-opacity"
-          >
-            {t('learn.restart')}
-          </button>
+      {/* Progress bar */}
+      <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
+        <span>{index + 1} {t('learn.cardOf')} {deck.length}</span>
+        <span className="flex gap-3">
+          <span className="text-green-500">✓ {knew}</span>
+          <span className="text-red-400">✗ {didntKnow}</span>
+        </span>
+      </div>
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-6">
+        <div
+          className="bg-primary h-1.5 rounded-full transition-all"
+          style={{ width: `${(index / deck.length) * 100}%` }}
+        />
+      </div>
+
+      {/* Card */}
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
+        {/* Hint label (learnFrom) */}
+        <div className="border-b border-gray-100 dark:border-gray-700 px-6 py-3 flex items-center gap-2 text-sm text-gray-500">
+          <span>{fromFlag}</span>
+          <span className="font-medium text-gray-800 dark:text-gray-200">
+            {card && tLang(`icon.${card.id}`, learnFrom)}
+          </span>
         </div>
-      ) : (
-        <>
-          {/* Progress bar */}
-          <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
-            <span>{index + 1} {t('learn.cardOf')} {deck.length}</span>
-            <span className="flex gap-3">
-              <span className="text-green-500">✓ {knew}</span>
-              <span className="text-red-400">✗ {didntKnow}</span>
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-6">
-            <div
-              className="bg-primary h-1.5 rounded-full transition-all"
-              style={{ width: `${((index) / deck.length) * 100}%` }}
-            />
-          </div>
 
-          {/* Card */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
-
-            {/* Hint label (learnFrom) */}
-            <div className="border-b border-gray-100 dark:border-gray-700 px-6 py-3 flex items-center gap-2 text-sm text-gray-500">
-              <span>{fromFlag}</span>
-              <span className="font-medium text-gray-800 dark:text-gray-200">
-                {tLang(`icon.${card.id}`, learnFrom)}
-              </span>
+        {/* Icon image */}
+        <div className="flex items-center justify-center p-10">
+          {!imgError && card?.imageUrl ? (
+            <div className="relative w-36 h-36">
+              <Image
+                src={card.imageUrl}
+                alt={card ? tLang(`icon.${card.id}`, learnFrom) : ''}
+                fill
+                className="object-contain"
+                onError={() => setImgError(true)}
+                unoptimized
+              />
             </div>
+          ) : (
+            <span className="text-8xl" aria-hidden="true">{card?.symbol}</span>
+          )}
+        </div>
 
-            {/* Icon image */}
-            <div className="flex items-center justify-center p-10">
-              {!imgError && card.imageUrl ? (
-                <div className="relative w-36 h-36">
-                  <Image
-                    src={card.imageUrl}
-                    alt={tLang(`icon.${card.id}`, learnFrom)}
-                    fill
-                    className="object-contain"
-                    onError={() => setImgError(true)}
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <span className="text-8xl" aria-hidden="true">{card.symbol}</span>
-              )}
-            </div>
+        {/* Bottom action area */}
+        <div className="border-t border-gray-100 dark:border-gray-700 px-6 py-5">
 
-            {/* Reveal / answer */}
-            <div className="border-t border-gray-100 dark:border-gray-700 px-6 py-5 text-center">
+          {/* ── FLASHCARD MODE ── */}
+          {mode === 'flashcard' && (
+            <div className="text-center">
               {!revealed ? (
                 <button
-                  onClick={handleReveal}
+                  onClick={() => { setRevealed(true); speak(targetWord, learnTarget); }}
                   className="rounded-xl bg-primary px-8 py-3 text-white font-semibold hover:opacity-90 transition-opacity"
                 >
                   {t('learn.tapToReveal')} {targetFlag}
                 </button>
               ) : (
                 <>
-                  <p className="text-2xl font-bold mb-1">
-                    {targetFlag} {tLang(`icon.${card.id}`, learnTarget)}
-                  </p>
+                  <p className="text-2xl font-bold mb-1">{targetFlag} {targetWord}</p>
                   <button
-                    onClick={() => speak(tLang(`icon.${card.id}`, learnTarget), learnTarget)}
+                    onClick={() => speak(targetWord, learnTarget)}
                     className="text-primary text-sm hover:underline mb-4 inline-block"
                     aria-label="Hear pronunciation"
                   >
@@ -209,9 +299,171 @@ export default function FlashcardDeck() {
                 </>
               )}
             </div>
-          </div>
-        </>
-      )}
+          )}
+
+          {/* ── WRITING MODE ── */}
+          {mode === 'writing' && (
+            <div className="text-center">
+              {writeResult === null ? (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); handleWriteSubmit(); }}
+                  className="flex flex-col items-center gap-3"
+                >
+                  <div className="flex items-center gap-1 text-sm text-gray-400 mb-1">
+                    <span>{targetFlag}</span>
+                    <span>{LANGUAGES[learnTarget].nativeName}</span>
+                  </div>
+                  <input
+                    autoFocus
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder={t('learn.typeAnswer')}
+                    className="w-full max-w-xs rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2.5 text-center text-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!input.trim()}
+                    className="rounded-xl bg-primary px-8 py-2.5 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-40"
+                  >
+                    {t('learn.submit')}
+                  </button>
+                </form>
+              ) : writeResult === 'correct' ? (
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-2xl font-bold text-green-500">{t('learn.correct')}</p>
+                  <p className="text-lg">{targetFlag} {targetWord}</p>
+                  <button
+                    onClick={() => advance(true)}
+                    className="rounded-xl bg-green-500 px-8 py-2.5 text-white font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    {t('learn.next')} →
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-red-500 font-medium">{t('learn.tryAgain')}</p>
+                  <p className="text-2xl font-bold">{targetFlag} {targetWord}</p>
+                  <button
+                    onClick={() => speak(targetWord, learnTarget)}
+                    className="text-primary text-sm hover:underline"
+                    aria-label="Hear pronunciation"
+                  >
+                    🔊 {LANGUAGES[learnTarget].nativeName}
+                  </button>
+                  <div className="flex gap-3 mt-1">
+                    <button
+                      onClick={() => { setWriteResult(null); setInput(''); }}
+                      className="rounded-xl border border-gray-300 dark:border-gray-600 px-5 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      ↩ {t('learn.typeAnswer').replace('…', '')}
+                    </button>
+                    <button
+                      onClick={() => advance(false)}
+                      className="rounded-xl bg-primary px-5 py-2 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      {t('learn.next')} →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── SPEAKING MODE ── */}
+          {mode === 'speaking' && (
+            <div className="text-center">
+              {listenState === 'unsupported' && (
+                <p className="text-sm text-gray-400">{t('learn.speechUnsupported')}</p>
+              )}
+
+              {listenState === 'idle' && (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-1 text-sm text-gray-400 mb-1">
+                    <span>{targetFlag}</span>
+                    <span>{LANGUAGES[learnTarget].nativeName}</span>
+                  </div>
+                  <button
+                    onClick={startListening}
+                    className="rounded-xl bg-primary px-8 py-3 text-white font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    🎤 {t('learn.speakNow')}
+                  </button>
+                </div>
+              )}
+
+              {listenState === 'listening' && (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center animate-pulse">
+                    <span className="text-2xl">🎤</span>
+                  </div>
+                  <p className="text-sm text-gray-400">{t('learn.listening')}</p>
+                </div>
+              )}
+
+              {listenState === 'nospeech' && (
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-sm text-gray-400">{t('learn.noSpeech')}</p>
+                  <button
+                    onClick={startListening}
+                    className="rounded-xl bg-primary px-8 py-2.5 text-white font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    🎤 {t('learn.speakNow')}
+                  </button>
+                </div>
+              )}
+
+              {listenState === 'correct' && (
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-2xl font-bold text-green-500">{t('learn.correct')}</p>
+                  <p className="text-lg">{targetFlag} {targetWord}</p>
+                  {heardText && (
+                    <p className="text-sm text-gray-400">🎤 &ldquo;{heardText}&rdquo;</p>
+                  )}
+                  <button
+                    onClick={() => advance(true)}
+                    className="rounded-xl bg-green-500 px-8 py-2.5 text-white font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    {t('learn.next')} →
+                  </button>
+                </div>
+              )}
+
+              {listenState === 'wrong' && (
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-red-500 font-medium">{t('learn.tryAgain')}</p>
+                  <p className="text-2xl font-bold">{targetFlag} {targetWord}</p>
+                  {heardText && (
+                    <p className="text-sm text-gray-400">🎤 &ldquo;{heardText}&rdquo;</p>
+                  )}
+                  <button
+                    onClick={() => speak(targetWord, learnTarget)}
+                    className="text-primary text-sm hover:underline"
+                    aria-label="Hear pronunciation"
+                  >
+                    🔊 {LANGUAGES[learnTarget].nativeName}
+                  </button>
+                  <div className="flex gap-3 mt-1">
+                    <button
+                      onClick={() => setListenState('idle')}
+                      className="rounded-xl border border-gray-300 dark:border-gray-600 px-5 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      🎤 {t('learn.speakNow')}
+                    </button>
+                    <button
+                      onClick={() => advance(false)}
+                      className="rounded-xl bg-primary px-5 py-2 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      {t('learn.next')} →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+      </div>
     </div>
   );
 }
