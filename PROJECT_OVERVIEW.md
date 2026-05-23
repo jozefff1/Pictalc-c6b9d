@@ -34,7 +34,7 @@ Augmentative and Alternative Communication (AAC) refers to all forms of communic
 | ORM | Drizzle ORM |
 | Storage | Vercel Blob |
 | Offline | IndexedDB (via `idb`) |
-| PWA | `@ducanh2912/next-pwa` |
+| PWA | `@serwist/next` + `serwist` |
 | Deployment | Vercel |
 | i18n | Custom React Context (client-side) |
 | Email | Resend (planned) |

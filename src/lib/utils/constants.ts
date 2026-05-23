@@ -4,6 +4,9 @@
 
 export const APP_NAME = 'Snakke';
 export const APP_DESCRIPTION = 'Augmentative and Alternative Communication (AAC) app for accessible communication';
+export const APP_ICON_COUNT = 89;
+export const APP_LANGUAGE_COUNT = 2;
+export const APP_FEATURE_SUMMARY = `${APP_ICON_COUNT}+ ARASAAC pictograms across 6 categories`;
 
 // API Routes
 export const API_ROUTES = {
@@ -46,10 +49,14 @@ export const APP_ROUTES = {
 
 // Local Storage Keys
 export const STORAGE_KEYS = {
-  THEME: 'snakke_theme',
-  USER_PREFERENCES: 'snakke_preferences',
-  OFFLINE_QUEUE: 'snakke_offline_queue',
-  LAST_SYNC: 'snakke_last_sync',
+  THEME: 'snakke-theme',
+  LANGUAGE: 'snakke-language',
+  HIGH_CONTRAST: 'snakke-high-contrast',
+  REDUCE_MOTION: 'snakke-reduce-motion',
+  TEXT_SIZE: 'snakke-text-size',
+  USER_PREFERENCES: 'snakke-preferences',
+  OFFLINE_QUEUE: 'snakke-offline-queue',
+  LAST_SYNC: 'snakke-last-sync',
 } as const;
 
 // IndexedDB Configuration

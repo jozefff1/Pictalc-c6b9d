@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { APP_FEATURE_SUMMARY } from '@/lib/utils/constants';
 
 const LLMS_TXT = `# Snakke
 
@@ -18,7 +19,7 @@ Augmentative and Alternative Communication (AAC) refers to all forms of communic
 
 ## Core Features
 
-- 89+ ARASAAC pictograms across 6 categories: Needs, Actions, Feelings, People, Places, Custom
+- ${APP_FEATURE_SUMMARY}: Needs, Actions, Feelings, People, Places, Custom
 - Icon-based sentence builder with one-tap text-to-speech (Web Speech API)
 - English and Norwegian language support with instant switching
 - Custom icon upload (photos, drawings, personal pictures)

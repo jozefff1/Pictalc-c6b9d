@@ -11,8 +11,16 @@ _Last updated: May 17, 2026 (session 3)_
 ### 1. Auth Secret in Production
 The `AUTH_SECRET` must be set in Vercel's environment variables. Without it, all logins will silently fail in production. A strong, unique secret has been generated — ensure it is added in Vercel → Settings → Environment Variables.
 
-### 2. Service Worker Missing ⚠️ PWA Cannot Install
-`@ducanh2912/next-pwa` is configured in `next.config.ts` and the manifest is in place, but **no `public/sw.js` file exists**. The PWA will fail to install on any device. The service worker must be generated (next-pwa does this at build time — verify the production build output).
+### 2. Service Worker ✅ Fixed (PWA Now Installs)
+Migrated from `@ducanh2912/next-pwa` to `@serwist/next` + `serwist`. `next.config.ts` now wraps the Next.js config with `withSerwist`. The `src/app/sw.ts` service worker entry point uses `serwist`'s `defaultCache` and `__SW_MANIFEST` precache manifest. Builds with `--webpack` (Serwist is incompatible with Next.js 16's default Turbopack). `public/sw.js` is generated at build time.
+
+**Additional deduplication work completed (session 4)**:
+- `src/lib/utils/constants.ts` — Centralised all `localStorage` keys under `STORAGE_KEYS` (dashes format). Added `APP_FEATURE_SUMMARY` constant for description strings.
+- `src/hooks/usePreferences.ts` — New shared hook; fetches `/api/preferences`, dispatches to Redux `uiSlice`, consumed by `SentenceBuilder` and settings page.
+- `src/components/features/communication/IconMatchGrid.tsx` — New shared component for icon match result grids; consumed by `TextToIcons` and `SpeechToIcons`.
+- `DarkModeToggle` — Now dispatches `setTheme` to Redux alongside DOM/localStorage update.
+- `LanguageContext` — Uses `STORAGE_KEYS.LANGUAGE` instead of hardcoded string.
+- `layout.tsx` + `llms.txt/route.ts` — Use `APP_FEATURE_SUMMARY` constant instead of hardcoded copy.
 
 ### 3. No `/error` Route ✅ Fixed
 The auth config previously redirected to `/error` which doesn't exist, causing a 404 on any auth failure. Fixed to redirect to `/login` instead. Consider adding a dedicated, user-friendly error page at `/app/(auth)/error/page.tsx`.

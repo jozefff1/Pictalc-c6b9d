@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from '@/components/providers/Providers';
+import { APP_FEATURE_SUMMARY } from '@/lib/utils/constants';
 import './globals.css';
 
 const inter = Inter({
@@ -37,7 +38,6 @@ export const metadata: Metadata = {
   authors: [{ name: 'Digital Ark AS' }],
   creator: 'Digital Ark AS',
   publisher: 'Digital Ark AS',
-  manifest: '/manifest.json',
   metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'https://snakke.app'),
   alternates: {
     canonical: '/',
@@ -104,7 +104,7 @@ export default function RootLayout({
               url: process.env.NEXTAUTH_URL ?? 'https://snakke.app',
               offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
               featureList: [
-                '89+ ARASAAC pictograms across 6 categories',
+                APP_FEATURE_SUMMARY,
                 'Icon-based sentence builder with text-to-speech',
                 'English and Norwegian language support',
                 'Custom icon upload',

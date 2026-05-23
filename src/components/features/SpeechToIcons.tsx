@@ -1,45 +1,41 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SpeechRecognizer, isSpeechRecognitionSupported } from '@/lib/services/speechService';
 import { matchTextToIcons } from '@/lib/ai/iconMatcher';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { addIconToSentence } from '@/store/slices/communicationSlice';
+import IconMatchGrid from '@/components/features/communication/IconMatchGrid';
 import type { IconMatch } from '@/lib/ai/iconMatcher';
 
 export default function SpeechToIcons() {
-  const { tIcon, language } = useLanguage();
+  const { language } = useLanguage();
   const dispatch = useAppDispatch();
   const customIcons = useAppSelector((state) => state.communication.customIcons);
+  const supported = isSpeechRecognitionSupported();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
   const [matches, setMatches] = useState<IconMatch[]>([]);
   const [error, setError] = useState<string>('');
-  const [recognizer, setRecognizer] = useState<SpeechRecognizer | null>(null);
+  const recognizerRef = useRef<SpeechRecognizer | null>(null);
 
   useEffect(() => {
-    if (isSpeechRecognitionSupported()) {
-      try {
-        const langCode = language === 'no' ? 'nb-NO' : 'en-US';
-        const rec = new SpeechRecognizer({
-          lang: langCode,
-          continuous: false,
-          interimResults: true,
-        });
-        setRecognizer(rec);
-        return () => { rec.abort(); };
-      } catch {
-        setError('Speech recognition not available');
-      }
-    } else {
-      setError('Speech recognition not available');
+    if (!supported) return;
+    try {
+      const langCode = language === 'no' ? 'nb-NO' : 'en-US';
+      const rec = new SpeechRecognizer({ lang: langCode, continuous: false, interimResults: true });
+      recognizerRef.current = rec;
+      return () => { rec.abort(); };
+    } catch {
+      // Construction failed — recognizerRef.current stays null;
+      // handleStartListening will surface the error when the user taps
     }
-  }, [language]);
+  }, [language, supported]);
 
   const handleStartListening = () => {
-    if (!recognizer) {
+    if (!recognizerRef.current) {
       setError('Speech recognition not available');
       return;
     }
@@ -49,7 +45,7 @@ export default function SpeechToIcons() {
     setInterimTranscript('');
     setMatches([]);
 
-    recognizer.start(
+    recognizerRef.current.start(
       (text, isFinal) => {
         if (isFinal) {
           setTranscript(text);
@@ -85,7 +81,7 @@ export default function SpeechToIcons() {
   };
 
   const handleStopListening = () => {
-    recognizer?.stop();
+    recognizerRef.current?.stop();
     setIsListening(false);
   };
 
@@ -100,7 +96,7 @@ export default function SpeechToIcons() {
         <div className="flex flex-col items-center mb-6">
           <button
             onClick={isListening ? handleStopListening : handleStartListening}
-            disabled={!isSpeechRecognitionSupported()}
+            disabled={!supported}
             className={`
               w-32 h-32 rounded-full
               flex items-center justify-center
@@ -141,56 +137,21 @@ export default function SpeechToIcons() {
         )}
 
         {/* Error Display */}
-        {error && (
+        {(!supported || error) && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <p className="text-sm text-red-600 dark:text-red-400">
+              {error || 'Speech recognition not available'}
+            </p>
           </div>
         )}
 
         {/* Matched Icons */}
         {matches.length > 0 && (
-          <div>
-            <h3 className="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
-              More suggestions (tap to add)
-            </h3>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-              {matches.map((match) => (
-                <button
-                  key={match.icon.id}
-                  onClick={() => handleAddIcon(match)}
-                  className="
-                    flex flex-col items-center justify-center
-                    p-3 rounded-xl
-                    bg-white dark:bg-gray-800
-                    border-2 border-gray-200 dark:border-gray-700
-                    hover:border-primary hover:shadow-lg
-                    active:scale-95
-                    transition-all duration-200
-                    relative
-                  "
-                  style={{ borderColor: `${match.icon.color}40` }}
-                  aria-label={`Add ${tIcon(match.icon.id)} to sentence`}
-                >
-                  {match.matchType === 'exact' && (
-                    <span className="absolute top-1 right-1 text-xs bg-green-500 text-white rounded-full px-1.5 py-0.5">
-                      ✓
-                    </span>
-                  )}
-                  
-                  {match.icon.imageUrl ? (
-                    <div className="relative w-8 h-8 mb-1">
-                      <img src={match.icon.imageUrl} alt={match.icon.name} className="object-contain w-full h-full" />
-                    </div>
-                  ) : (
-                    <span className="text-3xl mb-1">{match.icon.symbol}</span>
-                  )}
-                  <span className="text-xs font-medium text-center text-gray-700 dark:text-gray-300">
-                    {match.icon.id.startsWith('custom_') ? match.icon.name : tIcon(match.icon.id)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
+          <IconMatchGrid
+            matches={matches}
+            onAdd={handleAddIcon}
+            label="More suggestions (tap to add)"
+          />
         )}
 
         {/* Help Text */}

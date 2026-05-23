@@ -35,7 +35,7 @@ export default async function Home() {
       <main id="main-content" className="flex-1">
 
         {/* ── Hero ─────────────────────────────────────────── */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 py-28 px-4">
+        <section className="relative overflow-hidden bg-linear-to-br from-slate-900 via-blue-950 to-slate-900 py-28 px-4">
 
           {/* Floating background icons */}
           <div aria-hidden="true" className="absolute inset-0 pointer-events-none select-none overflow-hidden">
@@ -59,7 +59,7 @@ export default async function Home() {
 
             <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-6 text-white leading-[1.1]">
               Anyone deserves<br />
-              <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent">
                 a voice.
               </span>
             </h1>
@@ -220,7 +220,7 @@ export default async function Home() {
               ).map((p) => (
                 <div
                   key={p.role}
-                  className={`rounded-2xl border ${p.borderClass} bg-gradient-to-br ${p.bgClass} p-7`}
+                  className={`rounded-2xl border ${p.borderClass} bg-linear-to-br ${p.bgClass} p-7`}
                 >
                   <div className="text-5xl mb-4" aria-hidden="true">{p.emoji}</div>
                   <h3 className="text-xl font-bold mb-2">{p.role}</h3>
@@ -232,7 +232,7 @@ export default async function Home() {
         </section>
 
         {/* ── CTA Banner ───────────────────────────────────── */}
-        <section className="py-24 px-4 bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500">
+        <section className="py-24 px-4 bg-linear-to-r from-blue-600 via-blue-500 to-cyan-500">
           <div className="container mx-auto max-w-3xl text-center">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
               Ready to get started?

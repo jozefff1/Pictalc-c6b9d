@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import Image from 'next/image';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
@@ -14,6 +15,7 @@ import {
 import { speakText, isSpeechSynthesisSupported } from '@/lib/services/speechService';
 import { indexedDB } from '@/lib/offline/indexedDB';
 import { useSession } from 'next-auth/react';
+import { usePreferences } from '@/hooks/usePreferences';
 import type { Icon, CommunicationSession } from '@/types/models';
 
 export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boolean }) {
@@ -26,20 +28,9 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
   const [error, setError] = useState<string>('');
   const [showFavorites, setShowFavorites] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
-  const [voiceSpeed, setVoiceSpeed] = useState(1.0);
-  const [voicePitch, setVoicePitch] = useState(1.0);
-
-  useEffect(() => {
-    fetch('/api/preferences')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.preferences) {
-          setVoiceSpeed(data.preferences.voiceSpeed ?? 1.0);
-          setVoicePitch(data.preferences.voicePitch ?? 1.0);
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const { preferences } = usePreferences();
+  const voiceSpeed = preferences.voiceSpeed;
+  const voicePitch = preferences.voicePitch;
 
   const sentenceText = sentence.map((icon: Icon) =>
     icon.id.startsWith('custom_') ? icon.name : tIcon(icon.id)
@@ -196,10 +187,12 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
               aria-label={`Remove ${tIcon(icon.id)}`}
             >
               {icon.imageUrl ? (
-                <img
+                <Image
                   src={icon.imageUrl}
                   alt={icon.name}
-                  className="w-8 h-8 object-contain"
+                  width={32}
+                  height={32}
+                  className="object-contain"
                 />
               ) : (
                 <span className="text-3xl">{icon.symbol}</span>

@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useSyncExternalStore, useEffect, ReactNode } from 'react';
+import { STORAGE_KEYS } from '@/lib/utils/constants';
 
 type Language = 'en' | 'no';
 
@@ -12,6 +13,23 @@ interface LanguageContextType {
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+const LANG_EVENT = 'snakke-language-change';
+
+function subscribeLanguage(callback: () => void) {
+  window.addEventListener(LANG_EVENT, callback);
+  return () => window.removeEventListener(LANG_EVENT, callback);
+}
+
+function getLanguageSnapshot(): Language {
+  const saved = localStorage.getItem(STORAGE_KEYS.LANGUAGE);
+  if (saved === 'en' || saved === 'no') return saved as Language;
+  const browserLang = navigator.language?.toLowerCase() || '';
+  if (browserLang.startsWith('nb') || browserLang.startsWith('nn') || browserLang.startsWith('no')) return 'no';
+  return 'en';
+}
+
+const getLanguageServerSnapshot = (): Language => 'en';
 
 // Translation dictionaries
 const translations: Record<Language, Record<string, string>> = {
@@ -326,26 +344,11 @@ const translations: Record<Language, Record<string, string>> = {
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  // Always start with 'en' on the server to avoid SSR/client hydration mismatch.
-  // The real preference (localStorage / browser locale) is applied client-side in useEffect.
-  const [language, setLanguageState] = useState<Language>('en');
-
-  useEffect(() => {
-    const saved = localStorage.getItem('snakke-language') as Language;
-    if (saved === 'en' || saved === 'no') {
-      setLanguageState(saved);
-    } else {
-      // No saved preference — auto-detect from browser locale
-      const browserLang = navigator.language?.toLowerCase() || '';
-      if (browserLang.startsWith('nb') || browserLang.startsWith('nn') || browserLang.startsWith('no')) {
-        setLanguageState('no');
-      }
-    }
-  }, []);
+  const language = useSyncExternalStore(subscribeLanguage, getLanguageSnapshot, getLanguageServerSnapshot);
 
   const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    localStorage.setItem('snakke-language', lang);
+    localStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);
+    window.dispatchEvent(new Event(LANG_EVENT));
   };
 
   // Sync HTML lang attribute with current language for accessibility

@@ -5,10 +5,11 @@ import { matchTextToIcons } from '@/lib/ai/iconMatcher';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { addIconToSentence } from '@/store/slices/communicationSlice';
+import IconMatchGrid from '@/components/features/communication/IconMatchGrid';
 import type { IconMatch } from '@/lib/ai/iconMatcher';
 
 export default function TextToIcons() {
-  const { t, tIcon, language } = useLanguage();
+  const { t, language } = useLanguage();
   const dispatch = useAppDispatch();
   const customIcons = useAppSelector((state) => state.communication.customIcons);
   const [inputText, setInputText] = useState('');
@@ -156,49 +157,11 @@ export default function TextToIcons() {
 
         {/* Additional Suggestions */}
         {matches.length > 0 && (
-          <div>
-            <h3 className="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
-              {t('type.suggestions')}
-            </h3>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-              {matches.map((match) => (
-                <button
-                  key={match.icon.id}
-                  onClick={() => handleAddIcon(match)}
-                  className="
-                    flex flex-col items-center justify-center
-                    p-3 rounded-xl
-                    bg-white dark:bg-gray-800
-                    border-2 border-gray-200 dark:border-gray-700
-                    hover:border-primary hover:shadow-lg
-                    active:scale-95
-                    transition-all duration-200
-                    relative
-                  "
-                  style={{ borderColor: `${match.icon.color}40` }}
-                  aria-label={`Add ${tIcon(match.icon.id)} to sentence`}
-                >
-                  {/* Confidence Badge */}
-                  {match.matchType === 'exact' && (
-                    <span className="absolute top-1 right-1 text-xs bg-green-500 text-white rounded-full px-1.5 py-0.5">
-                      ✓
-                    </span>
-                  )}
-                  
-                  {match.icon.imageUrl ? (
-                    <div className="relative w-8 h-8 mb-1">
-                      <img src={match.icon.imageUrl} alt={match.icon.name} className="object-contain w-full h-full" />
-                    </div>
-                  ) : (
-                    <span className="text-3xl mb-1">{match.icon.symbol}</span>
-                  )}
-                  <span className="text-xs font-medium text-center text-gray-700 dark:text-gray-300">
-                    {match.icon.id.startsWith('custom_') ? match.icon.name : tIcon(match.icon.id)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
+          <IconMatchGrid
+            matches={matches}
+            onAdd={handleAddIcon}
+            label={t('type.suggestions')}
+          />
         )}
 
         {/* No Results Message */}

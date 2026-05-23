@@ -1,35 +1,41 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore, useEffect } from 'react';
+import { STORAGE_KEYS } from '@/lib/utils/constants';
+import { useAppDispatch } from '@/store/hooks';
+import { setTheme } from '@/store/slices/uiSlice';
+
+function subscribe(callback: () => void) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  return () => observer.disconnect();
+}
+
+const getSnapshot = () => document.documentElement.classList.contains('dark');
+const getServerSnapshot = () => false;
 
 export default function DarkModeToggle() {
-  const [isDark, setIsDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const isDark = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const dispatch = useAppDispatch();
 
+  // Sync initial theme to Redux once on mount
   useEffect(() => {
-    // Read current state from the class already applied by the inline script
-    setIsDark(document.documentElement.classList.contains('dark'));
-    setMounted(true);
-  }, []);
+    dispatch(setTheme(getSnapshot() ? 'dark' : 'light'));
+  }, [dispatch]);
 
   const toggle = () => {
     const next = !isDark;
-    setIsDark(next);
+    const theme = next ? 'dark' : 'light';
     if (next) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
-      localStorage.setItem('snakke-theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('light');
-      localStorage.setItem('snakke-theme', 'light');
     }
+    localStorage.setItem(STORAGE_KEYS.THEME, theme);
+    dispatch(setTheme(theme));
   };
-
-  // Render a placeholder with the same dimensions to avoid layout shift
-  if (!mounted) {
-    return <div className="w-9 h-9" />;
-  }
 
   return (
     <button

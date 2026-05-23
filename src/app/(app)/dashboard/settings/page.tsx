@@ -2,24 +2,10 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { speakText, isSpeechSynthesisSupported } from '@/lib/services/speechService';
+import { STORAGE_KEYS } from '@/lib/utils/constants';
+import { usePreferences, type Preferences } from '@/hooks/usePreferences';
 
-interface Prefs {
-  voiceSpeed: number;
-  voicePitch: number;
-  hapticEnabled: boolean;
-  highContrast: boolean;
-  reduceMotion: boolean;
-  textSize: number;
-}
-
-const DEFAULTS: Prefs = {
-  voiceSpeed: 1.0,
-  voicePitch: 1.0,
-  hapticEnabled: true,
-  highContrast: false,
-  reduceMotion: false,
-  textSize: 1.0,
-};
+type Prefs = Preferences;
 
 function applyAccessibility(prefs: Prefs) {
   const html = document.documentElement;
@@ -27,37 +13,24 @@ function applyAccessibility(prefs: Prefs) {
   html.classList.toggle('normal-contrast', !prefs.highContrast);
   html.classList.toggle('reduce-motion', prefs.reduceMotion);
   html.style.fontSize = prefs.textSize === 1.0 ? '' : `${prefs.textSize * 100}%`;
-  localStorage.setItem('snakke-high-contrast', String(prefs.highContrast));
-  localStorage.setItem('snakke-reduce-motion', String(prefs.reduceMotion));
-  localStorage.setItem('snakke-text-size', String(prefs.textSize));
+  localStorage.setItem(STORAGE_KEYS.HIGH_CONTRAST, String(prefs.highContrast));
+  localStorage.setItem(STORAGE_KEYS.REDUCE_MOTION, String(prefs.reduceMotion));
+  localStorage.setItem(STORAGE_KEYS.TEXT_SIZE, String(prefs.textSize));
 }
 
 export default function SettingsPage() {
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULTS);
+  const { preferences, setPreferences, loading } = usePreferences();
+  const [prefs, setPrefs] = useState<Prefs>(preferences);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [loading, setLoading] = useState(true);
 
+  // Sync local prefs state once hook resolves and apply accessibility settings
   useEffect(() => {
-    fetch('/api/preferences')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.preferences) {
-          const loaded: Prefs = {
-            voiceSpeed: data.preferences.voiceSpeed ?? 1.0,
-            voicePitch: data.preferences.voicePitch ?? 1.0,
-            hapticEnabled: data.preferences.hapticEnabled ?? true,
-            highContrast: data.preferences.highContrast ?? false,
-            reduceMotion: data.preferences.reduceMotion ?? false,
-            textSize: data.preferences.textSize ?? 1.0,
-          };
-          setPrefs(loaded);
-          applyAccessibility(loaded);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    if (!loading) {
+      setPrefs(preferences);
+      applyAccessibility(preferences);
+    }
+  }, [loading, preferences]);
 
   const save = useCallback(async (patch: Partial<Prefs>) => {
     setSaving(true);
@@ -83,10 +56,11 @@ export default function SettingsPage() {
       if (key === 'highContrast' || key === 'reduceMotion' || key === 'textSize') {
         applyAccessibility(updated);
       }
+      setPreferences(updated);
       save({ [key]: value });
       return updated;
     });
-  }, [save]);
+  }, [save, setPreferences]);
 
   if (loading) {
     return (
