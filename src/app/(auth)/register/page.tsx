@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') ?? '';
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -87,7 +90,8 @@ export default function RegisterPage() {
 
       // Redirect to email verification pending page
       const encodedEmail = encodeURIComponent(formData.email);
-      router.push(`/verify-email?email=${encodedEmail}`);
+      const cbParam = callbackUrl ? `&callbackUrl=${encodeURIComponent(callbackUrl)}` : '';
+      router.push(`/verify-email?email=${encodedEmail}${cbParam}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Network error – could not reach the server';
       setError(message);
@@ -277,5 +281,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }

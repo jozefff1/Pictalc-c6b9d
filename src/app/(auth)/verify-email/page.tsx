@@ -11,6 +11,7 @@ function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const email = searchParams.get('email');
+  const callbackUrl = searchParams.get('callbackUrl') ?? '';
 
   const [state, setState] = useState<State>(token ? 'verifying' : 'pending');
   const [message, setMessage] = useState('');
@@ -94,7 +95,7 @@ function VerifyEmailContent() {
               Your account is now active. You can sign in to Snakke.
             </p>
             <Link
-              href="/login?verified=true"
+              href={`/login?verified=true${callbackUrl ? `&callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
               className="inline-block bg-primary text-white font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
             >
               Sign in
