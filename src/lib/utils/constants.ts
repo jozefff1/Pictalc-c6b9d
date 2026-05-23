@@ -51,6 +51,8 @@ export const APP_ROUTES = {
 export const STORAGE_KEYS = {
   THEME: 'snakke-theme',
   LANGUAGE: 'snakke-language',
+  LEARN_FROM: 'snakke-learn-from',
+  LEARN_TARGET: 'snakke-learn-target',
   HIGH_CONTRAST: 'snakke-high-contrast',
   REDUCE_MOTION: 'snakke-reduce-motion',
   TEXT_SIZE: 'snakke-text-size',

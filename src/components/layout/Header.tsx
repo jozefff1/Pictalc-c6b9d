@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import DarkModeToggle from '@/components/common/DarkModeToggle';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 
 interface HeaderProps {
   showAuth?: boolean;
@@ -16,9 +17,16 @@ export default function Header({ showAuth = true }: HeaderProps) {
         </Link>
         
         <div className="flex items-center gap-4">
+          <LanguageSwitcher />
           <DarkModeToggle />
           {showAuth && (
             <nav className="flex gap-3">
+              <Link
+                href="/learn"
+                className="rounded-lg px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+              >
+                Learn
+              </Link>
               <Link
                 href="/login"
                 className="rounded-lg px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"

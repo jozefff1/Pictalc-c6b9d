@@ -1,15 +1,29 @@
 'use client';
 
-import { createContext, useContext, useSyncExternalStore, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useSyncExternalStore, useState, useEffect, ReactNode } from 'react';
 import { STORAGE_KEYS } from '@/lib/utils/constants';
 
-type Language = 'en' | 'no';
+export type Language = 'en' | 'no' | 'es' | 'fr' | 'de';
+
+export const LANGUAGES: Record<Language, { name: string; nativeName: string; flag: string }> = {
+  en: { name: 'English',   nativeName: 'English',  flag: '🇬🇧' },
+  no: { name: 'Norwegian', nativeName: 'Norsk',    flag: '🇳🇴' },
+  es: { name: 'Spanish',   nativeName: 'Español',  flag: '🇪🇸' },
+  fr: { name: 'French',    nativeName: 'Français', flag: '🇫🇷' },
+  de: { name: 'German',    nativeName: 'Deutsch',  flag: '🇩🇪' },
+};
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
   tIcon: (iconId: string) => string;
+  tLang: (key: string, lang: Language) => string;
+  learnFrom: Language;
+  learnTarget: Language;
+  setLearnFrom: (lang: Language) => void;
+  setLearnTarget: (lang: Language) => void;
+  swapLearnLanguages: () => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -186,6 +200,69 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.no': 'No',
     'icon.please': 'Please',
     'icon.thankyou': 'Thank You',
+
+    // Landing page
+    'home.skip': 'Skip to main content',
+    'home.hero.badge': 'AAC — Augmentative & Alternative Communication',
+    'home.hero.headline1': 'Anyone deserves',
+    'home.hero.headline2': 'a voice.',
+    'home.hero.subtitle': 'Snakke is a modern AAC app that helps children and individuals with communication challenges express themselves through icons and speech — online or offline.',
+    'home.hero.cta.start': 'Get Started Free →',
+    'home.hero.cta.login': 'Sign In',
+    'home.stats.icons': 'Built-in icons',
+    'home.stats.languages': 'Languages (EN/NO)',
+    'home.stats.offline': 'Works offline',
+    'home.stats.free': 'Free',
+    'home.stats.forever': 'Forever',
+    'home.demo.title': 'See it in action',
+    'home.demo.subtitle': 'Tap icons to build sentences. Speak with one tap.',
+    'home.demo.speak': '🔊 Speak',
+    'home.demo.cta': 'Try it now — no sign up needed →',
+    'home.demo.note': 'Free forever. No account required to communicate.',
+    'home.features.title': 'Everything you need',
+    'home.features.subtitle': 'Built for real-world AAC use — reliable, fast, and accessible.',
+    'home.features.icon_comm.title': 'Icon-Based Communication',
+    'home.features.icon_comm.desc': 'Tap icons to build sentences. 89+ ARASAAC pictograms across 6 categories.',
+    'home.features.tts.title': 'Natural Text-to-Speech',
+    'home.features.tts.desc': 'Adjustable speed and pitch. Speaks in English and Norwegian.',
+    'home.features.offline.title': 'Works Offline',
+    'home.features.offline.desc': 'Progressive Web App — install it and use it anywhere, even without internet.',
+    'home.features.custom.title': 'Custom Icons',
+    'home.features.custom.desc': 'Upload your own photos and icons to personalise the board for each child.',
+    'home.features.history.title': 'Communication History',
+    'home.features.history.desc': 'Supervisors can review past sessions and track vocabulary progress.',
+    'home.features.private.title': 'Private & Secure',
+    'home.features.private.desc': 'Your data stays private. No ads. No tracking. Secure authentication.',
+    'home.who.title': 'Who is Snakke for?',
+    'home.who.subtitle': 'Designed around the people who use it every day.',
+    'home.who.children.role': 'Children & Individuals',
+    'home.who.children.desc': 'Children and individuals with autism, cerebral palsy, apraxia, or other conditions that affect communication. Simple, colourful, and fast.',
+    'home.who.parents.role': 'Parents & Guardians',
+    'home.who.parents.desc': "Monitor communication sessions, add personalised icons, and pair your device to view your child's board in real time.",
+    'home.who.therapists.role': 'Therapists & Teachers',
+    'home.who.therapists.desc': 'Manage multiple students, review history across all paired users, and customise vocabulary for each individual.',
+    'home.cta.title': 'Ready to get started?',
+    'home.cta.subtitle': 'Free forever. No credit card required.',
+    'home.cta.button': 'Create Free Account →',
+    'home.footer.about': 'About',
+    'home.footer.rights': 'All rights reserved.',
+
+    // Learn mode UI
+    'learn.title': 'Learn',
+    'learn.subtitle': 'Choose two languages and flip flashcards to practise vocabulary.',
+    'learn.iKnow': 'I know',
+    'learn.iAmLearning': 'I\'m learning',
+    'learn.swap': 'Swap',
+    'learn.startSession': 'Start',
+    'learn.cardOf': 'of',
+    'learn.tapToReveal': 'Tap to reveal',
+    'learn.knew': 'I knew it ✓',
+    'learn.didntKnow': 'Not yet ✗',
+    'learn.sessionDone': 'Session complete!',
+    'learn.score': 'Score',
+    'learn.restart': 'Restart',
+    'learn.filterAll': 'All',
+    'learn.hint': 'Hint',
   },
   no: {
     // Common
@@ -340,6 +417,168 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.no': 'Nei',
     'icon.please': 'Vær så snill',
     'icon.thankyou': 'Takk',
+
+    // Landing page
+    'home.skip': 'Hopp til hovedinnhold',
+    'home.hero.badge': 'AAC — Alternativ og supplerende kommunikasjon',
+    'home.hero.headline1': 'Alle fortjener',
+    'home.hero.headline2': 'en stemme.',
+    'home.hero.subtitle': 'Snakke er en moderne AAC-app som hjelper barn og enkeltpersoner med kommunikasjonsutfordringer å uttrykke seg gjennom ikoner og tale — online eller offline.',
+    'home.hero.cta.start': 'Kom i gang gratis →',
+    'home.hero.cta.login': 'Logg inn',
+    'home.stats.icons': 'Innebygde ikoner',
+    'home.stats.languages': 'Språk (EN/NO)',
+    'home.stats.offline': 'Fungerer offline',
+    'home.stats.free': 'Gratis',
+    'home.stats.forever': 'For alltid',
+    'home.demo.title': 'Se det i aksjon',
+    'home.demo.subtitle': 'Trykk på ikoner for å bygge setninger. Snakk med ett trykk.',
+    'home.demo.speak': '🔊 Snakk',
+    'home.demo.cta': 'Prøv det nå — ingen registrering nødvendig →',
+    'home.demo.note': 'Gratis for alltid. Ingen konto nødvendig for å kommunisere.',
+    'home.features.title': 'Alt du trenger',
+    'home.features.subtitle': 'Bygget for virkelig AAC-bruk — pålitelig, rask og tilgjengelig.',
+    'home.features.icon_comm.title': 'Ikonbasert kommunikasjon',
+    'home.features.icon_comm.desc': 'Trykk på ikoner for å bygge setninger. 89+ ARASAAC-piktogrammer i 6 kategorier.',
+    'home.features.tts.title': 'Naturlig tekst-til-tale',
+    'home.features.tts.desc': 'Justerbar hastighet og tonehøyde. Snakker på engelsk og norsk.',
+    'home.features.offline.title': 'Fungerer offline',
+    'home.features.offline.desc': 'Progressiv nettapp — installer den og bruk den hvor som helst, selv uten internett.',
+    'home.features.custom.title': 'Egne ikoner',
+    'home.features.custom.desc': 'Last opp egne bilder og ikoner for å tilpasse tavlen for hvert barn.',
+    'home.features.history.title': 'Kommunikasjonshistorikk',
+    'home.features.history.desc': 'Veiledere kan se gjennom tidligere økter og følge ordforrådsutvikling.',
+    'home.features.private.title': 'Privat og sikker',
+    'home.features.private.desc': 'Dataene dine forblir private. Ingen annonser. Ingen sporing. Sikker autentisering.',
+    'home.who.title': 'Hvem er Snakke for?',
+    'home.who.subtitle': 'Designet rundt menneskene som bruker det hver dag.',
+    'home.who.children.role': 'Barn og enkeltpersoner',
+    'home.who.children.desc': 'Barn og enkeltpersoner med autisme, cerebral parese, apraksi eller andre tilstander som påvirker kommunikasjon. Enkel, fargerik og rask.',
+    'home.who.parents.role': 'Foreldre og foresatte',
+    'home.who.parents.desc': 'Overvåk kommunikasjonsøkter, legg til personlige ikoner, og koble enheten din til å se barnets tavle i sanntid.',
+    'home.who.therapists.role': 'Terapeuter og lærere',
+    'home.who.therapists.desc': 'Administrer flere elever, gjennomgå historikk for alle tilkoblede brukere, og tilpass ordforråd for hvert individ.',
+    'home.cta.title': 'Klar til å komme i gang?',
+    'home.cta.subtitle': 'Gratis for alltid. Ingen kredittkort nødvendig.',
+    'home.cta.button': 'Opprett gratis konto →',
+    'home.footer.about': 'Om oss',
+    'home.footer.rights': 'Alle rettigheter forbeholdt.',
+
+    // Learn mode UI
+    'learn.title': 'Lær',
+    'learn.subtitle': 'Velg to språk og bla gjennom flashkort for å øve på ord.',
+    'learn.iKnow': 'Jeg kan',
+    'learn.iAmLearning': 'Jeg lærer',
+    'learn.swap': 'Bytt',
+    'learn.startSession': 'Start',
+    'learn.cardOf': 'av',
+    'learn.tapToReveal': 'Trykk for å avsløre',
+    'learn.knew': 'Jeg visste det ✓',
+    'learn.didntKnow': 'Ikke ennå ✗',
+    'learn.sessionDone': 'Økt fullført!',
+    'learn.score': 'Poeng',
+    'learn.restart': 'Start på nytt',
+    'learn.filterAll': 'Alle',
+    'learn.hint': 'Hint',
+  },
+  es: {
+    // Icons - NEEDS
+    'icon.eat': 'Comer', 'icon.drink': 'Beber', 'icon.water': 'Agua', 'icon.toilet': 'Baño',
+    'icon.sleep': 'Dormir', 'icon.help': 'Ayuda', 'icon.medicine': 'Medicina',
+    'icon.hungry': 'Hambriento', 'icon.thirsty': 'Sediento', 'icon.pain': 'Dolor',
+    'icon.hot': 'Caliente', 'icon.cold': 'Frío', 'icon.want': 'Querer', 'icon.need': 'Necesitar',
+    // Icons - ACTIONS
+    'icon.play': 'Jugar', 'icon.walk': 'Caminar', 'icon.run': 'Correr', 'icon.sit': 'Sentarse',
+    'icon.stand': 'Levantarse', 'icon.read': 'Leer', 'icon.write': 'Escribir', 'icon.draw': 'Dibujar',
+    'icon.listen': 'Escuchar', 'icon.watch': 'Ver', 'icon.talk': 'Hablar', 'icon.sing': 'Cantar',
+    'icon.dance': 'Bailar', 'icon.jump': 'Saltar', 'icon.do': 'Hacer', 'icon.make': 'Crear',
+    'icon.wait': 'Esperar', 'icon.go': 'Ir', 'icon.stop': 'Parar',
+    // Icons - FEELINGS
+    'icon.happy': 'Feliz', 'icon.sad': 'Triste', 'icon.angry': 'Enojado', 'icon.scared': 'Asustado',
+    'icon.excited': 'Emocionado', 'icon.tired': 'Cansado', 'icon.sick': 'Enfermo', 'icon.love': 'Amor',
+    'icon.worried': 'Preocupado', 'icon.calm': 'Tranquilo', 'icon.proud': 'Orgulloso',
+    'icon.surprised': 'Sorprendido', 'icon.like': 'Gustar',
+    // Icons - PEOPLE
+    'icon.mom': 'Mamá', 'icon.dad': 'Papá', 'icon.sister': 'Hermana', 'icon.brother': 'Hermano',
+    'icon.grandma': 'Abuela', 'icon.grandpa': 'Abuelo', 'icon.friend': 'Amigo',
+    'icon.teacher': 'Maestro', 'icon.doctor': 'Doctor', 'icon.baby': 'Bebé',
+    'icon.family': 'Familia', 'icon.me': 'Yo',
+    // Icons - PLACES
+    'icon.home': 'Casa', 'icon.school': 'Escuela', 'icon.park': 'Parque', 'icon.hospital': 'Hospital',
+    'icon.store': 'Tienda', 'icon.restaurant': 'Restaurante', 'icon.playground': 'Parque infantil',
+    'icon.beach': 'Playa', 'icon.car': 'Coche', 'icon.bed': 'Cama', 'icon.bathroom': 'Baño',
+    'icon.kitchen': 'Cocina',
+    // Icons - CUSTOM
+    'icon.apple': 'Manzana', 'icon.banana': 'Banana', 'icon.pizza': 'Pizza', 'icon.juice': 'Jugo',
+    'icon.milk': 'Leche', 'icon.cookie': 'Galleta', 'icon.toy': 'Juguete', 'icon.book': 'Libro',
+    'icon.ball': 'Pelota', 'icon.phone': 'Teléfono', 'icon.music': 'Música',
+    'icon.yes': 'Sí', 'icon.no': 'No', 'icon.please': 'Por favor', 'icon.thankyou': 'Gracias',
+  },
+  fr: {
+    // Icons - NEEDS
+    'icon.eat': 'Manger', 'icon.drink': 'Boire', 'icon.water': 'Eau', 'icon.toilet': 'Toilettes',
+    'icon.sleep': 'Dormir', 'icon.help': 'Aide', 'icon.medicine': 'Médicament',
+    'icon.hungry': 'Faim', 'icon.thirsty': 'Soif', 'icon.pain': 'Douleur',
+    'icon.hot': 'Chaud', 'icon.cold': 'Froid', 'icon.want': 'Vouloir', 'icon.need': 'Avoir besoin',
+    // Icons - ACTIONS
+    'icon.play': 'Jouer', 'icon.walk': 'Marcher', 'icon.run': 'Courir', 'icon.sit': "S'asseoir",
+    'icon.stand': 'Se lever', 'icon.read': 'Lire', 'icon.write': 'Écrire', 'icon.draw': 'Dessiner',
+    'icon.listen': 'Écouter', 'icon.watch': 'Regarder', 'icon.talk': 'Parler', 'icon.sing': 'Chanter',
+    'icon.dance': 'Danser', 'icon.jump': 'Sauter', 'icon.do': 'Faire', 'icon.make': 'Créer',
+    'icon.wait': 'Attendre', 'icon.go': 'Aller', 'icon.stop': 'Arrêter',
+    // Icons - FEELINGS
+    'icon.happy': 'Heureux', 'icon.sad': 'Triste', 'icon.angry': 'En colère', 'icon.scared': 'Effrayé',
+    'icon.excited': 'Excité', 'icon.tired': 'Fatigué', 'icon.sick': 'Malade', 'icon.love': 'Amour',
+    'icon.worried': 'Inquiet', 'icon.calm': 'Calme', 'icon.proud': 'Fier',
+    'icon.surprised': 'Surpris', 'icon.like': 'Aimer',
+    // Icons - PEOPLE
+    'icon.mom': 'Maman', 'icon.dad': 'Papa', 'icon.sister': 'Sœur', 'icon.brother': 'Frère',
+    'icon.grandma': 'Grand-mère', 'icon.grandpa': 'Grand-père', 'icon.friend': 'Ami',
+    'icon.teacher': 'Professeur', 'icon.doctor': 'Médecin', 'icon.baby': 'Bébé',
+    'icon.family': 'Famille', 'icon.me': 'Moi',
+    // Icons - PLACES
+    'icon.home': 'Maison', 'icon.school': 'École', 'icon.park': 'Parc', 'icon.hospital': 'Hôpital',
+    'icon.store': 'Magasin', 'icon.restaurant': 'Restaurant', 'icon.playground': 'Aire de jeux',
+    'icon.beach': 'Plage', 'icon.car': 'Voiture', 'icon.bed': 'Lit', 'icon.bathroom': 'Salle de bain',
+    'icon.kitchen': 'Cuisine',
+    // Icons - CUSTOM
+    'icon.apple': 'Pomme', 'icon.banana': 'Banane', 'icon.pizza': 'Pizza', 'icon.juice': 'Jus',
+    'icon.milk': 'Lait', 'icon.cookie': 'Biscuit', 'icon.toy': 'Jouet', 'icon.book': 'Livre',
+    'icon.ball': 'Ballon', 'icon.phone': 'Téléphone', 'icon.music': 'Musique',
+    'icon.yes': 'Oui', 'icon.no': 'Non', 'icon.please': "S'il vous plaît", 'icon.thankyou': 'Merci',
+  },
+  de: {
+    // Icons - NEEDS
+    'icon.eat': 'Essen', 'icon.drink': 'Trinken', 'icon.water': 'Wasser', 'icon.toilet': 'Toilette',
+    'icon.sleep': 'Schlafen', 'icon.help': 'Hilfe', 'icon.medicine': 'Medizin',
+    'icon.hungry': 'Hungrig', 'icon.thirsty': 'Durstig', 'icon.pain': 'Schmerz',
+    'icon.hot': 'Heiß', 'icon.cold': 'Kalt', 'icon.want': 'Wollen', 'icon.need': 'Brauchen',
+    // Icons - ACTIONS
+    'icon.play': 'Spielen', 'icon.walk': 'Gehen', 'icon.run': 'Laufen', 'icon.sit': 'Sitzen',
+    'icon.stand': 'Stehen', 'icon.read': 'Lesen', 'icon.write': 'Schreiben', 'icon.draw': 'Zeichnen',
+    'icon.listen': 'Zuhören', 'icon.watch': 'Schauen', 'icon.talk': 'Reden', 'icon.sing': 'Singen',
+    'icon.dance': 'Tanzen', 'icon.jump': 'Springen', 'icon.do': 'Machen', 'icon.make': 'Erstellen',
+    'icon.wait': 'Warten', 'icon.go': 'Gehen', 'icon.stop': 'Stoppen',
+    // Icons - FEELINGS
+    'icon.happy': 'Glücklich', 'icon.sad': 'Traurig', 'icon.angry': 'Wütend', 'icon.scared': 'Ängstlich',
+    'icon.excited': 'Aufgeregt', 'icon.tired': 'Müde', 'icon.sick': 'Krank', 'icon.love': 'Liebe',
+    'icon.worried': 'Besorgt', 'icon.calm': 'Ruhig', 'icon.proud': 'Stolz',
+    'icon.surprised': 'Überrascht', 'icon.like': 'Mögen',
+    // Icons - PEOPLE
+    'icon.mom': 'Mama', 'icon.dad': 'Papa', 'icon.sister': 'Schwester', 'icon.brother': 'Bruder',
+    'icon.grandma': 'Oma', 'icon.grandpa': 'Opa', 'icon.friend': 'Freund',
+    'icon.teacher': 'Lehrer', 'icon.doctor': 'Arzt', 'icon.baby': 'Baby',
+    'icon.family': 'Familie', 'icon.me': 'Ich',
+    // Icons - PLACES
+    'icon.home': 'Zuhause', 'icon.school': 'Schule', 'icon.park': 'Park', 'icon.hospital': 'Krankenhaus',
+    'icon.store': 'Geschäft', 'icon.restaurant': 'Restaurant', 'icon.playground': 'Spielplatz',
+    'icon.beach': 'Strand', 'icon.car': 'Auto', 'icon.bed': 'Bett', 'icon.bathroom': 'Badezimmer',
+    'icon.kitchen': 'Küche',
+    // Icons - CUSTOM
+    'icon.apple': 'Apfel', 'icon.banana': 'Banane', 'icon.pizza': 'Pizza', 'icon.juice': 'Saft',
+    'icon.milk': 'Milch', 'icon.cookie': 'Keks', 'icon.toy': 'Spielzeug', 'icon.book': 'Buch',
+    'icon.ball': 'Ball', 'icon.phone': 'Telefon', 'icon.music': 'Musik',
+    'icon.yes': 'Ja', 'icon.no': 'Nein', 'icon.please': 'Bitte', 'icon.thankyou': 'Danke',
   },
 };
 
@@ -351,21 +590,51 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     window.dispatchEvent(new Event(LANG_EVENT));
   };
 
+  // Learn mode: learnFrom / learnTarget — simple useState with localStorage persistence
+  const [learnFrom, setLearnFromState] = useState<Language>('en');
+  const [learnTarget, setLearnTargetState] = useState<Language>('no');
+
+  useEffect(() => {
+    const from = localStorage.getItem(STORAGE_KEYS.LEARN_FROM) as Language | null;
+    const target = localStorage.getItem(STORAGE_KEYS.LEARN_TARGET) as Language | null;
+    if (from && from in translations) setLearnFromState(from);
+    if (target && target in translations) setLearnTargetState(target);
+  }, []);
+
+  const setLearnFrom = (lang: Language) => {
+    setLearnFromState(lang);
+    localStorage.setItem(STORAGE_KEYS.LEARN_FROM, lang);
+  };
+
+  const setLearnTarget = (lang: Language) => {
+    setLearnTargetState(lang);
+    localStorage.setItem(STORAGE_KEYS.LEARN_TARGET, lang);
+  };
+
+  const swapLearnLanguages = () => {
+    setLearnFrom(learnTarget);
+    setLearnTarget(learnFrom);
+  };
+
   // Sync HTML lang attribute with current language for accessibility
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    return translations[language]?.[key] || translations['en'][key] || key;
   };
-  
+
+  const tLang = (key: string, lang: Language): string => {
+    return translations[lang]?.[key] || translations['en'][key] || key;
+  };
+
   const tIcon = (iconId: string): string => {
-    return translations[language][`icon.${iconId}`] || iconId;
+    return translations[language]?.[`icon.${iconId}`] || iconId;
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, tIcon }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, tIcon, tLang, learnFrom, learnTarget, setLearnFrom, setLearnTarget, swapLearnLanguages }}>
       {children}
     </LanguageContext.Provider>
   );
