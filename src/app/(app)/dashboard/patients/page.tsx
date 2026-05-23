@@ -40,7 +40,8 @@ export default function PatientsPage() {
   // Invite modal state
   const [showInvite, setShowInvite] = useState(false);
   const [relationship, setRelationship] = useState<string>('therapist');
-  const [inviteResult, setInviteResult] = useState<{ inviteUrl: string; expiresAt: string } | null>(null);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteResult, setInviteResult] = useState<{ inviteUrl: string; expiresAt: string; emailSent?: boolean } | null>(null);
   const [inviting, setInviting] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -69,14 +70,16 @@ export default function PatientsPage() {
   const handleGenerateInvite = async () => {
     setInviting(true);
     try {
+      const body: Record<string, string> = { relationship };
+      if (inviteEmail.trim()) body.email = inviteEmail.trim();
       const res = await fetch('/api/pairings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ relationship }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (res.ok) {
-        setInviteResult({ inviteUrl: data.inviteUrl, expiresAt: data.expiresAt });
+        setInviteResult({ inviteUrl: data.inviteUrl, expiresAt: data.expiresAt, emailSent: data.emailSent });
       }
     } finally {
       setInviting(false);
@@ -115,7 +118,7 @@ export default function PatientsPage() {
           </p>
         </div>
         <button
-          onClick={() => { setShowInvite(true); setInviteResult(null); }}
+          onClick={() => { setShowInvite(true); setInviteResult(null); setInviteEmail(''); }}
           className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-all"
         >
           + Invite Participant
@@ -267,7 +270,7 @@ export default function PatientsPage() {
                 <select
                   value={relationship}
                   onChange={(e) => setRelationship(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm mb-5 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="therapist">Therapist</option>
                   <option value="parent">Parent / Guardian</option>
@@ -275,6 +278,17 @@ export default function PatientsPage() {
                   <option value="researcher">Researcher</option>
                   <option value="caregiver">Caregiver</option>
                 </select>
+
+                <label className="block text-sm font-medium mb-1">
+                  Send invite by email <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="participant@example.com"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm mb-5 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
 
                 <div className="flex gap-3">
                   <button
@@ -294,6 +308,11 @@ export default function PatientsPage() {
               </>
             ) : (
               <>
+                {inviteResult.emailSent && inviteEmail && (
+                  <div className="rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 mb-4 text-sm text-green-700 dark:text-green-300">
+                    ✓ Invitation email sent to <strong>{inviteEmail}</strong>
+                  </div>
+                )}
                 <div className="rounded-xl bg-gray-50 dark:bg-gray-800 p-3 mb-3 flex items-center gap-2">
                   <span className="flex-1 text-xs text-gray-600 dark:text-gray-300 break-all font-mono">
                     {inviteResult.inviteUrl}

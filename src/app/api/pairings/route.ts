@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth/config';
 import { db } from '@/lib/db/client';
 import { pairings, pairingRequests, users } from '@/lib/db/schema';
 import { eq, or, and } from 'drizzle-orm';
+import { sendInviteEmail } from '@/lib/email/resend';
 
 // GET /api/pairings — list all pairings for the current user (as guardian or child)
 export async function GET() {
@@ -59,6 +60,7 @@ export async function GET() {
 
 const inviteSchema = z.object({
   relationship: z.enum(['parent', 'therapist', 'teacher', 'researcher', 'caregiver']),
+  email: z.string().email().optional(),
 });
 
 // POST /api/pairings — generate a pairing invite token
@@ -90,5 +92,26 @@ export async function POST(request: NextRequest) {
   const baseUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://snakke.vercel.app';
   const inviteUrl = `${baseUrl}/join/${token}`;
 
-  return NextResponse.json({ token, inviteUrl, expiresAt, relationship: result.data.relationship }, { status: 201 });
+  let emailSent = false;
+  if (result.data.email) {
+    try {
+      const [inviter] = await db
+        .select({ name: users.name })
+        .from(users)
+        .where(eq(users.id, session.user.id))
+        .limit(1);
+      await sendInviteEmail(
+        result.data.email,
+        inviter?.name ?? 'Someone',
+        inviteUrl,
+        result.data.relationship,
+        expiresAt
+      );
+      emailSent = true;
+    } catch {
+      // Non-fatal — link is still usable even if email fails
+    }
+  }
+
+  return NextResponse.json({ token, inviteUrl, expiresAt, relationship: result.data.relationship, emailSent }, { status: 201 });
 }
