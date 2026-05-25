@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const RECIPIENT = 'info@arken.pro';
+const RECIPIENT = 'admin@arken.pro';
 const MAX_MESSAGE_LENGTH = 5000;
 
 function sanitize(value: unknown): string {
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${resendKey}`,
       },
       body: JSON.stringify({
-        from: 'Snakke Contact <admin@arken.pro>',
+        from: 'Snakke Contact <contact@snakke.arken.pro>',
         to: [RECIPIENT],
         reply_to: email,
         subject: safeSubject,

@@ -5,7 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 
-const RECIPIENT = 'info@arken.pro';
+const RECIPIENT = 'admin@arken.pro';
 
 const SUBJECTS_EN = [
   'General question about Snakke',

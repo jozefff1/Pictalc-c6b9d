@@ -40,10 +40,10 @@ function getLanguageSnapshot(): Language {
   if (saved === 'en' || saved === 'no') return saved as Language;
   const browserLang = navigator.language?.toLowerCase() || '';
   if (browserLang.startsWith('nb') || browserLang.startsWith('nn') || browserLang.startsWith('no')) return 'no';
-  return 'en';
+  return 'no';
 }
 
-const getLanguageServerSnapshot = (): Language => 'en';
+const getLanguageServerSnapshot = (): Language => 'no';
 
 // Translation dictionaries
 const translations: Record<Language, Record<string, string>> = {
@@ -1073,7 +1073,13 @@ const translations: Record<Language, Record<string, string>> = {
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const language = useSyncExternalStore(subscribeLanguage, getLanguageSnapshot, getLanguageServerSnapshot);
+  const [mounted, setMounted] = useState(false);
+  const storeLanguage = useSyncExternalStore(subscribeLanguage, getLanguageSnapshot, getLanguageServerSnapshot);
+  const language: Language = mounted ? storeLanguage : 'no';
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const setLanguage = (lang: Language) => {
     localStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);
