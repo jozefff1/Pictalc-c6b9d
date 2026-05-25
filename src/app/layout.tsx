@@ -41,6 +41,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://snakke.vercel.app'),
   alternates: {
     canonical: '/',
+    types: {
+      'text/plain': '/llms.txt',
+    },
   },
   openGraph: {
     type: 'website',
@@ -49,7 +52,8 @@ export const metadata: Metadata = {
     description:
       'Free AAC app for anyone with speech or communication challenges. Icon-based sentences, text-to-speech, offline support, and research tools for therapists and educators.',
     url: '/',
-    locale: 'en_US',
+    locale: 'nb_NO',
+    alternateLocale: ['en_US'],
   },
   twitter: {
     card: 'summary_large_image',

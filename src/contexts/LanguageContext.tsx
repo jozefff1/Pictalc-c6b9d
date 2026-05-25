@@ -1073,13 +1073,7 @@ const translations: Record<Language, Record<string, string>> = {
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  const storeLanguage = useSyncExternalStore(subscribeLanguage, getLanguageSnapshot, getLanguageServerSnapshot);
-  const language: Language = mounted ? storeLanguage : 'no';
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const language = useSyncExternalStore(subscribeLanguage, getLanguageSnapshot, getLanguageServerSnapshot);
 
   const setLanguage = (lang: Language) => {
     localStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);

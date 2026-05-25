@@ -5,11 +5,29 @@ import AboutContent from '@/components/features/AboutContent';
 export const metadata: Metadata = {
   title: 'About',
   description:
-    'Learn about Snakke — a free AAC (Augmentative and Alternative Communication) app for children, adults, therapists, teachers, parents, and researchers. Built by Digital Ark AS.',
+    'Snakke is a free, open-source AAC (Augmentative and Alternative Communication) app for non-verbal and minimally verbal individuals — including children with autism, cerebral palsy, apraxia, and Down syndrome. Used by speech-language therapists, special educators, parents, and researchers. Built by Digital Ark AS (Norway).',
+  keywords: [
+    'AAC app',
+    'augmentative and alternative communication',
+    'non-verbal communication',
+    'autism communication tool',
+    'speech therapy app',
+    'pictogram board',
+    'ARASAAC',
+    'cerebral palsy communication',
+    'apraxia app',
+    'assistive technology Norway',
+    'gratis AAC app',
+    'taleterapi',
+    'kommunikasjonsapp',
+    'Digital Ark AS',
+  ],
   openGraph: {
-    title: 'About Snakke — AAC Communication App',
+    title: 'About Snakke — Free AAC Communication App',
     description:
-      'Snakke helps anyone with speech or communication challenges express themselves through pictograms and text-to-speech. Free, offline-capable, privacy-first.',
+      'Snakke helps non-verbal individuals express themselves through pictograms and text-to-speech. Free, offline-capable, privacy-first. Used by therapists, teachers, parents, and researchers in Norway and beyond.',
+    locale: 'nb_NO',
+    alternateLocale: ['en_US'],
   },
 };
 

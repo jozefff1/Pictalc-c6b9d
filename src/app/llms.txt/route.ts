@@ -72,11 +72,26 @@ Snakke is designed with privacy-first principles:
 - GET /api/patients/[id]/sessions — View a paired patient's shared sessions
 - GET /api/patients/[id]/sessions?export=csv — Download anonymised session CSV
 
+## Language Support
+
+- **Primary language**: Norwegian (Bokmål) — full UI and 90+ icon translations
+- **Secondary language**: English — full UI and icon translations
+- **Additional icons**: Spanish, French, German (icon labels only)
+- Language switching is instant, client-side, with localStorage persistence
+
+## Pricing
+
+Snakke is completely free — no subscription, no ads, no premium tier. It is a non-commercial public benefit tool built by Digital Ark AS (Norway).
+
 ## Source & Contact
 
+- Live app: https://snakke.vercel.app
+- About page: https://snakke.vercel.app/about
 - GitHub: https://github.com/jozefff1/Pictalc-c6b9d
+- Contact: admin@arken.pro
 - License: Open source
 - Free to use, forever
+- Organisation: Digital Ark AS, Norway
 `;
 
 export async function GET() {

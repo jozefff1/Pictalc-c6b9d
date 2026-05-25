@@ -13,6 +13,11 @@ Allow: /
 Allow: /about
 Allow: /llms.txt
 
+User-agent: OAI-SearchBot
+Allow: /
+Allow: /about
+Allow: /llms.txt
+
 User-agent: PerplexityBot
 Allow: /
 Allow: /about
@@ -26,6 +31,29 @@ Allow: /llms.txt
 User-agent: GoogleOther
 Allow: /
 Allow: /about
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /about
+Allow: /llms.txt
+
+User-agent: Meta-ExternalAgent
+Allow: /
+Allow: /about
+Allow: /llms.txt
+
+User-agent: Amazonbot
+Allow: /
+Allow: /about
+
+User-agent: Bytespider
+Allow: /
+Allow: /about
+
+User-agent: YouBot
+Allow: /
+Allow: /about
+Allow: /llms.txt
 
 # Machine-readable app description for LLMs
 # See: ${baseUrl}/llms.txt

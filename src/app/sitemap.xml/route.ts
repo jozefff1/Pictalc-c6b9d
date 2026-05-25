@@ -7,8 +7,9 @@ export async function GET() {
   const urls = [
     { loc: '/', priority: '1.0', changefreq: 'weekly' },
     { loc: '/about', priority: '0.9', changefreq: 'monthly' },
-    { loc: '/login', priority: '0.6', changefreq: 'yearly' },
+    { loc: '/communicate', priority: '0.8', changefreq: 'monthly' },
     { loc: '/register', priority: '0.7', changefreq: 'yearly' },
+    { loc: '/login', priority: '0.6', changefreq: 'yearly' },
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
