@@ -1,6 +1,6 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { IDB_CONFIG } from '../utils/constants';
-import type { Message, CommunicationSession } from '@/types/models';
+import type { Message, CommunicationSession, UserSentence } from '@/types/models';
 
 /**
  * IndexedDB schema definition
@@ -24,6 +24,11 @@ interface SnakkeDB extends DBSchema {
   metadata: {
     key: string;
     value: MetadataValue;
+  };
+  user_sentences: {
+    key: string;
+    value: UserSentence;
+    indexes: { 'by-user': string; 'by-category': string };
   };
 }
 
@@ -80,6 +85,15 @@ class IndexedDBService {
         // Metadata store
         if (!db.objectStoreNames.contains(IDB_CONFIG.STORES.METADATA)) {
           db.createObjectStore(IDB_CONFIG.STORES.METADATA);
+        }
+
+        // User sentences store (added in version 2)
+        if (!db.objectStoreNames.contains(IDB_CONFIG.STORES.USER_SENTENCES)) {
+          const sentenceStore = db.createObjectStore(IDB_CONFIG.STORES.USER_SENTENCES, {
+            keyPath: 'id',
+          });
+          sentenceStore.createIndex('by-user', 'userId');
+          sentenceStore.createIndex('by-category', 'category');
         }
       },
     });
@@ -244,6 +258,29 @@ class IndexedDBService {
       this.db.close();
       this.db = null;
     }
+  }
+
+  // ========== User Sentences ==========
+
+  async saveUserSentence(sentence: UserSentence): Promise<void> {
+    const db = await this.ensureDB();
+    await db.put(IDB_CONFIG.STORES.USER_SENTENCES, sentence);
+  }
+
+  async getUserSentences(userId: string): Promise<UserSentence[]> {
+    const db = await this.ensureDB();
+    return db.getAllFromIndex(IDB_CONFIG.STORES.USER_SENTENCES, 'by-user', userId);
+  }
+
+  async deleteUserSentence(id: string): Promise<void> {
+    const db = await this.ensureDB();
+    await db.delete(IDB_CONFIG.STORES.USER_SENTENCES, id);
+  }
+
+  async clearUserSentences(userId: string): Promise<void> {
+    const sentences = await this.getUserSentences(userId);
+    const db = await this.ensureDB();
+    await Promise.all(sentences.map((s) => db.delete(IDB_CONFIG.STORES.USER_SENTENCES, s.id)));
   }
 }
 

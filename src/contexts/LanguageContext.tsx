@@ -67,6 +67,7 @@ const translations: Record<Language, Record<string, string>> = {
     'communicate.tab.type': 'Type',
     'communicate.tab.speech': 'Speech',
     'communicate.recent': 'Recently Used',
+    'communicate.phrases': 'My phrases',
     'communicate.searchPlaceholder': 'Search icons...',
     'communicate.searchEmpty': 'No icons found for',
     
@@ -187,6 +188,14 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.baby': 'Baby',
     'icon.family': 'Family',
     'icon.me': 'Me',
+    'icon.you': 'You',
+    'icon.they': 'They',
+    
+    // Icons - DIRECTIONS (within ACTIONS)
+    'icon.up': 'Up',
+    'icon.down': 'Down',
+    'icon.left': 'Left',
+    'icon.right': 'Right',
     
     // Icons - PLACES
     'icon.home': 'Home',
@@ -400,6 +409,7 @@ const translations: Record<Language, Record<string, string>> = {
     'communicate.tab.type': 'Skriv',
     'communicate.tab.speech': 'Tale',
     'communicate.recent': 'Nylig brukt',
+    'communicate.phrases': 'Mine fraser',
     'communicate.searchPlaceholder': 'Søk etter ikoner...',
     'communicate.searchEmpty': 'Ingen ikoner funnet for',
     
@@ -520,6 +530,14 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.baby': 'Baby',
     'icon.family': 'Familie',
     'icon.me': 'Meg',
+    'icon.you': 'Deg',
+    'icon.they': 'De',
+    
+    // Icons - DIRECTIONS (within ACTIONS)
+    'icon.up': 'Opp',
+    'icon.down': 'Ned',
+    'icon.left': 'Venstre',
+    'icon.right': 'Høyre',
     
     // Icons - PLACES
     'icon.home': 'Hjem',
@@ -735,6 +753,8 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.grandma': 'Abuela', 'icon.grandpa': 'Abuelo', 'icon.friend': 'Amigo',
     'icon.teacher': 'Maestro', 'icon.doctor': 'Doctor', 'icon.baby': 'Bebé',
     'icon.family': 'Familia', 'icon.me': 'Yo',
+    'icon.you': 'Tú', 'icon.they': 'Ellos',
+    'icon.up': 'Arriba', 'icon.down': 'Abajo', 'icon.left': 'Izquierda', 'icon.right': 'Derecha',
     // Icons - PLACES
     'icon.home': 'Casa', 'icon.school': 'Escuela', 'icon.park': 'Parque', 'icon.hospital': 'Hospital',
     'icon.store': 'Tienda', 'icon.restaurant': 'Restaurante', 'icon.playground': 'Parque infantil',
@@ -768,6 +788,8 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.grandma': 'Grand-mère', 'icon.grandpa': 'Grand-père', 'icon.friend': 'Ami',
     'icon.teacher': 'Professeur', 'icon.doctor': 'Médecin', 'icon.baby': 'Bébé',
     'icon.family': 'Famille', 'icon.me': 'Moi',
+    'icon.you': 'Tu', 'icon.they': 'Ils',
+    'icon.up': 'Haut', 'icon.down': 'Bas', 'icon.left': 'Gauche', 'icon.right': 'Droite',
     // Icons - PLACES
     'icon.home': 'Maison', 'icon.school': 'École', 'icon.park': 'Parc', 'icon.hospital': 'Hôpital',
     'icon.store': 'Magasin', 'icon.restaurant': 'Restaurant', 'icon.playground': 'Aire de jeux',
@@ -801,6 +823,8 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.grandma': 'Oma', 'icon.grandpa': 'Opa', 'icon.friend': 'Freund',
     'icon.teacher': 'Lehrer', 'icon.doctor': 'Arzt', 'icon.baby': 'Baby',
     'icon.family': 'Familie', 'icon.me': 'Ich',
+    'icon.you': 'Du', 'icon.they': 'Sie',
+    'icon.up': 'Oben', 'icon.down': 'Unten', 'icon.left': 'Links', 'icon.right': 'Rechts',
     // Icons - PLACES
     'icon.home': 'Zuhause', 'icon.school': 'Schule', 'icon.park': 'Park', 'icon.hospital': 'Krankenhaus',
     'icon.store': 'Geschäft', 'icon.restaurant': 'Restaurant', 'icon.playground': 'Spielplatz',

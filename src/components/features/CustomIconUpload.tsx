@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { useAppDispatch } from '@/store/hooks';
+import { addCustomIcon, updateCustomIcon, removeCustomIcon } from '@/store/slices/communicationSlice';
 
 interface CustomIcon {
   id: string;
@@ -45,6 +47,7 @@ function resizeImage(file: File, size: number): Promise<Blob> {
 }
 
 export function CustomIconUpload() {
+  const dispatch = useAppDispatch();
   const [icons, setIcons] = useState<CustomIcon[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -136,6 +139,7 @@ export function CustomIconUpload() {
       }
       const { icon } = await res.json();
       setIcons(prev => [icon, ...prev]);
+      dispatch(addCustomIcon(icon));
       setName('');
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -159,6 +163,7 @@ export function CustomIconUpload() {
       const res = await fetch(`/api/icons/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setIcons(prev => prev.filter(i => i.id !== id));
+        dispatch(removeCustomIcon(id));
       }
     } catch (err) {
       console.error('Delete failed', err);
@@ -184,7 +189,9 @@ export function CustomIconUpload() {
         body: JSON.stringify({ name: trimmed }),
       });
       if (res.ok) {
-        setIcons(prev => prev.map(i => i.id === id ? { ...i, name: trimmed.toLowerCase() } : i));
+        const newName = trimmed.toLowerCase();
+        setIcons(prev => prev.map(i => i.id === id ? { ...i, name: newName } : i));
+        dispatch(updateCustomIcon({ id, name: newName }));
         setRenamingId(null);
       } else {
         setRenameError('Rename failed');

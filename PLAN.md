@@ -2,7 +2,7 @@
 
 This document defines the phased development roadmap for Snakke. Each phase builds on the previous and is scoped to be achievable in focused sprints.
 
-_Last updated: May 23, 2026 (session 5)_
+_Last updated: May 25, 2026 (session 9)_
 
 ---
 
@@ -22,8 +22,8 @@ _Last updated: May 23, 2026 (session 5)_
 
 ## ✅ Phase 1 — Core AAC Communication (Complete)
 
-- [x] Built-in icon database (89 icons, 6 categories)
-- [x] **ARASAAC pictogram integration** — all 89 icons use real AAC pictograms (CC BY-NC-SA 4.0) via static CDN URLs
+- [x] Built-in icon database (95 icons, 6 categories)
+- [x] **ARASAAC pictogram integration** — all 95 icons use real AAC pictograms (CC BY-NC-SA 4.0) via static CDN URLs
 - [x] Category selector tabs (Needs / Actions / Feelings / People / Places / Custom)
 - [x] Icon grid display with ARASAAC images + emoji fallback
 - [x] Sentence builder with TTS (Web Speech API, speed/pitch from preferences)
@@ -34,6 +34,11 @@ _Last updated: May 23, 2026 (session 5)_
 - [x] Core AAC verbs expanded (want, need, do, make, wait, go, stop, like, more, now, later)
 - [x] Custom icon upload (Vercel Blob + Neon DB)
 - [x] Custom icons merged into icon board and matcher
+- [x] **Unified icon registry** (`useIconRegistry` hook) — merges ICON_DATABASE + Redux custom icons + per-icon label overrides; auto-fetches from `/api/icons` on any page that needs it ✅
+- [x] **Granular Redux mutations** — `addCustomIcon` / `updateCustomIcon` / `removeCustomIcon` in `communicationSlice`; dispatched from `CustomIconUpload` after each create/rename/delete so the board stays in sync without a full re-fetch ✅
+- [x] **iconMatcher label + word-splitting fix** — multi-word custom icon names (e.g. "my dog") are now split into individual searchable keywords; custom label overrides (via `useIconLabels`) are also matched ✅
+- [x] **IconMatchGrid label fix** — UUID icon IDs no longer shown as labels; same `tIcon(id) !== id` fallback pattern as `IconGrid` ✅
+- [x] **phrases/page.tsx icon picker** — uses `useIconRegistry` so custom icons appear alongside built-ins in category tabs and search ✅
 - [x] Favourite phrases (save/load/delete, persisted to IndexedDB, Redux slice)
 - [x] Recently used icons tracked in Redux state (`recentIcons`, max 20) and displayed in UI
 
@@ -65,11 +70,13 @@ _Last updated: May 23, 2026 (session 5)_
 ### 2.3 Communication Board UX
 - [x] Favourite phrases — save/load icon sentences ✅
 - [x] **Recently used icons row** — top 8 icons shown above category tabs, tappable to re-add to sentence ✅
-- [x] **Icon search bar** — searches across all 89 built-in + custom icons by name; hides category tabs and recently-used strip during search; `×` clear button; empty-state message ✅
+- [x] **Icon search bar** — searches across all 95 built-in + custom icons by name; hides category tabs and recently-used strip during search; `×` clear button; empty-state message ✅
 - [ ] Icon board layout improvements (larger icons, better spacing for touch)
 - [ ] Haptic feedback on icon tap (`navigator.vibrate` — schema supports `hapticEnabled` but not implemented)
 - [ ] Keyboard-accessible icon navigation (ARIA labels exist, full keyboard nav not done)
 - [ ] Long-press on icon to see icon details / delete custom icon
+- [ ] **Sentence reordering** — drag-and-drop to reorder icons in the built sentence; currently new icons always append to end
+- [ ] **Icon grid sorting** — user-defined ordering of icons within each category in the picker
 
 ### 2.4 Visual Design Upgrade
 - [x] Landing page — hero + features section + footer (basic, functional)
@@ -89,7 +96,7 @@ _Last updated: May 23, 2026 (session 5)_
 
 - [x] Extended `Language` type: `'en' | 'no' | 'es' | 'fr' | 'de'`
 - [x] `LANGUAGES` map with name, nativeName, flag for all 5 languages
-- [x] Icon translations for ES, FR, DE (all 89 icons)
+- [x] Icon translations for ES, FR, DE (all 95 icons)
 - [x] `learnFrom` / `learnTarget` state in `LanguageContext` — any two languages, freely swappable
 - [x] `tLang(key, lang)` helper — translate any key into any language explicitly
 - [x] `swapLearnLanguages()` — one-click swap
@@ -111,6 +118,66 @@ _Last updated: May 23, 2026 (session 5)_
 - [ ] Pedagogically sound vocabulary ordering (intro easy/core words first)
 - [ ] Spaced repetition algorithm (SM-2 or similar)
 - [ ] Audio recordings from native speakers (supplement TTS)
+
+---
+
+## 📋 Phase 2.6 — Sentence & Grid Drag-and-Drop Reordering
+
+**Goal**: Allow users to reorganize built sentences and sort icon grids, improving communication fluency and personalization.
+
+### Problem Statement
+- **Sentence**: Icons can be removed but new choices always append to the end. If a user taps icons out of order (e.g., "want cookie I") they must clear and rebuild — there is no way to insert or reorder.
+- **Grid**: No way to reorder icons within a category. Custom icons always prepend. Users cannot promote frequently-used icons to the top of their grid.
+
+---
+
+### 2.6.1 Sentence Builder Reordering ✅ COMPLETE
+
+**Implemented using `@dnd-kit/react` v0.4.0 (new 2025/2026 API)**
+
+- `@dnd-kit/react` installed (single package — replaces old `@dnd-kit/core` + `@dnd-kit/sortable` split)
+- `DragDropProvider` wraps the sentence strip
+- Each sentence icon is a `SortableIconCard` component using `useSortable({ id: index, index })`
+- Entire icon card is the drag handle (`ref` + `handleRef` merged on outer div); `cursor-grab` shows on full card hover
+- ✕ remove button is absolutely positioned in the top-right corner — independent of drag interaction
+- `onDragEnd`: `isSortable(source)` type guard → dispatch `reorderSentenceIcons({ fromIndex: source.initialIndex, toIndex: source.index })`
+- Optimistic sorting built in — DOM reorders during drag without React re-renders
+- Touch supported natively (default sensors)
+- `reorderSentenceIcons` reducer added to `communicationSlice`
+
+**Files modified**:
+- `src/store/slices/communicationSlice.ts` ✅ — added `reorderSentenceIcons` reducer
+- `src/components/features/SentenceBuilder.tsx` ✅ — `DragDropProvider` + `SortableIconCard`
+
+---
+
+### 2.6.2 Icon Picker Grid Sorting
+
+**Problem**: Users cannot reorder icons in the picker grid. The built-in order is fixed; custom icons always appear first.
+
+**Proposed solution**:
+- Per-category icon order saved to `localStorage` (offline) or user preferences DB (synced)
+- Drag-and-drop grid reordering using `@dnd-kit/react` in `IconGrid.tsx`
+- Custom icons: drag handles in `/dashboard/icons` management page to set a persistent display order
+- Built-in icons: per-user category-level reordering (e.g., move "eat" to top of Needs)
+- Order persisted via `PATCH /api/preferences` as `iconOrder: Record<IconCategory, string[]>`
+
+**Files to modify**:
+- `src/components/features/IconGrid.tsx` — wrap grid with DragDropProvider
+- `src/app/(app)/dashboard/icons/page.tsx` — add drag handles for custom icon order
+- `src/lib/db/schema.ts` — add `iconOrder` JSON column to preferences
+- `src/app/api/preferences/route.ts` — handle `iconOrder` in PATCH
+
+---
+
+### 2.6.3 Implementation Order
+
+- [x] Install `@dnd-kit/react` (new v0.4.0 API)
+- [x] Add `reorderSentenceIcons(fromIndex, toIndex)` to `communicationSlice`
+- [x] Wrap `SentenceBuilder.tsx` strip in `DragDropProvider` with `SortableIconCard`
+- [ ] Add `iconOrder` to user preferences schema (DB + API)
+- [ ] Implement grid reordering in `IconGrid.tsx`
+- [ ] Update `/dashboard/icons` for custom icon drag-reordering
 
 ---
 
@@ -172,7 +239,65 @@ _Last updated: May 23, 2026 (session 5)_
 
 **Goal**: Make icon matching smarter and more personalised.
 
-- [ ] Replace keyword matching with vector embeddings (TensorFlow.js or ONNX)
+### 6.1 Local Semantic Search (Planned — next sprint)
+
+Replace (or augment) the current keyword-map matcher with dense vector embeddings that run entirely in the user's browser — no server, no API key, no internet after the first load.
+
+#### Model candidates
+
+| Model | Size | Languages | Notes |
+|---|---|---|---|
+| `Xenova/paraphrase-multilingual-MiniLM-L12-v2` | ~45 MB | 50+ (EN, NO, ES, FR, DE ✅) | **Preferred** — multilingual, 384-dim |
+| `Xenova/all-MiniLM-L6-v2` | ~23 MB | English only | Faster; fallback for EN-only mode |
+| `Xenova/multilingual-e5-small` | ~118 MB | 100+ | Higher quality; larger download |
+
+**Chosen default**: `Xenova/paraphrase-multilingual-MiniLM-L12-v2` — covers all five app languages in one model, small enough for mobile, and purpose-built for semantic similarity (not just next-token prediction).
+
+#### How it works
+
+1. **First load** — Transformers.js (ONNX Runtime + WebAssembly) downloads the model (~45 MB) once and caches it in the browser's Cache API. Subsequent loads are instant.
+
+2. **Index build** — On startup (or after a custom icon change) the app embeds every icon's effective name (label override → name) into a 384-dimensional float32 vector. Built-in icons: ~89 vectors, cached to IndexedDB. Custom icons: embedded on demand.
+
+3. **Query** — When the user types or speaks, the query string is embedded into the same space. Cosine similarity is computed against the index. Top-k results are ranked and returned in milliseconds.
+
+4. **Cross-lingual matching** — Because the model is multilingual, "vann" (Norwegian for water) and "water" map to nearby vectors. A user typing in Norwegian will match English-labelled icons and vice versa.
+
+5. **Edit mode** — When the user renames an icon, the embedding for that icon is recomputed and the index entry is replaced. The new name (and its synonyms implied by the model) immediately become searchable.
+
+6. **Progressive enhancement** — While the model is loading for the first time, the existing keyword matcher (`iconMatcher.ts`) is used as a fallback. No blank results, no loading spinners blocking the UI.
+
+#### Implementation plan
+
+```
+src/
+  workers/
+    embeddingWorker.ts        # Web Worker — loads model, builds index, runs inference
+  lib/ai/
+    semanticMatcher.ts        # cosine similarity search, index management
+    embeddingCache.ts         # IndexedDB read/write for the embedding index
+  hooks/
+    useSemanticSearch.ts      # React hook — wraps worker via postMessage/onmessage
+```
+
+Key implementation notes:
+- The Web Worker is essential: ONNX inference is synchronous and would freeze the UI thread for ~100–300 ms per query without it.
+- Use `@xenova/transformers` (browser build) — already ONNX, no extra tooling needed.
+- Index is stored as a `Float32Array` in IndexedDB alongside icon IDs; no need to re-embed on every page load.
+- Cosine similarity is a simple dot product after L2-normalisation — fast enough in plain JS for ≤ 500 icons without a dedicated vector DB.
+- WebAssembly requires specific `next.config.ts` options: `config.experiments.asyncWebAssembly = true` and the `wasm` rule in the webpack config.
+
+#### What this enables
+
+- `"I'm thirsty"` → matches **water** (semantic, no keyword)
+- `"hjelp"` (NO: help) → matches **help** icon even with an English label
+- `"sitze"` (DE: sit) → matches **sit / chair** icons
+- User renames icon to `"min hund"` → searching `"dog"` still finds it
+- Multi-word phrase input: embed the full sentence, each word's embedding averaged, ranked results shown as a phrase-level suggestion strip
+
+---
+
+- [ ] **Local semantic embeddings** — Transformers.js worker + cosine-similarity index (see 6.1 above)
 - [ ] Cross-language semantic matching (match "vann" from English embedding)
 - [ ] Personal usage pattern learning (predict next icon from recent history)
 - [ ] Sentence completion suggestions

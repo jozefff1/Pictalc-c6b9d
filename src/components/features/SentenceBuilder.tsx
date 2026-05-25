@@ -11,13 +11,67 @@ import {
   saveFavoritePhrase,
   removeFavoritePhrase,
   loadFavoritePhrase,
+  reorderSentenceIcons,
 } from '@/store/slices/communicationSlice';
+import { DragDropProvider } from '@dnd-kit/react';
+import { useSortable, isSortable } from '@dnd-kit/react/sortable';
 import { speakText, isSpeechSynthesisSupported } from '@/lib/services/speechService';
 import { indexedDB } from '@/lib/offline/indexedDB';
 import { useSession } from 'next-auth/react';
 import { usePreferences } from '@/hooks/usePreferences';
 import { useFlashMessage } from '@/hooks/useFlashMessage';
 import type { Icon, CommunicationSession } from '@/types/models';
+
+interface SortableIconCardProps {
+  icon: Icon;
+  index: number;
+  displayName: string;
+  onRemove: () => void;
+}
+
+function SortableIconCard({ icon, index, displayName, onRemove }: SortableIconCardProps) {
+  const { ref, handleRef, isDragging } = useSortable({ id: index, index });
+
+  return (
+    <div
+      ref={ref}
+      className={`
+        relative flex flex-col items-center gap-1 p-2 rounded-lg
+        bg-gray-100 dark:bg-gray-700
+        transition-opacity touch-none select-none
+        ${isDragging ? 'opacity-30 z-10' : ''}
+      `}
+    >
+      {/* remove button — outside handleRef so drag never intercepts it */}
+      <button
+        onClick={onRemove}
+        className="absolute top-0.5 right-0.5 z-10 text-gray-300 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 text-xs leading-none px-0.5"
+        aria-label={`Remove ${displayName}`}
+      >
+        ✕
+      </button>
+      {/* drag handle covers image + label only */}
+      <div
+        ref={handleRef as React.RefCallback<HTMLDivElement>}
+        className="flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing"
+      >
+        {icon.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={icon.imageUrl}
+            alt={displayName}
+            width={48}
+            height={48}
+            className="object-contain"
+          />
+        ) : (
+          <span className="text-3xl">{icon.symbol}</span>
+        )}
+        <span className="text-xs text-gray-600 dark:text-gray-300">{displayName}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boolean }) {
   const { t, tIcon, language } = useLanguage();
@@ -174,44 +228,36 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
       )}
 
       {/* Icon Sentence Display */}
-      <div className="flex items-center gap-2 mb-4 min-h-20 flex-wrap">
-        {sentence.length === 0 ? (
-          <p className="text-gray-400 dark:text-gray-500 text-sm italic">
-            {t('sentence.empty')}
-          </p>
-        ) : (
-          sentence.map((icon: Icon, index: number) => (
-            <button
-              key={`${icon.id}-${index}`}
-              onClick={() => dispatch(removeIconFromSentence(index))}
-              className="
-                flex flex-col items-center gap-1 p-2 rounded-lg
-                bg-gray-100 dark:bg-gray-700
-                hover:bg-red-100 dark:hover:bg-red-900
-                transition-colors
-                group
-              "
-              aria-label={`Remove ${getDisplayName(icon)}`}
-            >
-              {icon.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={icon.imageUrl}
-                  alt={getDisplayName(icon)}
-                  width={48}
-                  height={48}
-                  className="object-contain"
-                />
-              ) : (
-                <span className="text-3xl">{icon.symbol}</span>
-              )}
-              <span className="text-xs text-gray-600 dark:text-gray-300 group-hover:text-red-600 dark:group-hover:text-red-400">
-                {getDisplayName(icon)}
-              </span>
-            </button>
-          ))
-        )}
-      </div>
+      <DragDropProvider
+        onDragEnd={(event) => {
+          if (event.canceled) return;
+          const { source } = event.operation;
+          if (isSortable(source)) {
+            const { initialIndex, index } = source;
+            if (initialIndex !== index) {
+              dispatch(reorderSentenceIcons({ fromIndex: initialIndex, toIndex: index }));
+            }
+          }
+        }}
+      >
+        <div className="flex items-center gap-2 mb-4 min-h-20 flex-wrap">
+          {sentence.length === 0 ? (
+            <p className="text-gray-400 dark:text-gray-500 text-sm italic">
+              {t('sentence.empty')}
+            </p>
+          ) : (
+            sentence.map((icon: Icon, index: number) => (
+              <SortableIconCard
+                key={`${icon.id}-${index}`}
+                icon={icon}
+                index={index}
+                displayName={getDisplayName(icon)}
+                onRemove={() => dispatch(removeIconFromSentence(index))}
+              />
+            ))
+          )}
+        </div>
+      </DragDropProvider>
 
       {/* Text Representation */}
       {sentenceText && (

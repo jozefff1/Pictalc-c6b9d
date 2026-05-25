@@ -42,6 +42,10 @@ export const ICON_DATABASE: Icon[] = [
   { id: 'wait', name: 'Wait', category: 'actions', symbol: '✋', color: '#5AC8FA', imageUrl: 'https://static.arasaac.org/pictograms/36914/36914_500.png' },
   { id: 'go', name: 'Go', category: 'actions', symbol: '🟢', color: '#5AC8FA', imageUrl: 'https://static.arasaac.org/pictograms/8142/8142_500.png' },
   { id: 'stop', name: 'Stop', category: 'actions', symbol: '🛑', color: '#5AC8FA', imageUrl: 'https://static.arasaac.org/pictograms/7196/7196_500.png' },
+  { id: 'up', name: 'Up', category: 'actions', symbol: '⬆️', color: '#5AC8FA', imageUrl: 'https://static.arasaac.org/pictograms/5388/5388_500.png' },
+  { id: 'down', name: 'Down', category: 'actions', symbol: '⬇️', color: '#5AC8FA', imageUrl: 'https://static.arasaac.org/pictograms/24723/24723_500.png' },
+  { id: 'left', name: 'Left', category: 'actions', symbol: '⬅️', color: '#5AC8FA', imageUrl: 'https://static.arasaac.org/pictograms/9203/9203_500.png' },
+  { id: 'right', name: 'Right', category: 'actions', symbol: '➡️', color: '#5AC8FA', imageUrl: 'https://static.arasaac.org/pictograms/9202/9202_500.png' },
 
   // FEELINGS Category
   { id: 'happy', name: 'Happy', category: 'feelings', symbol: '😊', color: '#FFD60A', imageUrl: 'https://static.arasaac.org/pictograms/35533/35533_500.png' },
@@ -71,6 +75,8 @@ export const ICON_DATABASE: Icon[] = [
   { id: 'baby', name: 'Baby', category: 'people', symbol: '👶', color: '#FF6482', imageUrl: 'https://static.arasaac.org/pictograms/6060/6060_500.png' },
   { id: 'family', name: 'Family', category: 'people', symbol: '👨‍👩‍👧‍👦', color: '#FF6482', imageUrl: 'https://static.arasaac.org/pictograms/38351/38351_500.png' },
   { id: 'me', name: 'Me', category: 'people', symbol: '👤', color: '#FF6482', imageUrl: 'https://static.arasaac.org/pictograms/6632/6632_500.png' },
+  { id: 'you', name: 'You', category: 'people', symbol: '👉', color: '#FF6482', imageUrl: 'https://static.arasaac.org/pictograms/6625/6625_500.png' },
+  { id: 'they', name: 'They', category: 'people', symbol: '👥', color: '#FF6482', imageUrl: 'https://static.arasaac.org/pictograms/7031/7031_500.png' },
 
   // PLACES Category
   { id: 'home', name: 'Home', category: 'places', symbol: '🏠', color: '#32D74B', imageUrl: 'https://static.arasaac.org/pictograms/6964/6964_500.png' },

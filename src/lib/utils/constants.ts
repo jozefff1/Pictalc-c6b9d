@@ -65,12 +65,13 @@ export const STORAGE_KEYS = {
 // IndexedDB Configuration
 export const IDB_CONFIG = {
   NAME: 'snakke_db',
-  VERSION: 1,
+  VERSION: 2,
   STORES: {
     MESSAGES: 'messages',
     SESSIONS: 'sessions',
     SYNC_QUEUE: 'sync_queue',
     METADATA: 'metadata',
+    USER_SENTENCES: 'user_sentences',
   },
 } as const;
 

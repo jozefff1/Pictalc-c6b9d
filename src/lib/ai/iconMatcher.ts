@@ -26,7 +26,8 @@ export function matchTextToIcons(
   text: string,
   maxResults = 10,
   locale: string = 'en',
-  customIcons: Icon[] = []
+  customIcons: Icon[] = [],
+  iconLabels: Record<string, string> = {}
 ): IconMatch[] {
   if (!text || text.trim().length === 0) {
     return [];
@@ -41,12 +42,36 @@ export function matchTextToIcons(
   
   const combinedDatabase = [...ICON_DATABASE, ...customIcons];
 
+  /**
+   * Build the keyword list for a single icon, incorporating:
+   *  - Built-in keyword map (for ARASAAC icons)
+   *  - Individual words from the icon's name (for custom icons with multi-word names)
+   *  - Custom label override from localStorage (so relabelled icons are findable)
+   */
+  const buildKeywords = (icon: Icon): string[] => {
+    const labelStr = iconLabels[icon.id]?.toLowerCase().trim() ?? '';
+    const labelWords = labelStr
+      ? [labelStr, ...labelStr.split(/\s+/).filter((w) => w.length >= 2)]
+      : [];
+
+    const builtinKeywords = KEYWORD_MAP[icon.id];
+    if (builtinKeywords) {
+      // Built-in icon: keyword map is source of truth, label adds extra aliases
+      return [...builtinKeywords, ...labelWords];
+    }
+
+    // Custom uploaded icon: derive keywords from its name + individual words + label
+    const nameLower = icon.name.toLowerCase().trim();
+    const nameWords = nameLower.split(/\s+/).filter((w) => w.length >= 2);
+    return [icon.id, nameLower, ...nameWords, ...labelWords];
+  };
+
   // Words to skip entirely (stop words that cause false positives)
   const STOP_WORDS = new Set(['i', 'a', 'an', 'to', 'the', 'of', 'and', 'or', 'is', 'it', 'in', 'on', 'at', 'by', 'for', 'with', 'as', 'be', 'was', 'are']);
 
   // Check each icon for matches
   for (const icon of combinedDatabase) {
-    const keywords = KEYWORD_MAP[icon.id] || [icon.id, icon.name.toLowerCase()];
+    const keywords = buildKeywords(icon);
     
     // Exact match pass — any word exactly in the keyword list
     for (const word of words) {

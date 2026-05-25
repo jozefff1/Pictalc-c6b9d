@@ -80,6 +80,25 @@ const communicationSlice = createSlice({
     ) => {
       state.favoritePhrases = action.payload;
     },
+    // Granular custom icon mutations — no full re-fetch needed
+    addCustomIcon: (state, action: PayloadAction<Icon>) => {
+      if (!state.customIcons.some((ic) => ic.id === action.payload.id)) {
+        state.customIcons.unshift(action.payload);
+      }
+    },
+    updateCustomIcon: (state, action: PayloadAction<{ id: string; name: string }>) => {
+      const icon = state.customIcons.find((ic) => ic.id === action.payload.id);
+      if (icon) icon.name = action.payload.name.toLowerCase();
+    },
+    removeCustomIcon: (state, action: PayloadAction<string>) => {
+      state.customIcons = state.customIcons.filter((ic) => ic.id !== action.payload);
+    },
+    reorderSentenceIcons: (state, action: PayloadAction<{ fromIndex: number; toIndex: number }>) => {
+      const { fromIndex, toIndex } = action.payload;
+      if (fromIndex === toIndex) return;
+      const [moved] = state.sentence.splice(fromIndex, 1);
+      state.sentence.splice(toIndex, 0, moved);
+    },
   },
 });
 
@@ -95,6 +114,10 @@ export const {
   loadFavoritePhrase,
   setCustomIcons,
   setFavoritePhrases,
+  addCustomIcon,
+  updateCustomIcon,
+  removeCustomIcon,
+  reorderSentenceIcons,
 } = communicationSlice.actions;
 
 export default communicationSlice.reducer;

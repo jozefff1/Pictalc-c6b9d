@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useIconLabels } from '@/hooks/useIconLabels';
 import { getIconsByCategory, searchIcons } from '@/lib/data/icons';
 import { setCustomIcons, addIconToSentence } from '@/store/slices/communicationSlice';
 import CategorySelector from '@/components/features/CategorySelector';
@@ -17,6 +19,7 @@ type CommunicationMode = 'icons' | 'text' | 'speech';
 
 export default function CommunicatePage() {
   const { t } = useLanguage();
+  const { labels } = useIconLabels();
   const { data: session } = useSession();
   const dispatch = useAppDispatch();
   const [mode, setMode] = useState<CommunicationMode>('icons');
@@ -112,18 +115,28 @@ export default function CommunicatePage() {
           </div>
           {/* Privacy toggle — only meaningful for authenticated users */}
           {session && (
-            <button
-              onClick={() => setIsPrivate((p) => !p)}
-              title={isPrivate ? 'Private session — not shared with supervisors' : 'Shared session — visible to supervisors'}
-              className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                isPrivate
-                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                  : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-              }`}
-            >
-              {isPrivate ? '🔒' : '🔓'}
-              <span className="hidden sm:inline">{isPrivate ? 'Private' : 'Shared'}</span>
-            </button>
+            <>
+              <Link
+                href="/dashboard/phrases"
+                className="shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary/10 hover:text-primary dark:hover:text-primary"
+                title="My phrases collection"
+              >
+                <span>📋</span>
+                <span>{t('communicate.phrases')}</span>
+              </Link>
+              <button
+                onClick={() => setIsPrivate((p) => !p)}
+                title={isPrivate ? 'Private session — not shared with supervisors' : 'Shared session — visible to supervisors'}
+                className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                  isPrivate
+                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                    : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                }`}
+              >
+                {isPrivate ? '🔒' : '🔓'}
+                <span className="hidden sm:inline">{isPrivate ? 'Private' : 'Shared'}</span>
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -167,12 +180,12 @@ export default function CommunicatePage() {
                       key={icon.id}
                       onClick={() => dispatch(addIconToSentence(icon))}
                       className="shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-primary/10 dark:hover:bg-primary/20 active:scale-95 transition-all w-16"
-                      title={icon.name}
+                      title={labels[icon.id] || icon.name}
                     >
                       {icon.imageUrl ? (
                         <Image
                           src={icon.imageUrl}
-                          alt={icon.name}
+                          alt={labels[icon.id] || icon.name}
                           width={40}
                           height={40}
                           className="object-contain"
@@ -181,7 +194,7 @@ export default function CommunicatePage() {
                         <span className="text-2xl leading-none">{icon.symbol}</span>
                       )}
                       <span className="text-[10px] text-gray-600 dark:text-gray-300 truncate w-full text-center">
-                        {icon.name}
+                        {labels[icon.id] || icon.name}
                       </span>
                     </button>
                   ))}

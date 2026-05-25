@@ -2,7 +2,7 @@
 
 > An open-source AAC (Augmentative and Alternative Communication) Progressive Web App for children and adults with communication challenges.
 
-Pictalk lets users express themselves through picture-based communication boards, text-to-icon conversion, and speech recognition — **online and offline**.
+Snakke lets users express themselves through picture-based communication boards, text-to-icon conversion, and speech recognition — **online and offline**.
 
 🌐 **Live**: [pictalc-c6b9d.vercel.app](https://pictalc-c6b9d.vercel.app)
 
@@ -143,7 +143,7 @@ npm run db:studio
 
 ## Internationalization
 
-Pictalk uses a **client-side React Context** for translations (English + Norwegian).
+Snakke uses a **client-side React Context** for translations (English + Norwegian).
 
 - Language choice persists via `localStorage`
 - Instant switching — no page reload
@@ -189,7 +189,7 @@ To add a new language:
 - [x] Email verification + password reset (Resend)
 - [x] Favourite phrases (save/load sentences, IndexedDB-persisted)
 - [x] Voice + accessibility preferences UI (`/dashboard/settings`)
-- [x] ARASAAC pictogram integration (89 built-in icons via static CDN)
+- [x] ARASAAC pictogram integration (95 built-in icons via static CDN)
 - [x] Communication session history with supervisor patient selector
 - [x] Supervisor/guardian pairing flow (invite link + email + accept/revoke)
 - [x] Language learning mode — 5 languages, 3 modes (flashcard/writing/speaking)
@@ -209,7 +209,7 @@ See [`PLAN.md`](./PLAN.md) for the full phased roadmap.
 
 ## Contributing
 
-Pictalk is a passion project to help children with communication challenges and their families. Contributions — bug fixes, translations, new icons, accessibility improvements — are very welcome.
+Snakke is a passion project to help children with communication challenges and their families. Contributions — bug fixes, translations, new icons, accessibility improvements — are very welcome.
 
 ---
 

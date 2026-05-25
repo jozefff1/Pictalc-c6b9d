@@ -131,6 +131,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   sessions: many(communicationSessions),
   preferences: one(userPreferences),
   customIcons: many(customIcons),
+  userSentences: many(userSentences),
 }));
 
 export const devicesRelations = relations(devices, ({ one }) => ({
@@ -200,6 +201,27 @@ export const passwordHistory = pgTable('password_history', {
 export const passwordHistoryRelations = relations(passwordHistory, ({ one }) => ({
   user: one(users, {
     fields: [passwordHistory.userId],
+    references: [users.id],
+  }),
+}));
+
+/**
+ * User Sentences table - user-created custom phrases for communication
+ */
+export const userSentences = pgTable('user_sentences', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  text: text('text').notNull(),
+  iconIds: jsonb('icon_ids').notNull().$type<string[]>(),
+  category: varchar('category', { length: 50 }).notNull().default('custom'),
+  language: varchar('language', { length: 10 }).notNull().default('en'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const userSentencesRelations = relations(userSentences, ({ one }) => ({
+  user: one(users, {
+    fields: [userSentences.userId],
     references: [users.id],
   }),
 }));

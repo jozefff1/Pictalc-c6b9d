@@ -53,7 +53,10 @@ export default function IconMatchGrid({ matches, onAdd, label }: IconMatchGridPr
               <span className="text-3xl mb-1">{match.icon.symbol}</span>
             )}
             <span className="text-xs font-medium text-center text-gray-700 dark:text-gray-300">
-              {match.icon.id.startsWith('custom_') ? match.icon.name : tIcon(match.icon.id)}
+              {(() => {
+                const translated = tIcon(match.icon.id);
+                return translated !== match.icon.id ? translated : match.icon.name;
+              })()}
             </span>
           </button>
         ))}

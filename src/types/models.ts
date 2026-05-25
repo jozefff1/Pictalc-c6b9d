@@ -91,6 +91,18 @@ export interface UserPreferences {
   reduceMotion: boolean;
 }
 
+export interface UserSentence {
+  id: string;
+  userId: string;
+  text: string;
+  iconIds: string[];
+  category: string;
+  language: string;
+  createdAt: Date;
+  updatedAt: Date;
+  synced: boolean;
+}
+
 export interface PairingRequest {
   id: string;
   requesterId: string;

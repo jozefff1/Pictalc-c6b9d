@@ -62,6 +62,7 @@ export const KEYWORD_MAP_EN: Record<string, string[]> = {
   'family': ['family', 'relatives', 'household', 'parents', 'siblings', 'kin'],
   'me': ['me', 'myself', 'i', 'my', 'mine', 'self'],
   'you': ['you', 'your', 'yours', 'yourself'],
+  'they': ['they', 'them', 'their', 'theirs', 'themselves', 'those people'],
   'boy': ['boy', 'lad', 'male'],
   'girl': ['girl', 'lass', 'female'],
 
@@ -108,6 +109,10 @@ export const KEYWORD_MAP_EN: Record<string, string[]> = {
   'wait': ['wait', 'waiting', 'hold', 'pause', 'hold on'],
   'go': ['go', 'going', 'leave', 'depart', 'move'],
   'stop': ['stop', 'halt', 'cease', 'end', 'quit'],
+  'up': ['up', 'upward', 'upwards', 'above', 'higher', 'top', 'raise'],
+  'down': ['down', 'downward', 'downwards', 'below', 'lower', 'bottom', 'descend'],
+  'left': ['left', 'leftward', 'leftwards', 'left side', 'to the left'],
+  'right': ['right direction', 'rightward', 'rightwards', 'right side', 'to the right'],
   'now': ['now', 'right now', 'immediately', 'currently'],
   'later': ['later', 'after', 'soon', 'eventually'],
 };

@@ -1,11 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { matchTextToIcons } from '@/lib/ai/iconMatcher';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { addIconToSentence } from '@/store/slices/communicationSlice';
 import IconMatchGrid from '@/components/features/communication/IconMatchGrid';
+import { useUserSentences } from '@/hooks/useUserSentences';
+import { useIconLabels } from '@/hooks/useIconLabels';
+import { ICON_DATABASE } from '@/lib/data/icons';
 import type { IconMatch } from '@/lib/ai/iconMatcher';
 import {
   SENTENCE_DATABASE,
@@ -17,15 +21,20 @@ import {
   type SentenceCategory,
 } from '@/lib/data/sentences';
 
+type BrowserTab = SentenceCategory | 'my_phrases';
+
 export default function TextToIcons() {
   const { t, language } = useLanguage();
   const dispatch = useAppDispatch();
+  const { data: session } = useSession();
   const customIcons = useAppSelector((state) => state.communication.customIcons);
+  const { labels: iconLabels } = useIconLabels();
+  const { sentences: userSentences } = useUserSentences(session?.user?.id);
   const [inputText, setInputText] = useState('');
   const [matches, setMatches] = useState<IconMatch[]>([]);
   const [autoConverted, setAutoConverted] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<SentenceCategory>('needs');
+  const [activeCategory, setActiveCategory] = useState<BrowserTab>('needs');
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newText = e.target.value;
@@ -38,7 +47,7 @@ export default function TextToIcons() {
       const completedWord = words[words.length - 1].toLowerCase();
       
       // Try to match and add to sentence
-      const results = matchTextToIcons(completedWord, 1, language, customIcons);
+      const results = matchTextToIcons(completedWord, 1, language, customIcons, iconLabels);
       
       if (results.length > 0 && results[0].confidence >= 0.3) {
         dispatch(addIconToSentence(results[0].icon));
@@ -52,7 +61,7 @@ export default function TextToIcons() {
     const currentWord = newText.trim().split(/\s+/).pop()?.toLowerCase() || '';
     
     if (currentWord && !newText.endsWith(' ')) {
-      const results = matchTextToIcons(currentWord, 6, language, customIcons);
+      const results = matchTextToIcons(currentWord, 6, language, customIcons, iconLabels);
       setMatches(results);
     } else {
       setMatches([]);
@@ -64,7 +73,7 @@ export default function TextToIcons() {
     const words = text.toLowerCase().trim().split(/\s+/);
     let convertedCount = 0;
     words.forEach((word) => {
-      const results = matchTextToIcons(word, 1, language, customIcons);
+      const results = matchTextToIcons(word, 1, language, customIcons, iconLabels);
       if (results.length > 0 && results[0].confidence >= 0.3) {
         dispatch(addIconToSentence(results[0].icon));
         convertedCount++;
@@ -92,7 +101,7 @@ export default function TextToIcons() {
       if (inputText.trim()) {
         const words = inputText.trim().split(/\s+/);
         const lastWord = words[words.length - 1].toLowerCase();
-        const results = matchTextToIcons(lastWord, 1, language, customIcons);
+        const results = matchTextToIcons(lastWord, 1, language, customIcons, iconLabels);
 
         if (results.length > 0 && results[0].confidence >= 0.3) {
           dispatch(addIconToSentence(results[0].icon));
@@ -216,22 +225,56 @@ export default function TextToIcons() {
                   <span>{SENTENCE_CATEGORY_LABELS[cat][language] ?? SENTENCE_CATEGORY_LABELS[cat].en}</span>
                 </button>
               ))}
+              {/* My Phrases tab — only when user has custom sentences */}
+              {userSentences.length > 0 && (
+                <button
+                  onClick={() => setActiveCategory('my_phrases')}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                    activeCategory === 'my_phrases'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-primary/10 hover:bg-primary/20 text-primary'
+                  }`}
+                >
+                  <span>⭐</span>
+                  <span>My Phrases</span>
+                  <span className="ml-0.5 text-[10px] opacity-70">({userSentences.length})</span>
+                </button>
+              )}
             </div>
 
             {/* Sentence grid — click goes directly to icons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {SENTENCE_DATABASE.filter((s) => s.category === activeCategory).map((sentence) => (
-                <button
-                  key={sentence.id}
-                  onClick={() => convertTextToIcons(getSentenceText(sentence, language))}
-                  className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all active:scale-95 text-sm text-left group"
-                >
-                  <span className="text-xl">{SENTENCE_CATEGORY_ICONS[activeCategory]}</span>
-                  <span className="font-medium leading-snug group-hover:text-primary transition-colors">
-                    {getSentenceText(sentence, language)}
-                  </span>
-                </button>
-              ))}
+              {activeCategory === 'my_phrases'
+                ? userSentences.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => convertTextToIcons(s.text)}
+                      className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 border border-primary/20 dark:border-primary/30 rounded-2xl hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all active:scale-95 text-sm text-left group"
+                    >
+                      <span className="text-xl flex-shrink-0">
+                        {(() => {
+                          const icon = ICON_DATABASE.find((i) => i.id === s.iconIds[0]);
+                          return icon?.symbol ?? '⭐';
+                        })()}
+                      </span>
+                      <span className="font-medium leading-snug group-hover:text-primary transition-colors">
+                        {s.text}
+                      </span>
+                    </button>
+                  ))
+                : SENTENCE_DATABASE.filter((s) => s.category === activeCategory).map((sentence) => (
+                    <button
+                      key={sentence.id}
+                      onClick={() => convertTextToIcons(getSentenceText(sentence, language))}
+                      className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all active:scale-95 text-sm text-left group"
+                    >
+                      <span className="text-xl">{SENTENCE_CATEGORY_ICONS[activeCategory as SentenceCategory]}</span>
+                      <span className="font-medium leading-snug group-hover:text-primary transition-colors">
+                        {getSentenceText(sentence, language)}
+                      </span>
+                    </button>
+                  ))
+              }
             </div>
           </div>
         )}

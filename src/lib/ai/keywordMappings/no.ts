@@ -62,6 +62,7 @@ export const KEYWORD_MAP_NO: Record<string, string[]> = {
   'family': ['familie', 'slekt', 'husstand', 'foreldre', 'søsken'],
   'me': ['meg', 'jeg', 'min', 'mitt', 'mine', 'selv'],
   'you': ['deg', 'du', 'din', 'ditt', 'dine'],
+  'they': ['de', 'dem', 'deres', 'de der', 'de andre'],
   'boy': ['gutt', 'guttunge', 'guttebarn'],
   'girl': ['jente', 'jenteunge', 'jentebarn'],
 
@@ -108,6 +109,10 @@ export const KEYWORD_MAP_NO: Record<string, string[]> = {
   'wait': ['vent', 'vente', 'venter', 'hold'],
   'go': ['gå', 'dra', 'reise', 'bevege seg', 'kjør'],
   'stop': ['stopp', 'slutt', 'stans', 'hold'],
+  'up': ['opp', 'oppover', 'over', 'høyere', 'topp', 'heve', 'opp dit'],
+  'down': ['ned', 'nedover', 'under', 'lavere', 'bunn', 'stige ned', 'ned dit'],
+  'left': ['venstre', 'til venstre', 'venstreside'],
+  'right': ['høyre', 'til høyre', 'høyreside'],
   'now': ['nå', 'akkurat nå', 'med en gang'],
   'later': ['senere', 'etterpå', 'straks'],
 };

@@ -82,6 +82,16 @@ export default function DashboardPage() {
             </p>
           </Link>
 
+          <Link href="/dashboard/phrases" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow border-2 border-dashed border-primary/20 dark:border-primary/30">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">💬</span>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">My Phrases</h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Create and manage custom phrases for the communication board.
+            </p>
+          </Link>
+
           <Link href="/dashboard/patients" className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">👥</span>
