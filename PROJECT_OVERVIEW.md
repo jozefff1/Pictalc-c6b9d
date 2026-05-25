@@ -6,7 +6,7 @@
 
 ## What is AAC?
 
-Augmentative and Alternative Communication (AAC) refers to all forms of communication outside of oral speech that are used to express thoughts, needs, wants, and ideas. Pictalk is a digital AAC tool that translates words and speech into visual symbol-based communication boards.
+Augmentative and Alternative Communication (AAC) refers to all forms of communication outside of oral speech that are used to express thoughts, needs, wants, and ideas. Snakke is a digital AAC tool that translates words and speech into visual symbol-based communication boards.
 
 ---
 
@@ -50,10 +50,12 @@ Root
 ├── src/
 │   ├── app/
 │   │   ├── (auth)/                  # Login, Register, Verify-email, Forgot/Reset-password pages
-│   │   ├── (app)/                   # Protected routes
-│   │   │   ├── communicate/         # Main AAC board
-│   │   │   └── dashboard/           # User dashboard + icons
-│   │   │       └── icons/           # Custom icon upload
+│   │   ├── communicate/             # Public AAC board (guest + authenticated)
+│   │   │   └── layout.tsx           # Communicate-specific layout (header + guest banner)
+│   │   ├── (app)/                   # Protected routes (redirect to /login if unauthenticated)
+│   │   └── dashboard/               # User dashboard + settings
+│   │       ├── icons/               # Custom icon upload
+│   │       └── phrases/             # My phrases — save/load/use favourite sentence sets
 │   │   ├── api/
 │   │   │   ├── auth/[...nextauth]/  # NextAuth handler
 │   │   │   ├── auth/register/       # Registration API
@@ -70,7 +72,7 @@ Root
 │   │   ├── features/
 │   │   │   ├── CategorySelector     # AAC category tabs
 │   │   │   ├── IconGrid             # Icon display grid
-│   │   │   ├── SentenceBuilder      # Built sentence + TTS
+│   │   │   ├── SentenceBuilder      # Built sentence + TTS, drag-to-reorder
 │   │   │   ├── TextToIcons          # Type → icons
 │   │   │   ├── SpeechToIcons        # Speak → icons
 │   │   │   ├── CustomIconUpload     # Upload personal icons
@@ -83,7 +85,8 @@ Root
 │   │   │   ├── LanguageSwitcher.tsx # Language selector (EN/NO/ES/FR/DE)
 │   │   │   └── DarkModeToggle.tsx   # Sun/moon toggle
 │   │   └── layout/
-│   │       └── Header.tsx           # Top nav (💬 communicate + Learn links)
+│   │       ├── Header.tsx           # Top nav (💬 communicate + Learn links) — used on landing, about, learn pages
+│   │       └── SignOutButton.tsx    # Shared server component sign-out form (used in (app) + communicate layouts)
 │   ├── lib/
 │   │   ├── ai/
 │   │   │   ├── iconMatcher.ts       # Text → icon matching engine
@@ -110,12 +113,14 @@ Root
 │   ├── hooks/
 │   │   ├── useFlashMessage.ts       # Auto-reset boolean for transient UI feedback
 │   │   ├── useFetch.ts              # Generic GET-on-mount fetch hook
+│   │   ├── useIconLabels.ts         # Per-icon custom label overrides (localStorage + event bus)
+│   │   ├── useIconRegistry.ts       # Unified icon registry: ICON_DATABASE + custom icons + labels; getByCategory / getById / search
 │   │   └── usePreferences.ts        # User preferences (voice, a11y) + Redux sync
 │   ├── contexts/
 │   │   └── LanguageContext.tsx      # i18n: EN/NO/ES/FR/DE + learnFrom/learnTarget state
 │   ├── store/
 │   │   ├── slices/
-│   │   │   ├── communicationSlice   # Icons, sentence, favoritePhrases, customIcons
+│   │   │   ├── communicationSlice   # Icons, sentence, favoritePhrases, customIcons (add/update/remove/reorder actions)
 │   │   │   ├── pairingSlice         # Device pairing state
 │   │   │   └── uiSlice             # Theme, modals
 │   │   └── index.ts                 # Redux store setup
@@ -158,11 +163,13 @@ password_history     → Last 5 password hashes per user (prevents password reus
 | Text → Icon auto-conversion (keyword matcher) | ✅ |
 | Speech → Icon conversion (Web Speech API) | ✅ |
 | Sentence builder with TTS playback | ✅ |
+| Drag-and-drop sentence icon reordering (`@dnd-kit/react`) | ✅ |
 | Custom icon upload (Vercel Blob, MIME/size validated) | ✅ |
 | Custom icons in matcher + manage (rename/delete) | ✅ |
 | Recently used icons row | ✅ |
 | Icon search bar | ✅ |
 | Favourite phrases (IDB-persisted) | ✅ |
+| My phrases — dashboard page to create/manage/load phrase sets | ✅ |
 | Communication session history | ✅ |
 | Multilingual UI — EN + NO full, ES/FR/DE icon labels | ✅ |
 | Language switcher in header (all pages) | ✅ |
