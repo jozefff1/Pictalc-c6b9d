@@ -4,11 +4,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type State = 'pending' | 'verifying' | 'success' | 'error';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   const token = searchParams.get('token');
   const email = searchParams.get('email');
   const callbackUrl = searchParams.get('callbackUrl') ?? '';
@@ -54,21 +56,21 @@ function VerifyEmailContent() {
         {state === 'pending' && (
           <>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-              Check your inbox
+              {t('verifyEmail.pending.title')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-2">
-              We sent a verification link to
+              {t('verifyEmail.pending.sent')}
             </p>
             {email && (
               <p className="font-semibold text-primary mb-4">{email}</p>
             )}
             <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-              Click the link in the email to activate your account. The link expires in 24 hours.
+              {t('verifyEmail.pending.desc')}
             </p>
             <p className="text-gray-400 text-xs">
-              Didn&apos;t receive it? Check your spam folder or{' '}
+              {t('verifyEmail.pending.notReceived')}{' '}
               <Link href="/register" className="text-primary underline">
-                register again
+                {t('verifyEmail.pending.registerAgain')}
               </Link>
               .
             </p>
@@ -78,10 +80,10 @@ function VerifyEmailContent() {
         {state === 'verifying' && (
           <>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-              Verifying your email…
+              {t('verifyEmail.verifying.title')}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm">
-              Please wait a moment.
+              {t('verifyEmail.verifying.wait')}
             </p>
           </>
         )}
@@ -89,16 +91,16 @@ function VerifyEmailContent() {
         {state === 'success' && (
           <>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-              Email verified!
+              {t('verifyEmail.success.title')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Your account is now active. You can sign in to Snakke.
+              {t('verifyEmail.success.desc')}
             </p>
             <Link
               href={`/login?verified=true${callbackUrl ? `&callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
               className="inline-block bg-primary text-white font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
             >
-              Sign in
+              {t('verifyEmail.success.cta')}
             </Link>
           </>
         )}
@@ -106,7 +108,7 @@ function VerifyEmailContent() {
         {state === 'error' && (
           <>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-              Verification failed
+              {t('verifyEmail.error.title')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               {message}
@@ -115,7 +117,7 @@ function VerifyEmailContent() {
               href="/register"
               className="inline-block bg-primary text-white font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
             >
-              Register again
+              {t('verifyEmail.error.cta')}
             </Link>
           </>
         )}

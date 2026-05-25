@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ForgotPasswordPage() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,13 +26,13 @@ export default function ForgotPasswordPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? 'Something went wrong. Please try again.');
+        setError(data.error ?? t('forgotPw.error.generic'));
         return;
       }
 
       setSubmitted(true);
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('forgotPw.error.network'));
     } finally {
       setLoading(false);
     }
@@ -42,20 +44,20 @@ export default function ForgotPasswordPage() {
         <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 text-center">
           <div className="text-5xl mb-6">📬</div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-            Check your inbox
+            {t('forgotPw.success.title')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-2">
-            A password reset link has been sent to
+            {t('forgotPw.success.sent')}
           </p>
           <p className="font-semibold text-primary mb-4">{email}</p>
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-            The link expires in 1 hour.
+            {t('forgotPw.success.expires')}
           </p>
           <Link
             href="/login"
             className="text-primary text-sm underline hover:opacity-75 transition-opacity"
           >
-            Back to sign in
+            {t('forgotPw.success.back')}
           </Link>
         </div>
       </div>
@@ -66,9 +68,9 @@ export default function ForgotPasswordPage() {
     <div className="w-full max-w-md">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">Forgot password?</h1>
+          <h1 className="text-3xl font-bold text-primary mb-2">{t('forgotPw.title')}</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Enter your email and we&apos;ll send you a reset link.
+            {t('forgotPw.subtitle')}
           </p>
         </div>
 
@@ -84,7 +86,7 @@ export default function ForgotPasswordPage() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-2">
-              Email address
+              {t('forgotPw.emailLabel')}
             </label>
             <input
               id="email"
@@ -103,14 +105,13 @@ export default function ForgotPasswordPage() {
             disabled={loading}
             className="w-full bg-primary text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
           >
-            {loading ? 'Sending…' : 'Send reset link'}
+            {loading ? t('forgotPw.submitting') : t('forgotPw.submit')}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-          Remember your password?{' '}
           <Link href="/login" className="text-primary font-medium hover:underline">
-            Sign in
+            {t('forgotPw.backToLogin')}
           </Link>
         </p>
       </div>

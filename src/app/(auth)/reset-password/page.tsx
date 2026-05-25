@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { t } = useLanguage();
   const token = searchParams.get('token') ?? '';
 
   const [password, setPassword] = useState('');
@@ -27,17 +29,17 @@ function ResetPasswordForm() {
     setError('');
 
     if (!token) {
-      setError('Missing reset token. Please use the link from your email.');
+      setError(t('resetPw.error.missingToken'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError(t('resetPw.error.mismatch'));
       return;
     }
 
     if (!checks.length || !checks.uppercase || !checks.lowercase || !checks.number) {
-      setError('Please ensure your password meets all requirements.');
+      setError(t('resetPw.error.requirements'));
       return;
     }
 
@@ -53,13 +55,13 @@ function ResetPasswordForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? 'Something went wrong. Please try again.');
+        setError(data.error ?? t('resetPw.error.generic'));
         return;
       }
 
       router.push('/login?reset=true');
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('resetPw.error.network'));
     } finally {
       setLoading(false);
     }
@@ -70,15 +72,15 @@ function ResetPasswordForm() {
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 text-center">
           <div className="text-5xl mb-6">❌</div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Invalid link</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{t('resetPw.invalidLink.title')}</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            This reset link is missing a token. Please request a new one.
+            {t('resetPw.invalidLink.desc')}
           </p>
           <Link
             href="/forgot-password"
             className="inline-block bg-primary text-white font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
           >
-            Request new link
+            {t('resetPw.requestNew')}
           </Link>
         </div>
       </div>
@@ -89,8 +91,8 @@ function ResetPasswordForm() {
     <div className="w-full max-w-md">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">New password</h1>
-          <p className="text-gray-600 dark:text-gray-400">Choose a strong password for your account.</p>
+          <h1 className="text-3xl font-bold text-primary mb-2">{t('resetPw.title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{t('resetPw.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -105,7 +107,7 @@ function ResetPasswordForm() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium mb-2">
-              New password
+              {t('resetPw.newPassword')}
             </label>
             <input
               id="password"
@@ -120,10 +122,10 @@ function ResetPasswordForm() {
             {password.length > 0 && (
               <ul className="mt-2 space-y-1 text-xs">
                 {[
-                  { key: 'length', label: 'At least 8 characters' },
-                  { key: 'uppercase', label: 'One uppercase letter' },
-                  { key: 'lowercase', label: 'One lowercase letter' },
-                  { key: 'number', label: 'One number' },
+                  { key: 'length', label: t('register.pw.length') },
+                  { key: 'uppercase', label: t('register.pw.uppercase') },
+                  { key: 'lowercase', label: t('register.pw.lowercase') },
+                  { key: 'number', label: t('register.pw.number') },
                 ].map(({ key, label }) => (
                   <li
                     key={key}
@@ -138,7 +140,7 @@ function ResetPasswordForm() {
 
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
-              Confirm password
+              {t('resetPw.confirmPassword')}
             </label>
             <input
               id="confirmPassword"
@@ -157,7 +159,7 @@ function ResetPasswordForm() {
             disabled={loading}
             className="w-full bg-primary text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
           >
-            {loading ? 'Saving…' : 'Set new password'}
+            {loading ? t('resetPw.submitting') : t('resetPw.submit')}
           </button>
         </form>
       </div>

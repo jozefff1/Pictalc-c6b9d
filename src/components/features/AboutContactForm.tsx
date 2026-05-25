@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 
 const RECIPIENT = 'info@arken.pro';
 
-const SUBJECTS = [
+const SUBJECTS_EN = [
   'General question about Snakke',
   'Research collaboration',
   'Accessibility feedback',
@@ -16,7 +17,19 @@ const SUBJECTS = [
   'Other',
 ];
 
+const SUBJECTS_NO = [
+  'Generelt spørsmål om Snakke',
+  'Forskningssamarbeid',
+  'Tilgjengelighetsfeedback',
+  'Funksjonsforespørsel',
+  'Kommersiell lisensiering',
+  'Feilrapport',
+  'Annet',
+];
+
 export default function AboutContactForm() {
+  const { t, language } = useLanguage();
+  const SUBJECTS = language === 'no' ? SUBJECTS_NO : SUBJECTS_EN;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState(SUBJECTS[0]);
@@ -29,16 +42,16 @@ export default function AboutContactForm() {
     setError('');
 
     if (!name.trim() || !email.trim() || !message.trim()) {
-      setError('Please fill in all required fields.');
+      setError(t('contact.error.required'));
       return;
     }
     // Simple email format check
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError('Please enter a valid email address.');
+      setError(t('contact.error.email'));
       return;
     }
     if (message.trim().length < 10) {
-      setError('Message must be at least 10 characters.');
+      setError(t('contact.error.messageShort'));
       return;
     }
 
@@ -53,7 +66,7 @@ export default function AboutContactForm() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error ?? 'Something went wrong. Please try again.');
+        throw new Error(data?.error ?? t('contact.error.generic'));
       }
 
       setStatus('sent');
@@ -62,7 +75,7 @@ export default function AboutContactForm() {
       setSubject(SUBJECTS[0]);
       setMessage('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setError(err instanceof Error ? err.message : t('contact.error.generic'));
       setStatus('error');
     }
   }
@@ -73,15 +86,15 @@ export default function AboutContactForm() {
         <svg className="mx-auto mb-3 size-8 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <p className="font-semibold text-green-700 dark:text-green-400">Message sent!</p>
+        <p className="font-semibold text-green-700 dark:text-green-400">{t('contact.success.title')}</p>
         <p className="text-sm text-green-600 dark:text-green-500 mt-1">
-          We&apos;ll get back to you at your email address. Thank you for reaching out.
+          {t('contact.success.desc')}
         </p>
         <button
           onClick={() => setStatus('idle')}
           className="mt-4 text-sm text-green-700 dark:text-green-400 underline hover:no-underline"
         >
-          Send another message
+          {t('contact.success.back')}
         </button>
       </div>
     );
@@ -96,7 +109,7 @@ export default function AboutContactForm() {
     >
       {/* Recipient hint */}
       <p className="text-xs text-gray-400 dark:text-gray-500">
-        Sends to{' '}
+        {t('contact.sendsTo')}{' '}
         <a
           href={`mailto:${RECIPIENT}`}
           className="text-blue-500 hover:underline"
@@ -109,7 +122,7 @@ export default function AboutContactForm() {
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="contact-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Your name <span className="text-red-500" aria-hidden="true">*</span>
+            {t('contact.yourName')} <span className="text-red-500" aria-hidden="true">*</span>
           </label>
           <input
             id="contact-name"
@@ -124,7 +137,7 @@ export default function AboutContactForm() {
         </div>
         <div>
           <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Your email <span className="text-red-500" aria-hidden="true">*</span>
+            {t('contact.yourEmail')} <span className="text-red-500" aria-hidden="true">*</span>
           </label>
           <input
             id="contact-email"
@@ -141,7 +154,7 @@ export default function AboutContactForm() {
 
       <div>
         <label htmlFor="contact-subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Subject
+          {t('contact.subject')}
         </label>
         <select
           id="contact-subject"
@@ -157,7 +170,7 @@ export default function AboutContactForm() {
 
       <div>
         <label htmlFor="contact-message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Message <span className="text-red-500" aria-hidden="true">*</span>
+          {t('contact.message')} <span className="text-red-500" aria-hidden="true">*</span>
         </label>
         <textarea
           id="contact-message"
@@ -181,7 +194,7 @@ export default function AboutContactForm() {
         disabled={status === 'sending'}
         className="w-full sm:w-auto rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold px-6 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       >
-        {status === 'sending' ? 'Sending…' : 'Send message'}
+        {status === 'sending' ? t('contact.submitting') : t('contact.submit')}
       </button>
     </form>
   );

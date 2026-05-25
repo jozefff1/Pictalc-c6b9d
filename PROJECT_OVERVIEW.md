@@ -77,6 +77,8 @@ Root
 │   │   │   ├── SpeechToIcons        # Speak → icons
 │   │   │   ├── CustomIconUpload     # Upload personal icons
 │   │   │   ├── LandingPage.tsx      # Client-side landing page
+│   │   │   ├── AboutContent.tsx     # Client component: bilingual about page body (EN+NO)
+│   │   │   ├── AboutContactForm.tsx # Contact form with useLanguage
 │   │   │   └── learning/
 │   │   │       ├── LearnPage.tsx        # /learn page wrapper
 │   │   │       ├── LanguagePicker.tsx   # Pick learnFrom / learnTarget
@@ -117,7 +119,7 @@ Root
 │   │   ├── useIconRegistry.ts       # Unified icon registry: ICON_DATABASE + custom icons + labels; getByCategory / getById / search
 │   │   └── usePreferences.ts        # User preferences (voice, a11y) + Redux sync
 │   ├── contexts/
-│   │   └── LanguageContext.tsx      # i18n: EN/NO/ES/FR/DE + learnFrom/learnTarget state
+│   │   └── LanguageContext.tsx      # i18n: EN/NO full UI (all pages incl. auth+about), ES/FR/DE icons only
 │   ├── store/
 │   │   ├── slices/
 │   │   │   ├── communicationSlice   # Icons, sentence, favoritePhrases, customIcons (add/update/remove/reorder actions)

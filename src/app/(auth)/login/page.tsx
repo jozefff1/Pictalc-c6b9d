@@ -6,10 +6,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 import { Suspense } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,15 +21,15 @@ function LoginForm() {
 
   useEffect(() => {
     if (searchParams.get('registered') === 'true') {
-      setSuccess('Account created successfully! Please log in.');
+      setSuccess(t('login.success.registered'));
     }
     if (searchParams.get('verified') === 'true') {
-      setSuccess('Email verified! You can now sign in.');
+      setSuccess(t('login.success.verified'));
     }
     if (searchParams.get('reset') === 'true') {
-      setSuccess('Password updated! You can now sign in with your new password.');
+      setSuccess(t('login.success.reset'));
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,13 +44,13 @@ function LoginForm() {
       });
 
       if (result?.error) {
-        setError('Invalid email or password. If you just registered, check your inbox for a verification email.');
+        setError(t('login.error.invalid'));
       } else {
         router.push(callbackUrl);
         router.refresh();
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError(t('login.error.generic'));
     } finally {
       setLoading(false);
     }
@@ -58,9 +60,9 @@ function LoginForm() {
     <div className="w-full max-w-md">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">Welcome Back</h1>
+          <h1 className="text-3xl font-bold text-primary mb-2">{t('login.title')}</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Log in to continue to Snakke
+            {t('login.subtitle')}
           </p>
         </div>
 
@@ -87,7 +89,7 @@ function LoginForm() {
               htmlFor="email"
               className="block text-sm font-medium mb-2"
             >
-              Email
+              {t('login.email')}
             </label>
             <input
               id="email"
@@ -105,7 +107,7 @@ function LoginForm() {
               htmlFor="password"
               className="block text-sm font-medium mb-2"
             >
-              Password
+              {t('login.password')}
             </label>
             <input
               id="password"
@@ -121,7 +123,7 @@ function LoginForm() {
                 href="/forgot-password"
                 className="text-xs text-primary hover:underline"
               >
-                Forgot password?
+                {t('login.forgot')}
               </Link>
             </div>
           </div>
@@ -131,19 +133,19 @@ function LoginForm() {
             disabled={loading}
             className="w-full bg-primary hover:bg-primary-hover text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Logging in...' : 'Log In'}
+            {loading ? t('login.submitting') : t('login.submit')}
           </button>
         </form>
 
         <div className="mt-6 text-center text-sm">
           <span className="text-gray-600 dark:text-gray-400">
-            Don&apos;t have an account?{' '}
+            {t('login.noAccount')}{' '}
           </span>
           <Link
             href="/register"
             className="text-primary hover:underline font-medium"
           >
-            Sign up
+            {t('login.signUp')}
           </Link>
         </div>
 
@@ -152,7 +154,7 @@ function LoginForm() {
             href="/"
             className="text-sm text-gray-600 dark:text-gray-400 hover:underline"
           >
-            ← Back to home
+            {t('login.backHome')}
           </Link>
         </div>
       </div>
