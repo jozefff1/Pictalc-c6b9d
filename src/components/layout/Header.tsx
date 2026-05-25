@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import DarkModeToggle from '@/components/common/DarkModeToggle';
@@ -11,6 +12,7 @@ interface HeaderProps {
 
 export default function Header({ showAuth = true }: HeaderProps) {
   const { data: session } = useSession();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className="border-b border-border bg-white px-4 py-4 dark:bg-black">
@@ -85,8 +87,47 @@ export default function Header({ showAuth = true }: HeaderProps) {
               </>
             )
           )}
+
+          {/* Hamburger button — mobile only */}
+          {showAuth && (
+            <button
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              className="sm:hidden rounded-lg p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {showAuth && mobileMenuOpen && (
+        <div className="sm:hidden border-t border-border mt-2 pt-2 pb-1 flex flex-col gap-1 container mx-auto">
+          <Link
+            href="/communicate"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <span className="text-lg">💬</span> Communicate
+          </Link>
+          <Link
+            href="/learn"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <span className="text-lg">📚</span> Learn
+          </Link>
+        </div>
+      )}
     </header>
   );
 }

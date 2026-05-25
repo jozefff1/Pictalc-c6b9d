@@ -59,10 +59,31 @@ export function speakText(text: string, config: SpeechConfig = {}): Promise<void
       utterance.voice = config.voice;
     }
 
-    utterance.onend = () => resolve();
-    utterance.onerror = (event) => reject(new Error(`Speech error: ${event.error}`));
+    // Android Chrome workaround: after cancel(), the engine may silently pause
+    // new utterances. Poll resume() while speaking to prevent this.
+    let resumeInterval: ReturnType<typeof setInterval> | null = null;
+    const cleanup = () => {
+      if (resumeInterval) { clearInterval(resumeInterval); resumeInterval = null; }
+    };
 
-    window.speechSynthesis.speak(utterance);
+    utterance.onstart = () => {
+      resumeInterval = setInterval(() => {
+        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+      }, 250);
+    };
+    utterance.onend = () => { cleanup(); resolve(); };
+    utterance.onerror = (event) => {
+      cleanup();
+      // interrupted/canceled are not real errors (e.g. new speak() called)
+      if (event.error === 'interrupted' || event.error === 'canceled') {
+        resolve();
+      } else {
+        reject(new Error(`Speech error: ${event.error}`));
+      }
+    };
+
+    // 50ms delay after cancel() to avoid Android Chrome's silent-pause race condition
+    setTimeout(() => { window.speechSynthesis.speak(utterance); }, 50);
   });
 }
 

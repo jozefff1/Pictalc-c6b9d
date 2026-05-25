@@ -32,7 +32,18 @@ function speak(text: string, lang: Language) {
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = LANG_BCP47[lang];
   utter.rate = 0.9;
-  window.speechSynthesis.speak(utter);
+  // Android Chrome workaround: poll resume() while speaking
+  let interval: ReturnType<typeof setInterval> | null = null;
+  utter.onstart = () => {
+    interval = setInterval(() => {
+      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+    }, 250);
+  };
+  const done = () => { if (interval) { clearInterval(interval); interval = null; } };
+  utter.onend = done;
+  utter.onerror = done;
+  // 50ms delay after cancel() for Android Chrome
+  setTimeout(() => { window.speechSynthesis.speak(utter); }, 50);
 }
 
 function normalize(s: string) {
