@@ -32,17 +32,20 @@ interface RoomUser {
 interface Props {
   currentUserId: string;
   iconLabels: Record<string, string>;
-  // Called by parent with latest message so parent can clear sentence after send
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
   onRoomLoaded?: (rooms: RoomUser[]) => void;
+  onNewMessage?: () => void;
 }
 
 const POLL_MS = 3000;
 
-export default function CommunicateThread({ currentUserId, iconLabels, onRoomLoaded }: Props) {
+export default function CommunicateThread({ currentUserId, iconLabels, collapsed = false, onToggleCollapse, onRoomLoaded, onNewMessage }: Props) {
   const [rooms, setRooms] = useState<RoomUser[]>([]);
   const [activeRoom, setActiveRoom] = useState<RoomUser | null>(null);
   const [msgs, setMsgs] = useState<ThreadMessage[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const latestTsRef = useRef<string | null>(null);
@@ -103,12 +106,23 @@ export default function CommunicateThread({ currentUserId, iconLabels, onRoomLoa
         const fresh = incoming.filter((m) => !existingIds.has(m.id));
         if (!fresh.length) return prev;
         latestTsRef.current = fresh[fresh.length - 1].createdAt;
+        // Track unread when panel is collapsed
+        const fromOthers = fresh.filter((m) => m.senderId !== currentUserId);
+        if (fromOthers.length > 0 && collapsed) {
+          setUnreadCount((n) => n + fromOthers.length);
+          onNewMessage?.();
+        }
         return [...prev, ...fresh];
       });
     }, POLL_MS);
 
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [activeRoom]);
+
+  // Clear unread badge when panel is opened
+  useEffect(() => {
+    if (!collapsed) setUnreadCount(0);
+  }, [collapsed]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -134,17 +148,32 @@ export default function CommunicateThread({ currentUserId, iconLabels, onRoomLoa
 
   // ── Empty state ──
   if (!loadingRooms && rooms.length === 0) {
+    return null; // Hidden when no pairs — page handles empty state
+  }
+
+  // ── Collapsed header bar ──
+  if (collapsed) {
     return (
-      <div className="flex flex-col items-center justify-center py-6 px-4 text-center gap-2">
-        <div className="text-3xl">🔗</div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          No paired users yet.{' '}
-          <a href="/dashboard/patients" className="text-primary hover:underline">
-            Invite someone
-          </a>{' '}
-          to start a conversation.
-        </p>
-      </div>
+      <button
+        onClick={onToggleCollapse}
+        className="w-full flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors text-left"
+      >
+        <span className="text-base">💬</span>
+        <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+          {activeRoom ? `You ↔ ${activeRoom.name}` : 'Chat'}
+          {msgs.length > 0 && (
+            <span className="ml-1.5 text-xs text-gray-400 font-normal">
+              · {msgs.length} message{msgs.length !== 1 ? 's' : ''}
+            </span>
+          )}
+        </span>
+        {unreadCount > 0 && (
+          <span className="shrink-0 bg-primary text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-4.5 text-center">
+            {unreadCount}
+          </span>
+        )}
+        <span className="shrink-0 text-gray-400 text-xs">▼ Open</span>
+      </button>
     );
   }
 
@@ -172,15 +201,26 @@ export default function CommunicateThread({ currentUserId, iconLabels, onRoomLoa
         </div>
       )}
 
-      {/* Participants bar */}
+      {/* Participants bar + close button */}
       {activeRoom && (
         <div className="flex items-center gap-2 px-4 py-1.5 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <span className="font-medium text-gray-700 dark:text-gray-300">You</span>
           <span>↔</span>
           <span className="font-medium text-gray-700 dark:text-gray-300">{activeRoom.name}</span>
-          <span className="ml-auto flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            Live
+          <span className="ml-auto flex items-center gap-2">
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              Live
+            </span>
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs px-1.5 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Collapse chat"
+              >
+                ▲ Close
+              </button>
+            )}
           </span>
         </div>
       )}
@@ -244,7 +284,7 @@ export default function CommunicateThread({ currentUserId, iconLabels, onRoomLoa
                               )}
                             </div>
                             <span
-                              className={`text-[10px] text-center max-w-[56px] truncate leading-tight ${
+                              className={`text-[10px] text-center max-w-14 truncate leading-tight ${
                                 isMine ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
                               }`}
                             >

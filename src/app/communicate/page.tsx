@@ -2,14 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIconLabels } from '@/hooks/useIconLabels';
 import { getIconsByCategory, searchIcons } from '@/lib/data/icons';
-import { matchTextToIcons } from '@/lib/ai/iconMatcher';
-import type { IconMatch } from '@/lib/ai/iconMatcher';
 import { setCustomIcons, addIconToSentence, clearSentence } from '@/store/slices/communicationSlice';
 import CategorySelector from '@/components/features/CategorySelector';
 import IconGrid from '@/components/features/IconGrid';
@@ -28,11 +25,11 @@ export default function CommunicatePage() {
   const dispatch = useAppDispatch();
   const [mode, setMode] = useState<CommunicationMode>('icons');
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
   const [hasPairedUsers, setHasPairedUsers] = useState(false);
   const [sending, setSending] = useState(false);
-  const [replyText, setReplyText] = useState('');
-  const [replySuggestions, setReplySuggestions] = useState<IconMatch[]>([]);
+  const [threadCollapsed, setThreadCollapsed] = useState(true);
 
   const selectedCategory = useAppSelector((state) => state.communication.selectedCategory);
   const customIcons = useAppSelector((state) => state.communication.customIcons);
@@ -93,67 +90,26 @@ export default function CommunicatePage() {
     } finally { setSending(false); }
   }, [sentence, session?.user?.id, getLabel, dispatch]);
 
-  // Convert reply text to icons word-by-word; fall back to plain text if no matches
-  const handleSendText = useCallback(async () => {
-    const text = replyText.trim();
-    if (!text || !session?.user?.id) return;
-    const thread = (window as unknown as Record<string, { addMessage: (m: ThreadMessage) => void; getActiveRoom: () => { userId: string; name: string } | null }>).__snakkeThread;
-    const activeRoom = thread?.getActiveRoom();
-    if (!activeRoom) return;
-
-    // Try converting each word to an icon
-    const words = text.toLowerCase().split(/\s+/).filter(Boolean);
-    const matchedIcons: Icon[] = [];
-    for (const word of words) {
-      const results = matchTextToIcons(word, 1, language, customIcons, labels);
-      if (results.length > 0 && results[0].confidence >= 0.3) {
-        matchedIcons.push(results[0].icon);
-      }
-    }
-
-    const useIcons = matchedIcons.length > 0;
-    const sentenceText = useIcons ? matchedIcons.map(getLabel).join(' ') : text;
-    const content = useIcons
-      ? { type: 'icons' as const, icons: matchedIcons.map((ic) => ({ id: ic.id, name: ic.name, imageUrl: ic.imageUrl, symbol: ic.symbol })), sentence: sentenceText }
-      : { type: 'text' as const, text };
-
-    setSending(true);
-    try {
-      const res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipientId: activeRoom.userId, content }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        thread.addMessage({ ...data.message, senderName: null });
-        setReplyText('');
-        setReplySuggestions([]);
-      }
-    } finally { setSending(false); }
-  }, [replyText, session?.user?.id, language, customIcons, labels, getLabel]);
-
-  // Show icon suggestions as user types in the reply input
-  const handleReplyChange = useCallback((value: string) => {
-    setReplyText(value);
-    const currentWord = value.trim().split(/\s+/).pop()?.toLowerCase() ?? '';
-    if (currentWord.length >= 2) {
-      const results = matchTextToIcons(currentWord, 5, language, customIcons, labels);
-      setReplySuggestions(results.filter((r) => r.confidence >= 0.3));
-    } else {
-      setReplySuggestions([]);
-    }
-  }, [language, customIcons, labels]);
-
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
 
-      {/* ── Thread panel (visible when signed in + has paired users) ── */}
-      {session?.user?.id && (
-        <div
-          className="flex flex-col bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700"
-          style={{ flex: hasPairedUsers ? '1 1 0%' : '0 0 auto', minHeight: hasPairedUsers ? '200px' : 0 }}
-        >
+      {/* ── Thread panel — collapsible ── */}
+      {session?.user?.id && hasPairedUsers && (
+        <div className={threadCollapsed ? 'shrink-0' : 'flex-1 min-h-0 flex flex-col border-b-2 border-gray-200 dark:border-gray-700'}>
+          <CommunicateThread
+            currentUserId={session.user.id}
+            iconLabels={labels}
+            collapsed={threadCollapsed}
+            onToggleCollapse={() => setThreadCollapsed((p) => !p)}
+            onRoomLoaded={(rooms) => setHasPairedUsers(rooms.length > 0)}
+            onNewMessage={() => { /* badge already shown inside CommunicateThread */ }}
+          />
+        </div>
+      )}
+
+      {/* Invisible room loader when not yet known */}
+      {session?.user?.id && !hasPairedUsers && (
+        <div className="hidden">
           <CommunicateThread
             currentUserId={session.user.id}
             iconLabels={labels}
@@ -162,165 +118,95 @@ export default function CommunicatePage() {
         </div>
       )}
 
-      {/* ── Compose: sentence builder + send bar + mode tabs ── */}
-      <div className="flex flex-col shrink-0 bg-white dark:bg-gray-800">
-        {/* Sentence Builder */}
-        <SentenceBuilder isPrivate={isPrivate} />
+      {/* ── SentenceBuilder — compact, with Send ── */}
+      <div className="shrink-0">
+        <SentenceBuilder
+          isPrivate={isPrivate}
+          compact={true}
+          onSend={hasPairedUsers && session?.user?.id ? handleSendToThread : undefined}
+          sendDisabled={sentence.length === 0 || sending}
+        />
+      </div>
 
-        {/* Send bar — only when signed in and paired */}
-        {session?.user?.id && hasPairedUsers && (
-          <div className="flex flex-col gap-1 px-4 pb-3 pt-1 border-t border-gray-100 dark:border-gray-700">
-            {/* Live icon suggestions while typing reply */}
-            {replySuggestions.length > 0 && (
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-                <span className="text-[10px] text-gray-400 shrink-0">Icons:</span>
-                {replySuggestions.map((m) => (
-                  <button
-                    key={m.icon.id}
-                    onClick={() => dispatch(addIconToSentence(m.icon))}
-                    title={`Add "${getLabel(m.icon)}" to sentence`}
-                    className="shrink-0 flex flex-col items-center gap-0.5 p-1 rounded-lg bg-primary/10 hover:bg-primary/20 active:scale-95 transition-all"
-                  >
-                    {m.icon.imageUrl
-                      ? <Image src={m.icon.imageUrl} alt={getLabel(m.icon)} width={28} height={28} className="object-contain" />
-                      : <span className="text-lg leading-none">{m.icon.symbol}</span>}
-                    <span className="text-[9px] text-primary max-w-[40px] truncate">{getLabel(m.icon)}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleSendToThread}
-                disabled={sentence.length === 0 || sending}
-                className="flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2.5 text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-40 shrink-0"
-              >
-                <span>📤</span>{sending ? 'Sending…' : 'Send'}
-              </button>
-              <div className="flex flex-1 items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3 overflow-hidden">
-                <input
-                  type="text"
-                  value={replyText}
-                  onChange={(e) => handleReplyChange(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendText(); } }}
-                  placeholder="Type to reply (auto-converts to icons)…"
-                  className="flex-1 py-2.5 text-sm bg-transparent focus:outline-none"
-                />
+      {/* ── Mode tabs — slim, with inline search toggle ── */}
+      <div className="shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-0.5 px-2">
+          {/* Mode buttons */}
+          {([
+            { id: 'icons', emoji: '🎯', label: t('communicate.tab.icons') },
+            { id: 'text',  emoji: '⌨️', label: t('communicate.tab.type') },
+            { id: 'speech', emoji: '🎤', label: t('communicate.tab.speech') },
+          ] as const).map(({ id, emoji, label }) => (
+            <button
+              key={id}
+              onClick={() => setMode(id)}
+              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors ${
+                mode === id
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              <span>{emoji}</span>
+              <span className="hidden sm:inline">{label}</span>
+            </button>
+          ))}
+
+          <div className="flex-1" />
+
+          {/* Search toggle (icons mode only) */}
+          {mode === 'icons' && (
+            <button
+              onClick={() => { setSearchOpen((p) => !p); if (searchOpen) setSearchQuery(''); }}
+              className={`p-2 rounded-lg text-sm transition-colors ${searchOpen ? 'text-primary bg-primary/10' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+              aria-label="Toggle search"
+            >
+              🔍
+            </button>
+          )}
+
+          {/* Privacy toggle */}
+          {session && (
+            <button
+              onClick={() => setIsPrivate((p) => !p)}
+              title={isPrivate ? 'Private' : 'Shared'}
+              className={`p-2 rounded-lg text-sm transition-colors ${isPrivate ? 'text-gray-400' : 'text-green-600'}`}
+            >
+              {isPrivate ? '🔒' : '🔓'}
+            </button>
+          )}
+        </div>
+
+        {/* Inline search bar — expands below tabs */}
+        {mode === 'icons' && searchOpen && (
+          <div className="px-3 pb-2">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs">🔍</span>
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t('communicate.searchPlaceholder')}
+                autoFocus
+                className="w-full pl-8 pr-8 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:text-gray-100 dark:placeholder-gray-400"
+              />
+              {searchQuery && (
                 <button
-                  onClick={handleSendText}
-                  disabled={!replyText.trim() || sending}
-                  className="shrink-0 text-primary hover:opacity-70 disabled:opacity-30 text-lg leading-none"
-                >↑</button>
-              </div>
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              )}
             </div>
           </div>
         )}
-
-        {/* Mode Tabs + Privacy Toggle */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 flex items-center gap-2">
-          <div className="flex gap-1 flex-1">
-            <button
-              onClick={() => setMode('icons')}
-              className={`
-                flex-1 py-3 px-4 font-medium text-sm
-                border-b-2 transition-colors
-                ${
-                  mode === 'icons'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                }
-              `}
-            >
-              <span className="mr-2">🎯</span>
-              {t('communicate.tab.icons')}
-            </button>
-            <button
-              onClick={() => setMode('text')}
-              className={`
-                flex-1 py-3 px-4 font-medium text-sm
-                border-b-2 transition-colors
-                ${
-                  mode === 'text'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                }
-              `}
-            >
-              <span className="mr-2">⌨️</span>
-              {t('communicate.tab.type')}
-            </button>
-            <button
-              onClick={() => setMode('speech')}
-              className={`
-                flex-1 py-3 px-4 font-medium text-sm
-                border-b-2 transition-colors
-                ${
-                  mode === 'speech'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                }
-              `}
-            >
-              <span className="mr-2">🎤</span>
-              {t('communicate.tab.speech')}
-            </button>
-          </div>
-          {session && (
-            <>
-              <Link
-                href="/dashboard/phrases"
-                className="shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary/10 hover:text-primary dark:hover:text-primary"
-                title="My phrases collection"
-              >
-                <span>📋</span>
-                <span>{t('communicate.phrases')}</span>
-              </Link>
-              <button
-                onClick={() => setIsPrivate((p) => !p)}
-                title={isPrivate ? 'Private session — not shared with supervisors' : 'Shared session — visible to supervisors'}
-                className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                  isPrivate
-                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                    : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                }`}
-              >
-                {isPrivate ? '🔒' : '🔓'}
-                <span className="hidden sm:inline">{isPrivate ? 'Private' : 'Shared'}</span>
-              </button>
-            </>
-          )}
-        </div>
-      </div>
       </div>
 
-      {/* -- Icon board (scrollable) -- */}
+      {/* ── Icon board — dominant, takes all remaining space ── */}
       <div className="flex-1 overflow-y-auto min-h-0">
         {mode === 'icons' && (
           <div>
-            {/* Search bar */}
-            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2">
-              <div className="relative max-w-md">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">🔍</span>
-                <input
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t('communicate.searchPlaceholder')}
-                  className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-gray-100 dark:placeholder-gray-400"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                    aria-label="Clear search"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            </div>
-
             {/* Recently used — hidden during search */}
             {!trimmedQuery && recentIcons.length > 0 && (
               <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2">
@@ -336,13 +222,7 @@ export default function CommunicatePage() {
                       title={labels[icon.id] || icon.name}
                     >
                       {icon.imageUrl ? (
-                        <Image
-                          src={icon.imageUrl}
-                          alt={labels[icon.id] || icon.name}
-                          width={40}
-                          height={40}
-                          className="object-contain"
-                        />
+                        <Image src={icon.imageUrl} alt={labels[icon.id] || icon.name} width={40} height={40} className="object-contain" />
                       ) : (
                         <span className="text-2xl leading-none">{icon.symbol}</span>
                       )}
@@ -358,7 +238,7 @@ export default function CommunicatePage() {
             {/* Category tabs — hidden during search */}
             {!trimmedQuery && <CategorySelector />}
 
-            {/* Icon grid — search results or category icons */}
+            {/* Icon grid */}
             {trimmedQuery && iconsToShow.length === 0 ? (
               <div className="flex items-center justify-center h-48 text-gray-500 dark:text-gray-400 text-sm">
                 {t('communicate.searchEmpty')} &ldquo;{trimmedQuery}&rdquo;

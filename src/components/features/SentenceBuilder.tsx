@@ -73,7 +73,17 @@ function SortableIconCard({ icon, index, displayName, onRemove }: SortableIconCa
   );
 }
 
-export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boolean }) {
+export default function SentenceBuilder({
+  isPrivate = false,
+  compact = false,
+  onSend,
+  sendDisabled = false,
+}: {
+  isPrivate?: boolean;
+  compact?: boolean;
+  onSend?: () => void;
+  sendDisabled?: boolean;
+}) {
   const { t, tIcon, language } = useLanguage();
   const { labels } = useIconLabels();
   const { data: session } = useSession();
@@ -180,21 +190,23 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 p-4">
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-          {t('sentence.title')}
-        </h3>
-        {favoritePhrases.length > 0 && (
-          <button
-            onClick={() => setShowFavorites(!showFavorites)}
-            className="text-xs text-primary hover:underline flex items-center gap-1"
-            aria-expanded={showFavorites}
-          >
-            ⭐ Favourites ({favoritePhrases.length})
-          </button>
-        )}
-      </div>
+    <div className={`bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 ${compact ? 'px-3 py-2' : 'p-4'}`}>
+      {!compact && (
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            {t('sentence.title')}
+          </h3>
+          {favoritePhrases.length > 0 && (
+            <button
+              onClick={() => setShowFavorites(!showFavorites)}
+              className="text-xs text-primary hover:underline flex items-center gap-1"
+              aria-expanded={showFavorites}
+            >
+              ⭐ Favourites ({favoritePhrases.length})
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Favourites Panel */}
       {showFavorites && favoritePhrases.length > 0 && (
@@ -240,7 +252,7 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
           }
         }}
       >
-        <div className="flex items-center gap-2 mb-4 min-h-20 flex-wrap">
+        <div className={`flex items-center gap-2 ${compact ? 'min-h-12 overflow-x-auto pb-1 scrollbar-hide flex-nowrap' : 'mb-4 min-h-20 flex-wrap'}`}>
           {sentence.length === 0 ? (
             <p className="text-gray-400 dark:text-gray-500 text-sm italic">
               {t('sentence.empty')}
@@ -259,8 +271,8 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
         </div>
       </DragDropProvider>
 
-      {/* Text Representation */}
-      {sentenceText && (
+      {/* Text Representation — hidden in compact mode */}
+      {!compact && sentenceText && (
         <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
           <p className="text-lg font-medium text-gray-800 dark:text-gray-200">
             {sentenceText}
@@ -268,72 +280,86 @@ export default function SentenceBuilder({ isPrivate = false }: { isPrivate?: boo
         </div>
       )}
 
-      {/* Error Display */}
-      {error && (
+      {/* Error / Saved flash — hidden in compact mode */}
+      {!compact && error && (
         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
       {/* Saved Flash */}
-      {savedFlash && (
+      {!compact && savedFlash && (
         <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
           <p className="text-sm text-green-600 dark:text-green-400">⭐ Saved as favourite!</p>
         </div>
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-2">
+      <div className={`flex gap-2 ${compact ? 'mt-2' : ''}`}>
         <button
           onClick={handleSpeak}
           disabled={sentence.length === 0 || speaking}
-          className="
+          className={`
             flex-1 flex items-center justify-center gap-2
-            px-4 py-3 rounded-lg
-            bg-primary text-white
+            rounded-lg bg-primary text-white
             hover:bg-primary-hover
             disabled:bg-gray-300 dark:disabled:bg-gray-700
-            disabled:cursor-not-allowed
-            transition-colors
-            font-medium
-          "
+            disabled:cursor-not-allowed transition-colors font-medium
+            ${compact ? 'px-3 py-2 text-sm' : 'px-4 py-3'}
+          `}
         >
-          <span className="text-xl">{speaking ? '⏸️' : '🔊'}</span>
+          <span className={compact ? 'text-base' : 'text-xl'}>{speaking ? '⏸️' : '🔊'}</span>
           {speaking ? t('sentence.speaking') : t('sentence.speak')}
         </button>
 
-        <button
-          onClick={handleSaveFavorite}
-          disabled={sentence.length === 0}
-          title="Save as favourite"
-          className="
-            px-4 py-3 rounded-lg
-            bg-yellow-400 hover:bg-yellow-500
-            text-white
-            disabled:bg-gray-300 dark:disabled:bg-gray-700
-            disabled:cursor-not-allowed
-            transition-colors
-            font-medium text-xl
-          "
-          aria-label="Save sentence as favourite"
-        >
-          ⭐
-        </button>
+        {onSend && (
+          <button
+            onClick={onSend}
+            disabled={sendDisabled || sentence.length === 0}
+            className={`
+              flex items-center justify-center gap-1.5
+              rounded-lg bg-green-500 text-white
+              hover:bg-green-600
+              disabled:bg-gray-300 dark:disabled:bg-gray-700
+              disabled:cursor-not-allowed transition-colors font-medium
+              ${compact ? 'px-3 py-2 text-sm' : 'px-4 py-3'}
+            `}
+          >
+            <span>📤</span>
+            {!compact && 'Send'}
+          </button>
+        )}
+
+        {!compact && (
+          <button
+            onClick={handleSaveFavorite}
+            disabled={sentence.length === 0}
+            title="Save as favourite"
+            className="
+              px-4 py-3 rounded-lg
+              bg-yellow-400 hover:bg-yellow-500
+              text-white
+              disabled:bg-gray-300 dark:disabled:bg-gray-700
+              disabled:cursor-not-allowed transition-colors font-medium text-xl
+            "
+            aria-label="Save sentence as favourite"
+          >
+            ⭐
+          </button>
+        )}
 
         <button
           onClick={handleClear}
           disabled={sentence.length === 0}
-          className="
-            px-4 py-3 rounded-lg
-            bg-red-500 text-white
+          className={`
+            rounded-lg bg-red-500 text-white
             hover:bg-red-600
             disabled:bg-gray-300 dark:disabled:bg-gray-700
-            disabled:cursor-not-allowed
-            transition-colors
-            font-medium
-          "
+            disabled:cursor-not-allowed transition-colors font-medium
+            ${compact ? 'px-3 py-2 text-sm' : 'px-4 py-3'}
+          `}
         >
-          {t('sentence.clear')}
+          {compact ? '✕' : t('sentence.clear')}
         </button>
       </div>
     </div>
