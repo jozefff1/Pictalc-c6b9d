@@ -20,11 +20,33 @@ export default function JoinPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
-  // Validate token looks reasonable (basic guard)
+  // Invite info prefetched from public endpoint
+  const [inviteInfo, setInviteInfo] = useState<{
+    requesterName: string;
+    invitedEmailMasked: string | null;
+    invitedEmailFull: string | null;
+  } | null>(null);
+
+  // Fetch invite info as soon as we have a valid token
   useEffect(() => {
     if (!token || token.length < 10) {
       setError('Invalid invite link.');
+      return;
     }
+    fetch(`/api/pairings/invite/${token}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.valid) {
+          setInviteInfo({
+            requesterName: data.requesterName,
+            invitedEmailMasked: data.invitedEmailMasked,
+            invitedEmailFull: data.invitedEmailFull,
+          });
+        } else if (data.error) {
+          setError(data.error);
+        }
+      })
+      .catch(() => {/* non-critical — proceed without prefetch info */});
   }, [token]);
 
   const handleAccept = async () => {
@@ -123,9 +145,33 @@ export default function JoinPage() {
           <div className="text-4xl mb-3">🤝</div>
           <h1 className="text-2xl font-bold">You&apos;ve been invited</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            Someone wants to connect with you on Snakke. Review and choose what you&apos;re comfortable sharing before accepting.
+            {inviteInfo
+              ? <><strong>{inviteInfo.requesterName}</strong> wants to connect with you on Snakke.</>
+              : <>Someone wants to connect with you on Snakke.</>}{' '}
+            Review and choose what you&apos;re comfortable sharing before accepting.
           </p>
         </div>
+
+        {/* Email mismatch warning */}
+        {inviteInfo?.invitedEmailFull &&
+          session?.user?.email &&
+          inviteInfo.invitedEmailFull.toLowerCase().trim() !== session.user.email.toLowerCase().trim() && (
+          <div className="rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 px-4 py-3 text-sm text-yellow-800 dark:text-yellow-200 mb-5 flex items-start gap-2">
+            <span className="shrink-0 mt-0.5">⚠️</span>
+            <span>
+              This invite was sent to <strong>{inviteInfo.invitedEmailMasked}</strong>, but you&apos;re signed in as{' '}
+              <strong>{session.user.email}</strong>. Please{' '}
+              <a
+                href={`/login?callbackUrl=${encodeURIComponent(`/join/${token}`)}`}
+                onClick={async (e) => { e.preventDefault(); const { signOut } = await import('next-auth/react'); await signOut({ redirect: false }); window.location.href = `/login?callbackUrl=${encodeURIComponent(`/join/${token}`)}`; }}
+                className="underline font-semibold hover:opacity-80"
+              >
+                switch to the correct account
+              </a>{' '}
+              to accept this invite.
+            </span>
+          </div>
+        )}
 
         {error && (
           <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300 mb-5">

@@ -58,7 +58,9 @@ export const pairingRequests = pgTable('pairing_requests', {
   id: uuid('id').primaryKey().defaultRandom(),
   requesterId: uuid('requester_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   token: varchar('token', { length: 255 }).notNull().unique(),
-  status: varchar('status', { length: 50 }).notNull(), // pending, used, expired
+  // If set, only the user with this email may accept the invite
+  invitedEmail: varchar('invited_email', { length: 255 }),
+  status: varchar('status', { length: 50 }).notNull(), // pending, used, expired, declined
   expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

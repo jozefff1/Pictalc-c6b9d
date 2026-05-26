@@ -2,7 +2,7 @@
 
 This document defines the phased development roadmap for Snakke. Each phase builds on the previous and is scoped to be achievable in focused sprints.
 
-_Last updated: May 25, 2026 (session 9)_
+_Last updated: May 26, 2026 (session 14)_
 
 ---
 
@@ -74,6 +74,7 @@ _Last updated: May 25, 2026 (session 9)_
 - [ ] Icon board layout improvements (larger icons, better spacing for touch)
 - [ ] Haptic feedback on icon tap (`navigator.vibrate` — schema supports `hapticEnabled` but not implemented)
 - [ ] Keyboard-accessible icon navigation (ARIA labels exist, full keyboard nav not done)
+- [ ] **Switch access / scanning mode** — scanning cursor moves through icons at a configurable interval; user activates selection via spacebar, single key, or Bluetooth button; required for users with severe motor disabilities (see SUGGESTIONS.md §18 for full spec)
 - [ ] Long-press on icon to see icon details / delete custom icon
 - [ ] **Sentence reordering** — drag-and-drop to reorder icons in the built sentence; currently new icons always append to end
 - [ ] **Icon grid sorting** — user-defined ordering of icons within each category in the picker
@@ -86,6 +87,8 @@ _Last updated: May 25, 2026 (session 9)_
 - [x] **Animated icon press feedback** — `icon-tapped` CSS class + `@keyframes icon-tap` spring animation; respects `.reduce-motion` ✅
 - [x] **Smooth page transitions** — `@keyframes page-enter` fade+slide; disabled under `.reduce-motion` ✅
 - [x] **Header** — LanguageSwitcher visible on all pages; 💬 communicate shortcut + Learn nav link added ✅
+- [x] **Branded favicon + PWA icons** — `src/app/favicon.ico` (32×32), `public/icon-192.png`, `public/icon-512.png`; black background, brand-blue `#0ea5e9` letter; `manifest.json` split into separate `any` + `maskable` entries ✅
+- [x] **Norwegian default language** — `useSyncExternalStore` server snapshot returns `'no'`; removed redundant `mounted` guard ✅
 - [ ] Consistent design system (Tailwind tokens for spacing, typography)
 
 ---
@@ -195,6 +198,8 @@ _Last updated: May 25, 2026 (session 9)_
 - [x] Invite via magic link or email ✅
 - [x] Unpair / revoke access ✅
 - [x] Privacy settings per pairing ✅
+- [x] **Resend inbound email webhook** — `/api/webhooks/resend`; `svix` signature verification; forwards `email.received` events to `admin@arken.pro` ✅
+- [x] **AI search engine visibility** — `robots.txt` (ChatGPT, Meta AI, Amazonbot etc.), `llms.txt` (app description, pricing, contact), sitemap (`/communicate` added), OG locale `nb_NO` ✅
 
 ### 3.2 Guardian Dashboard
 - [x] View child's communication sessions (supervisor patient selector in `/dashboard/history`) ✅
@@ -214,6 +219,7 @@ _Last updated: May 25, 2026 (session 9)_
 
 - [x] **Service worker** — `@serwist/next` + `src/app/sw.ts`; `public/sw.js` generated at build time; correct `Cache-Control: no-cache` headers ✅
 - [x] Service worker caching strategy — `defaultCache` (stale-while-revalidate for assets) ✅
+- [x] **PWA icons** — `icon-192.png` + `icon-512.png` in `public/`; Chrome installability requires valid icon files ✅
 - [ ] Background sync — upload sessions when back online
 - [ ] Offline-capable custom icon upload queue
 - [ ] Install prompt / "Add to Home Screen" guidance
@@ -319,6 +325,44 @@ Key implementation notes:
 
 ---
 
+## 📋 Phase 8 — Marketing & Growth
+
+**Goal**: Build a competitive web presence that converts visitors into users across different audiences.
+
+### 8.1 Persona Landing Pages (Option A — same domain)
+
+Three audience-targeted landing pages within the existing Next.js project. Each page has a hero, pain-points section, relevant feature highlights, and a CTA to `/register` or `/communicate`.
+
+| Route | Audience | Core message |
+|---|---|---|
+| `/for-parents` | Parents & guardians | "Give your child a voice — free, works on any device" |
+| `/for-therapists` | SLPs & therapists | "Manage patients, track sessions, export data for research" |
+| `/for-schools` | Teachers & special educators | "AAC in the classroom — Norwegian-first, offline-ready" |
+
+- [ ] `/for-parents` landing page (EN + NO)
+- [ ] `/for-therapists` landing page (EN + NO)
+- [ ] `/for-schools` landing page (EN + NO)
+- [ ] "Who is Snakke for?" persona cards strip on main landing page — links to each persona page
+- [ ] Header nav "For you →" dropdown linking to all three pages
+
+### 8.2 Option B — Dedicated Marketing Site (Future)
+
+When a production domain (e.g. `snakke.no`) is acquired, migrate persona pages to a standalone marketing site. The app moves to `app.snakke.no`. This is the long-term clean separation.
+
+- [ ] Acquire production domain
+- [ ] Separate marketing site (Next.js or Astro) at root domain
+- [ ] App at `app.snakke.no`
+- [ ] Redirect persona pages from old domain
+
+### 8.3 Social Proof & Trust Signals
+
+- [ ] Testimonial / user story section (parent or therapist quote)
+- [ ] "Free — forever" pricing callout (competitive differentiator vs. Proloquo2Go €299)
+- [ ] Press / featured-in strip (if applicable)
+- [ ] Demo video or animated GIF of communication board in action
+
+---
+
 ## Priority Matrix
 
 | Feature | Impact | Effort | Priority | Status |
@@ -343,6 +387,8 @@ Key implementation notes:
 | ML icon matching | Medium | Very High | **P4** | 🔲 |
 | Switch access | High | Very High | **P4** | 🔲 |
 | Native app | Medium | High | **P4** | 🔲 |
+| Persona landing pages (/for-parents etc.) | High | Low | **P2** | 🔲 |
+| Dedicated marketing site (snakke.no) | Medium | Medium | **P3** | 🔲 |
 
 ---
 
@@ -355,4 +401,5 @@ Key implementation notes:
 | **v0.4.0** | ✅ Done | Dashboard i18n (EN+NO), supervisor pairing + patient history, accessibility preferences |
 | **v0.5.0** | Near-term | Full ES/FR/DE translations, spaced repetition, QR device pairing, guardian dashboard |
 | **v0.6.0** | Mid-term | Dynamic ARASAAC search, OBF import/export, full offline sync |
-| **v1.0.0** | Long-term | Production-ready, WCAG 2.1 AAA, App Store ready |
+| **v0.5.0** near-term add | — | Persona landing pages (`/for-parents`, `/for-therapists`, `/for-schools`) |
+| **v1.0.0** | Long-term | Production-ready, WCAG 2.1 AAA, App Store ready, dedicated marketing site |

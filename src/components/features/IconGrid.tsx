@@ -12,9 +12,9 @@ interface IconGridProps {
 }
 
 export default function IconGrid({ icons }: IconGridProps) {
-  const { tIcon } = useLanguage();
+  const { tIcon, language } = useLanguage();
   const dispatch = useAppDispatch();
-  const { labels, setLabel, clearLabel } = useIconLabels();
+  const { labels, setLabel, clearLabel } = useIconLabels(language);
   const [tappedId, setTappedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -92,7 +92,7 @@ export default function IconGrid({ icons }: IconGridProps) {
                 hover:border-primary hover:shadow-lg
                 active:scale-95
                 transition-all duration-200
-                min-h-[100px]
+                min-h-25
                 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
                 ${tappedId === icon.id ? 'icon-tapped' : ''}
               `}

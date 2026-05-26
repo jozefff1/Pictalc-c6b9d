@@ -40,6 +40,7 @@ Augmentative and Alternative Communication (AAC) refers to all forms of communic
 | Languages | EN, NO, ES, FR, DE |
 | Email | Resend |
 | Email templates | Resend (verification + password reset + invite links) |
+| Inbound email | Resend inbound + `svix` webhook signature verification |
 
 ---
 
@@ -65,7 +66,8 @@ Root
 │   │   │   ├── icons/               # Custom icon API (Blob + DB)
 │   │   │   ├── sessions/            # Communication session log API
 │   │   │   ├── preferences/         # Voice + theme preferences API
-│   │   │   └── profile/             # User profile read/update API
+│   │   │   ├── profile/             # User profile read/update API
+│   │   │   └── webhooks/resend/     # Resend inbound email webhook (svix signature verified)
 │   │   ├── layout.tsx               # Root layout
 │   │   └── page.tsx                 # Landing page
 │   ├── components/
@@ -87,8 +89,8 @@ Root
 │   │   │   ├── LanguageSwitcher.tsx # Language selector (EN/NO/ES/FR/DE)
 │   │   │   └── DarkModeToggle.tsx   # Sun/moon toggle
 │   │   └── layout/
-│   │       ├── Header.tsx           # Top nav (💬 communicate + Learn links) — used on landing, about, learn pages
-│   │       └── SignOutButton.tsx    # Shared server component sign-out form (used in (app) + communicate layouts)
+│   │       ├── Header.tsx           # Top nav (💬 communicate + Learn links) — landing, about, learn pages
+│   │       └── AppHeader.tsx        # Client header for (app) + communicate layouts; hamburger menu + sign-out
 │   ├── lib/
 │   │   ├── ai/
 │   │   │   ├── iconMatcher.ts       # Text → icon matching engine
@@ -142,7 +144,7 @@ Root
 users                → All user accounts
 devices              → Registered devices per user
 pairings             → Guardian ↔ Child relationships
-pairing_requests     → Temporary QR pairing tokens
+pairing_requests     → Invite tokens (email-bound, rate-limited, expiring 7d)
 messages             → Communication history between users
 communication_sessions → Icon sentence session logs
 user_preferences     → Per-user settings (theme, language, TTS)
@@ -186,8 +188,15 @@ password_history     → Last 5 password hashes per user (prevents password reus
 | Security headers (CSP-ready, X-Frame, Referrer-Policy) | ✅ |
 | Fully translated dashboard — all pages (EN + NO) | ✅ |
 | Supervisor pairing — invite via link or email | ✅ |
+| Pairing security — email-bound invites, rate limiting, recipient validation | ✅ |
+| Pending invites inbox (accept/decline from dashboard) | ✅ |
+| Email mismatch warning on /join/[token] page | ✅ |
 | Supervisor history with patient selector | ✅ |
 | Pairing access control (accept/revoke, privacy settings) | ✅ |
+| Branded PWA icons + favicon (black bg, brand blue) | ✅ |
+| Resend inbound email webhook (`/api/webhooks/resend`) | ✅ |
+| AI search engine visibility (robots.txt, llms.txt, sitemap, OG) | ✅ |
+| Norwegian as default language (browser + server snapshot) | ✅ |
 | Device pairing (QR code) | ❌ Not started |
 | Guardian real-time dashboard | ❌ Not started |
 | Dynamic ARASAAC API search (30,000+ symbols) | ❌ Not started |
@@ -207,3 +216,6 @@ password_history     → Last 5 password hashes per user (prevents password reus
 - **Keyword-based icon matching**: `iconMatcher.ts` is keyword/string based. ML embeddings planned for Phase 6.
 - **Language learning**: `learnFrom` / `learnTarget` are any two of EN/NO/ES/FR/DE, freely swappable. Persisted in `localStorage`. ES/FR/DE currently only have icon-label translations — UI strings remain English for those languages until professional translators contribute.
 - **`Permissions-Policy`**: `microphone=(self)` is set in security headers — required for the speaking mode in the learning feature.
+- **Default language**: Norwegian (`'no'`) is the default for both server-side snapshot and new users with no saved preference. Uses `useSyncExternalStore` with server/client snapshots — no `mounted` guard needed.
+- **Resend inbound webhook**: `/api/webhooks/resend` receives `email.received` events, verifies signature via `svix`, and forwards to `admin@arken.pro`. Requires `RESEND_WEBHOOK_SECRET` env var. Contact form sender is `contact@snakke.arken.pro` (verified domain).
+- **AI visibility**: `robots.txt` allows `OAI-SearchBot`, `Applebot-Extended`, `Meta-ExternalAgent`, `Amazonbot`, `Bytespider`, `YouBot`. `llms.txt` includes app description, language, pricing, and contact. OG locale is `nb_NO` with `en_US` alternate.

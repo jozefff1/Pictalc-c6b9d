@@ -28,7 +28,7 @@ export default function TextToIcons() {
   const dispatch = useAppDispatch();
   const { data: session } = useSession();
   const customIcons = useAppSelector((state) => state.communication.customIcons);
-  const { labels: iconLabels } = useIconLabels();
+  const { labels: iconLabels } = useIconLabels(language);
   const { sentences: userSentences } = useUserSentences(session?.user?.id);
   const [inputText, setInputText] = useState('');
   const [matches, setMatches] = useState<IconMatch[]>([]);
@@ -251,7 +251,7 @@ export default function TextToIcons() {
                       onClick={() => convertTextToIcons(s.text)}
                       className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 border border-primary/20 dark:border-primary/30 rounded-2xl hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all active:scale-95 text-sm text-left group"
                     >
-                      <span className="text-xl flex-shrink-0">
+                      <span className="text-xl shrink-0">
                         {(() => {
                           const icon = ICON_DATABASE.find((i) => i.id === s.iconIds[0]);
                           return icon?.symbol ?? '⭐';

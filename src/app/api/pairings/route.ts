@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid';
 import { requireAuth } from '@/lib/auth/requireAuth';
 import { db } from '@/lib/db/client';
 import { pairings, pairingRequests, users } from '@/lib/db/schema';
-import { eq, or, and } from 'drizzle-orm';
+import { eq, or, and, gte, sql } from 'drizzle-orm';
 import { sendInviteEmail } from '@/lib/email/resend';
 
 // GET /api/pairings — list all pairings for the current user (as guardian or child)
@@ -78,11 +78,26 @@ export async function POST(request: NextRequest) {
   const token = nanoid(24);
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
+  // Rate limit: max 10 invite tokens per user per hour
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const [{ recentCount }] = await db
+    .select({ recentCount: sql<number>`count(*)::int` })
+    .from(pairingRequests)
+    .where(and(eq(pairingRequests.requesterId, userId), gte(pairingRequests.createdAt, oneHourAgo)));
+
+  if (recentCount >= 10) {
+    return NextResponse.json(
+      { error: 'Too many invites generated. Please wait before creating more.' },
+      { status: 429 }
+    );
+  }
+
   await db.insert(pairingRequests).values({
     requesterId: userId,
     token,
     status: 'pending',
     expiresAt,
+    invitedEmail: result.data.email?.toLowerCase().trim() ?? null,
   });
 
   const baseUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://snakke.vercel.app';

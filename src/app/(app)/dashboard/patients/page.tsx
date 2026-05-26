@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { RELATIONSHIP_LABELS } from '@/lib/utils/labels';
+import QRCodeModal from '@/components/features/pairing/QRCodeModal';
 
 interface OtherUser {
   id: string;
@@ -43,12 +44,26 @@ export default function PatientsPage() {
   // Remove pairing
   const [removing, setRemoving] = useState<string | null>(null);
 
+  // Pending invites addressed to this user
+  const [pendingInvites, setPendingInvites] = useState<{
+    id: string; token: string; requesterName: string | null; requesterEmail: string | null; expiresAt: string;
+  }[]>([]);
+  const [declining, setDeclining] = useState<string | null>(null);
+
+  // QR pairing modal
+  const [showQR, setShowQR] = useState(false);
+
   const loadPairings = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/pairings');
-      const data = await res.json();
-      setPairingsList(data.pairings ?? []);
+      const [pairingsRes, pendingRes] = await Promise.all([
+        fetch('/api/pairings'),
+        fetch('/api/pairings/pending'),
+      ]);
+      const pairingsData = await pairingsRes.json();
+      const pendingData = await pendingRes.json();
+      setPairingsList(pairingsData.pairings ?? []);
+      setPendingInvites(pendingData.pendingInvites ?? []);
     } catch {
       setPairingsList([]);
     } finally {
@@ -99,6 +114,20 @@ export default function PatientsPage() {
     }
   };
 
+  const handleDecline = async (token: string) => {
+    setDeclining(token);
+    try {
+      await fetch('/api/pairings/decline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      setPendingInvites((prev) => prev.filter((i) => i.token !== token));
+    } finally {
+      setDeclining(null);
+    }
+  };
+
   const supervisorPairings = pairingsList?.filter((p) => p.role === 'supervisor') ?? [];
   const supervisedBy = pairingsList?.filter((p) => p.role === 'supervised') ?? [];
 
@@ -112,13 +141,69 @@ export default function PatientsPage() {
             {t('patients.subtitle')}
           </p>
         </div>
-        <button
-          onClick={() => { setShowInvite(true); setInviteResult(null); setInviteEmail(''); }}
-          className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-all"
-        >
-          {t('patients.invite')}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowQR(true)}
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-2.5 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            title="Show QR code for quick pairing"
+          >
+            <span className="text-base leading-none">⬛</span> QR Code
+          </button>
+          <button
+            onClick={() => { setShowInvite(true); setInviteResult(null); setInviteEmail(''); }}
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-all"
+          >
+            {t('patients.invite')}
+          </button>
+        </div>
       </div>
+
+      {/* ── Pending invitations addressed to you ── */}
+      {pendingInvites.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-base font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-4 flex items-center gap-2">
+            📩 Pending invitations for you
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white text-xs font-bold">
+              {pendingInvites.length}
+            </span>
+          </h2>
+          <div className="space-y-3">
+            {pendingInvites.map((invite) => (
+              <div
+                key={invite.id}
+                className="rounded-2xl border border-primary/30 bg-primary/5 dark:bg-primary/10 p-5 flex items-center gap-4"
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg shrink-0">
+                  🤝
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold truncate">
+                    {invite.requesterName ?? 'Someone'} wants to connect with you
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Expires {new Date(invite.expiresAt).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href={`/join/${invite.token}`}
+                    className="rounded-lg px-3 py-1.5 text-sm font-semibold bg-primary text-white hover:opacity-90 transition-all"
+                  >
+                    Accept
+                  </a>
+                  <button
+                    onClick={() => handleDecline(invite.token)}
+                    disabled={declining === invite.token}
+                    className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                  >
+                    {declining === invite.token ? '…' : 'Decline'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── Supervised patients (I am the supervisor) ── */}
       <section className="mb-10">
@@ -249,6 +334,9 @@ export default function PatientsPage() {
           ))}
         </div>
       </section>
+
+      {/* ── QR pairing modal ── */}
+      {showQR && <QRCodeModal onClose={() => setShowQR(false)} />}
 
       {/* ── Invite modal ── */}
       {showInvite && (

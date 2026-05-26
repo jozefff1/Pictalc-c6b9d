@@ -53,6 +53,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'You cannot accept your own invite' }, { status: 400 });
   }
 
+  // If the invite was addressed to a specific email, enforce it
+  if (invite.invitedEmail) {
+    const [acceptorUser] = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.id, acceptorId))
+      .limit(1);
+
+    const normalizedInvited = invite.invitedEmail.toLowerCase().trim();
+    const normalizedAcceptor = acceptorUser?.email?.toLowerCase().trim() ?? '';
+
+    if (normalizedInvited !== normalizedAcceptor) {
+      return NextResponse.json(
+        { error: `This invite was sent to ${invite.invitedEmail}. Please sign in with that account to accept it.` },
+        { status: 403 }
+      );
+    }
+  }
+
   // Determine roles: inviter = guardian/supervisor, acceptor = child/patient
   // If the acceptor is a guardian/therapist themselves, they become a co-supervisor
   const [acceptorUser] = await db

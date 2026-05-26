@@ -9,6 +9,7 @@ import {
   getIconsByCategory as getBuiltinByCategory,
 } from '@/lib/data/icons';
 import { useIconLabels } from '@/hooks/useIconLabels';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { Icon, IconCategory } from '@/types/models';
 
 /**
@@ -23,7 +24,8 @@ export function useIconRegistry() {
   const dispatch = useAppDispatch();
   const { data: session } = useSession();
   const customIcons = useAppSelector((state) => state.communication.customIcons);
-  const { labels } = useIconLabels();
+  const { language } = useLanguage();
+  const { labels } = useIconLabels(language);
 
   // Populate Redux if needed (e.g. user navigates directly to /dashboard/phrases)
   useEffect(() => {

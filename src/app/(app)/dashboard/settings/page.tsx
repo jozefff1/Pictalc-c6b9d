@@ -49,7 +49,7 @@ export default function SettingsPage() {
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [triggerSaved]);
 
   const update = useCallback(<K extends keyof Prefs>(key: K, value: Prefs[K]) => {
     setPrefs((prev) => {

@@ -2,7 +2,7 @@
 
 This document captures improvement suggestions, UX observations, and technical recommendations based on a full review of the codebase, existing documentation, and the AAC market landscape.
 
-_Last updated: May 24, 2026 (session 8)_
+_Last updated: May 26, 2026 (session 14)_
 
 ---
 
@@ -14,6 +14,8 @@ The `AUTH_SECRET` must be set in Vercel's environment variables. Without it, all
 ### 2. Service Worker ✅ Fixed (PWA Now Installs)
 Migrated from `@ducanh2912/next-pwa` to `@serwist/next` + `serwist`. `next.config.ts` now wraps the Next.js config with `withSerwist`. The `src/app/sw.ts` service worker entry point uses `serwist`'s `defaultCache` and `__SW_MANIFEST` precache manifest. Builds with `--webpack` (Serwist is incompatible with Next.js 16's default Turbopack). `public/sw.js` is generated at build time.
 
+**PWA icons added (session 14)**: Chrome's installability check validates icon files. `public/icon-192.png` and `public/icon-512.png` were missing, preventing Chrome from showing the install button (Firefox was more lenient). Placeholder branded icons created — black background, `#0ea5e9` blue "S". `manifest.json` split `"any maskable"` into separate `purpose: "any"` and `purpose: "maskable"` entries as required by the spec.
+
 **Additional deduplication work completed (session 4)**:
 - `src/lib/utils/constants.ts` — Centralised all `localStorage` keys under `STORAGE_KEYS` (dashes format). Added `APP_FEATURE_SUMMARY` constant for description strings.
 - `src/hooks/usePreferences.ts` — New shared hook; fetches `/api/preferences`, dispatches to Redux `uiSlice`, consumed by `SentenceBuilder` and settings page.
@@ -21,6 +23,8 @@ Migrated from `@ducanh2912/next-pwa` to `@serwist/next` + `serwist`. `next.confi
 - `DarkModeToggle` — Now dispatches `setTheme` to Redux alongside DOM/localStorage update.
 - `LanguageContext` — Uses `STORAGE_KEYS.LANGUAGE` instead of hardcoded string.
 - `layout.tsx` + `llms.txt/route.ts` — Use `APP_FEATURE_SUMMARY` constant instead of hardcoded copy.
+
+**Hydration fix + `mounted` guard removed (session 14)**: `LanguageContext` previously used a `useState(false)` + `useEffect(() => setMounted(true))` pattern to avoid hydration mismatches. This caused a cascading-render React warning. Fixed by ensuring both server and client snapshots return `'no'` (Norwegian default) — `useSyncExternalStore` handles the hydration transition correctly without extra state.
 
 ### 3. No `/error` Route ✅ Fixed
 The auth config previously redirected to `/error` which doesn't exist, causing a 404 on any auth failure. Fixed to redirect to `/login` instead. Consider adding a dedicated, user-friendly error page at `/app/(auth)/error/page.tsx`.
@@ -130,10 +134,27 @@ OBF (`.obz` files) is the open standard for AAC boards, supported by Snap Core F
 - Connect Snakke to the broader AAC community ecosystem
 
 ### 18. Switch Access / Scanning Mode
-Many users of AAC software cannot use a touchscreen directly. They use a single switch (button) to scan through options. This is standard in AAC apps. Implementation:
-- A scanning cursor that moves through icons automatically
-- A timing interval setting
-- Activate on switch press (spacebar / any key / Bluetooth button)
+Many users of AAC software cannot use a touchscreen directly. They use a single physical switch — a large button, sip-and-puff tube, foot pedal, or Bluetooth button — to scan through options. The app highlights icons one at a time; the user presses their switch when the desired icon is highlighted. This is a standard feature in all clinical-grade AAC apps.
+
+**Market context**: Proloquo2Go supports 23 grid layouts and multiple switch/keyguard configurations; Tobii Dynavox SNAP supports full eye-gaze. Snakke's absence of switch access excludes users with severe motor disabilities and blocks clinical/insurance-funded deployments. Adding even basic single-switch scanning would open this segment.
+
+**Implementation plan**:
+- A `useSwitchAccess` hook that manages the scan cursor state (current index, running/paused)
+- Configurable scan interval (default 2 s, adjustable in `/dashboard/settings`)
+- Visual highlight ring on the currently scanned icon (CSS `outline` respecting high-contrast mode)
+- Activation: `keydown` listener for `Space` / `Enter` selects the highlighted icon; any key can be remapped
+- Bluetooth switch devices present as a keyboard keypress — no special hardware API needed
+- `switchAccessEnabled` boolean added to user preferences (DB + `uiSlice`)
+- Toggle in `/dashboard/settings` under Accessibility section
+- Scan order: left-to-right, top-to-bottom within the visible icon grid; wraps to start
+- Auto-pause when sentence builder is focused; resume when icon grid regains focus
+
+**Files to modify**:
+- `src/hooks/useSwitchAccess.ts` — new hook
+- `src/components/features/IconGrid.tsx` — accept `scanIndex` prop, apply highlight class
+- `src/app/(app)/dashboard/settings/page.tsx` — add toggle + interval slider
+- `src/lib/db/schema.ts` — add `switchAccessEnabled` + `scanInterval` to preferences
+- `src/app/api/preferences/route.ts` — handle new fields in PATCH
 
 ### 19. Icon Search ✅ Implemented
 A search bar on the communicate page searches all 95 built-in icons + any uploaded custom icons by name. Hides category tabs and recently-used strip during search; `×` clear button; empty-state message.
