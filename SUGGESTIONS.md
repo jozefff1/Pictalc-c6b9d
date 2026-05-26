@@ -2,7 +2,7 @@
 
 This document captures improvement suggestions, UX observations, and technical recommendations based on a full review of the codebase, existing documentation, and the AAC market landscape.
 
-_Last updated: May 26, 2026 (session 14)_
+_Last updated: May 27, 2026 (session 17)_
 
 ---
 

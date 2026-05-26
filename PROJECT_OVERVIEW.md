@@ -64,6 +64,8 @@ Root
 │   │   │   ├── auth/forgot-password/ # Request password reset email
 │   │   │   ├── auth/reset-password/  # Validate token + save new password
 │   │   │   ├── icons/               # Custom icon API (Blob + DB)
+│   │   │   ├── messages/            # POST send message, GET fetch history
+│   │   │   │   └── room/            # GET merged thread between paired users (?since= for incremental polling)
 │   │   │   ├── sessions/            # Communication session log API
 │   │   │   ├── preferences/         # Voice + theme preferences API
 │   │   │   ├── profile/             # User profile read/update API
@@ -81,6 +83,9 @@ Root
 │   │   │   ├── LandingPage.tsx      # Client-side landing page
 │   │   │   ├── AboutContent.tsx     # Client component: bilingual about page body (EN+NO)
 │   │   │   ├── AboutContactForm.tsx # Contact form with useLanguage
+│   │   │   ├── communication/
+│   │   │   │   ├── CommunicateThread.tsx  # Live pictogram chat thread (3s polling, collapsible, sound+visual notifications)
+│   │   │   │   └── ChatDrawer.tsx         # Reusable chat side panel (used in dashboard/patients/[id])
 │   │   │   └── learning/
 │   │   │       ├── LearnPage.tsx        # /learn page wrapper
 │   │   │       ├── LanguagePicker.tsx   # Pick learnFrom / learnTarget
@@ -197,6 +202,10 @@ password_history     → Last 5 password hashes per user (prevents password reus
 | Resend inbound email webhook (`/api/webhooks/resend`) | ✅ |
 | AI search engine visibility (robots.txt, llms.txt, sitemap, OG) | ✅ |
 | Norwegian as default language (browser + server snapshot) | ✅ |
+| Real-time pictogram messaging between paired users (3s polling) | ✅ |
+| Collapsible chat thread on communicate page with unread badge | ✅ |
+| Sound chime (Web Audio API) + visual effects on new messages | ✅ |
+| Compact communicate page — icon board dominates, slim toolbar | ✅ |
 | Device pairing (QR code) | ❌ Not started |
 | Guardian real-time dashboard | ❌ Not started |
 | Dynamic ARASAAC API search (30,000+ symbols) | ❌ Not started |

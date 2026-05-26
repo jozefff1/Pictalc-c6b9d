@@ -2,7 +2,7 @@
 
 This document defines the phased development roadmap for Snakke. Each phase builds on the previous and is scoped to be achievable in focused sprints.
 
-_Last updated: May 26, 2026 (session 14)_
+_Last updated: May 27, 2026 (session 17)_
 
 ---
 
@@ -208,7 +208,12 @@ _Last updated: May 26, 2026 (session 14)_
 - [ ] Set vocabulary restrictions per child
 
 ### 3.3 Real-time Sync
-- [ ] WebSocket or Vercel Pusher for live session viewing
+- [x] **Live pictogram thread between paired users** — `CommunicateThread` component with 3s polling, room tabs for multiple pairs, pictogram + text message rendering ✅
+- [x] **GET /api/messages/room** — merged conversation thread, `?since=` for incremental polling ✅
+- [x] **POST /api/messages** — send pictogram sentence as message ✅
+- [x] **Compact communicate page redesign** — collapsible thread bar (40px collapsed with unread badge), compact SentenceBuilder row, slim mode tabs with inline search toggle, icon board takes dominant space ✅
+- [x] **Sound + visual notifications** — Web Audio API 2-note chime on incoming message; collapsed bar glow-pulse; unread badge bounce; message slide-in animation ✅
+- [ ] WebSocket or Vercel Pusher for true real-time (replace 3s polling)
 - [ ] Guardian sees child's sentence being built in real time
 
 ---
