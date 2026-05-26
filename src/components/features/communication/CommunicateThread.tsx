@@ -40,12 +40,42 @@ interface Props {
 
 const POLL_MS = 3000;
 
+/** Plays a soft 2-note chime via Web Audio API. No files needed. */
+function playChime() {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+
+    const makeNote = (freq: number, startAt: number, vol: number, dur: number) => {
+      const gain = ctx.createGain();
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0, startAt);
+      gain.gain.linearRampToValueAtTime(vol, startAt + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, startAt + dur);
+
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startAt);
+      osc.connect(gain);
+      osc.start(startAt);
+      osc.stop(startAt + dur);
+    };
+
+    makeNote(880,  ctx.currentTime,        0.18, 0.45); // A5
+    makeNote(1109, ctx.currentTime + 0.13, 0.13, 0.5);  // C#6
+
+    setTimeout(() => ctx.close(), 800);
+  } catch {
+    // Web Audio unavailable — skip silently
+  }
+}
+
 export default function CommunicateThread({ currentUserId, iconLabels, collapsed = false, onToggleCollapse, onRoomLoaded, onNewMessage }: Props) {
   const [rooms, setRooms] = useState<RoomUser[]>([]);
   const [activeRoom, setActiveRoom] = useState<RoomUser | null>(null);
   const [msgs, setMsgs] = useState<ThreadMessage[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [newMsgIds, setNewMsgIds] = useState<Set<string>>(new Set());
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const latestTsRef = useRef<string | null>(null);
@@ -112,6 +142,14 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
           setUnreadCount((n) => n + fromOthers.length);
           onNewMessage?.();
         }
+        // Play chime for messages from others (collapsed or not)
+        if (fromOthers.length > 0) {
+          playChime();
+        }
+        // Mark fresh messages for slide-in animation
+        const freshIds = new Set(fresh.map((m) => m.id));
+        setNewMsgIds(freshIds);
+        setTimeout(() => setNewMsgIds(new Set()), 600);
         return [...prev, ...fresh];
       });
     }, POLL_MS);
@@ -136,6 +174,9 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
   const addMessage = useCallback((msg: ThreadMessage) => {
     setMsgs((prev) => [...prev, msg]);
     latestTsRef.current = msg.createdAt;
+    // Animate the sent message
+    setNewMsgIds(new Set([msg.id]));
+    setTimeout(() => setNewMsgIds(new Set()), 600);
     setTimeout(() => {
       if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, 50);
@@ -156,7 +197,7 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
     return (
       <button
         onClick={onToggleCollapse}
-        className="w-full flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors text-left"
+        className={`w-full flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors text-left${unreadCount > 0 ? ' snakke-bar-pulse' : ''}`}
       >
         <span className="text-base">💬</span>
         <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
@@ -168,7 +209,10 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
           )}
         </span>
         {unreadCount > 0 && (
-          <span className="shrink-0 bg-primary text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-4.5 text-center">
+          <span
+            key={unreadCount}
+            className="snakke-badge-bounce shrink-0 bg-primary text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-4.5 text-center"
+          >
             {unreadCount}
           </span>
         )}
@@ -238,8 +282,12 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
 
         {msgs.map((msg) => {
           const isMine = msg.senderId === currentUserId;
+          const isNew = newMsgIds.has(msg.id);
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+            <div
+              key={msg.id}
+              className={`flex ${isMine ? 'justify-end' : 'justify-start'}${isNew ? (isMine ? ' snakke-msg-in-right' : ' snakke-msg-in-left') : ''}`}
+            >
               <div className={`flex flex-col gap-1 max-w-[80%] ${isMine ? 'items-end' : 'items-start'}`}>
                 {/* Sender name for received messages */}
                 {!isMine && (
