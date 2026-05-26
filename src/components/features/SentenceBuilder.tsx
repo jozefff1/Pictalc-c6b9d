@@ -85,7 +85,7 @@ export default function SentenceBuilder({
   sendDisabled?: boolean;
 }) {
   const { t, tIcon, language } = useLanguage();
-  const { labels } = useIconLabels();
+  const { labels } = useIconLabels(language);
   const { data: session } = useSession();
   const dispatch = useAppDispatch();
   const sentence = useAppSelector((state) => state.communication.sentence);
