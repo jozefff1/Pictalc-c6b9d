@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { formatDate, formatTime } from '@/lib/utils/formatters';
+import ChatDrawer from '@/components/features/communication/ChatDrawer';
 
 interface SessionRow {
   id: string;
@@ -37,9 +39,10 @@ function topIcons(sessions: SessionRow[], n = 10) {
 
 export default function PatientDetailPage() {
   const { id: patientId } = useParams<{ id: string }>();
+  const { data: session } = useSession();
   const [data, setData] = useState<PatientData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<'history' | 'stats'>('history');
+  const [tab, setTab] = useState<'history' | 'stats' | 'chat'>('history');
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
@@ -148,17 +151,17 @@ export default function PatientDetailPage() {
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
-        {(['history', 'stats'] as const).map((t) => (
+        {(['history', 'stats', 'chat'] as const).map((tabName) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabName}
+            onClick={() => setTab(tabName)}
             className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors capitalize ${
-              tab === t
+              tab === tabName
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
-            {t === 'history' ? 'Session History' : 'Icon Usage'}
+            {tabName === 'history' ? 'Session History' : tabName === 'stats' ? 'Icon Usage' : '💬 Chat'}
           </button>
         ))}
       </div>
@@ -235,6 +238,16 @@ export default function PatientDetailPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Chat */}
+      {tab === 'chat' && session?.user?.id && (
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden" style={{ height: '60vh' }}>
+          <ChatDrawer
+            currentUserId={session.user.id}
+            onClose={() => setTab('history')}
+          />
         </div>
       )}
     </div>

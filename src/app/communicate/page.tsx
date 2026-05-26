@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -8,27 +8,33 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIconLabels } from '@/hooks/useIconLabels';
 import { getIconsByCategory, searchIcons } from '@/lib/data/icons';
-import { setCustomIcons, addIconToSentence } from '@/store/slices/communicationSlice';
+import { setCustomIcons, addIconToSentence, clearSentence } from '@/store/slices/communicationSlice';
 import CategorySelector from '@/components/features/CategorySelector';
 import IconGrid from '@/components/features/IconGrid';
 import SentenceBuilder from '@/components/features/SentenceBuilder';
 import TextToIcons from '@/components/features/TextToIcons';
 import SpeechToIcons from '@/components/features/SpeechToIcons';
+import CommunicateThread, { type ThreadMessage } from '@/components/features/communication/CommunicateThread';
+import type { Icon } from '@/types/models';
 
 type CommunicationMode = 'icons' | 'text' | 'speech';
 
 export default function CommunicatePage() {
-  const { t } = useLanguage();
-  const { labels } = useIconLabels();
+  const { t, language } = useLanguage();
+  const { labels } = useIconLabels(language);
   const { data: session } = useSession();
   const dispatch = useAppDispatch();
   const [mode, setMode] = useState<CommunicationMode>('icons');
   const [searchQuery, setSearchQuery] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
+  const [hasPairedUsers, setHasPairedUsers] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [replyText, setReplyText] = useState('');
 
   const selectedCategory = useAppSelector((state) => state.communication.selectedCategory);
   const customIcons = useAppSelector((state) => state.communication.customIcons);
   const recentIcons = useAppSelector((state) => state.communication.recentIcons);
+  const sentence = useAppSelector((state) => state.communication.sentence) as Icon[];
 
   useEffect(() => {
     // Only fetch custom icons for authenticated users
@@ -58,13 +64,105 @@ export default function CommunicatePage() {
 
   const iconsToShow = trimmedQuery ? searchResults : categoryIcons;
 
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      {/* Sentence Builder - Always Visible */}
-      <SentenceBuilder isPrivate={isPrivate} />
+  const getLabel = useCallback((icon: Icon) => labels[icon.id] || icon.name, [labels]);
 
-      {/* Mode Tabs + Privacy Toggle */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+  const handleSendToThread = useCallback(async () => {
+    if (sentence.length === 0 || !session?.user?.id) return;
+    const thread = (window as unknown as Record<string, { addMessage: (m: ThreadMessage) => void; getActiveRoom: () => { userId: string; name: string } | null }>).__snakkeThread;
+    const activeRoom = thread?.getActiveRoom();
+    if (!activeRoom) return;
+    const sentenceText = sentence.map(getLabel).join(' ');
+    setSending(true);
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipientId: activeRoom.userId,
+          content: { type: 'icons', icons: sentence.map((ic) => ({ id: ic.id, name: ic.name, imageUrl: ic.imageUrl, symbol: ic.symbol })), sentence: sentenceText },
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        thread.addMessage({ ...data.message, senderName: null });
+        dispatch(clearSentence());
+      }
+    } finally { setSending(false); }
+  }, [sentence, session?.user?.id, getLabel, dispatch]);
+
+  const handleSendText = useCallback(async () => {
+    const text = replyText.trim();
+    if (!text || !session?.user?.id) return;
+    const thread = (window as unknown as Record<string, { addMessage: (m: ThreadMessage) => void; getActiveRoom: () => { userId: string; name: string } | null }>).__snakkeThread;
+    const activeRoom = thread?.getActiveRoom();
+    if (!activeRoom) return;
+    setSending(true);
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientId: activeRoom.userId, content: { type: 'text', text } }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        thread.addMessage({ ...data.message, senderName: null });
+        setReplyText('');
+      }
+    } finally { setSending(false); }
+  }, [replyText, session?.user?.id]);
+
+  return (
+    <div className="h-screen flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
+
+      {/* ── Thread panel (visible when signed in + has paired users) ── */}
+      {session?.user?.id && (
+        <div
+          className="flex flex-col bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700"
+          style={{ flex: hasPairedUsers ? '1 1 0%' : '0 0 auto', minHeight: hasPairedUsers ? '200px' : 0 }}
+        >
+          <CommunicateThread
+            currentUserId={session.user.id}
+            iconLabels={labels}
+            onRoomLoaded={(rooms) => setHasPairedUsers(rooms.length > 0)}
+          />
+        </div>
+      )}
+
+      {/* ── Compose: sentence builder + send bar + mode tabs ── */}
+      <div className="flex flex-col shrink-0 bg-white dark:bg-gray-800">
+        {/* Sentence Builder */}
+        <SentenceBuilder isPrivate={isPrivate} />
+
+        {/* Send bar — only when signed in and paired */}
+        {session?.user?.id && hasPairedUsers && (
+          <div className="flex items-center gap-2 px-4 pb-3 pt-1 border-t border-gray-100 dark:border-gray-700">
+            <button
+              onClick={handleSendToThread}
+              disabled={sentence.length === 0 || sending}
+              className="flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2.5 text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-40 shrink-0"
+            >
+              <span>📤</span>{sending ? 'Sending…' : 'Send'}
+            </button>
+            <div className="flex flex-1 items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3 overflow-hidden">
+              <input
+                type="text"
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendText(); } }}
+                placeholder="Type a reply…"
+                className="flex-1 py-2.5 text-sm bg-transparent focus:outline-none"
+              />
+              <button
+                onClick={handleSendText}
+                disabled={!replyText.trim() || sending}
+                className="shrink-0 text-primary hover:opacity-70 disabled:opacity-30 text-lg leading-none"
+              >↑</button>
+            </div>
+          </div>
+        )}
+
+        {/* Mode Tabs + Privacy Toggle */}
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 flex items-center gap-2">
           <div className="flex gap-1 flex-1">
             <button
@@ -113,7 +211,6 @@ export default function CommunicatePage() {
               {t('communicate.tab.speech')}
             </button>
           </div>
-          {/* Privacy toggle — only meaningful for authenticated users */}
           {session && (
             <>
               <Link
@@ -140,9 +237,10 @@ export default function CommunicatePage() {
           )}
         </div>
       </div>
+      </div>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto">
+      {/* -- Icon board (scrollable) -- */}
+      <div className="flex-1 overflow-y-auto min-h-0">
         {mode === 'icons' && (
           <div>
             {/* Search bar */}
@@ -217,9 +315,8 @@ export default function CommunicatePage() {
         )}
 
         {mode === 'text' && <TextToIcons />}
-
         {mode === 'speech' && <SpeechToIcons />}
-      </main>
+      </div>
     </div>
   );
 }
