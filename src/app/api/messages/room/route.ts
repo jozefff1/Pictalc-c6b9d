@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
           and(eq(pairings.childId, userId), eq(users.id, pairings.guardianId))
         )
       )
-      .where(and(eq(pairings.status, 'active'), or(eq(pairings.guardianId, userId), eq(pairings.childId, userId))));
+      .where(and(eq(pairings.status, 'accepted'), or(eq(pairings.guardianId, userId), eq(pairings.childId, userId))));
 
     const rooms = rows.map((r) => ({
       userId: r.guardianId === userId ? r.childId : r.guardianId,
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     .from(pairings)
     .where(
       and(
-        eq(pairings.status, 'active'),
+        eq(pairings.status, 'accepted'),
         or(
           and(eq(pairings.guardianId, userId), eq(pairings.childId, roomUserId)),
           and(eq(pairings.guardianId, roomUserId), eq(pairings.childId, userId))

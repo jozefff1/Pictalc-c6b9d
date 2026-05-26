@@ -12,7 +12,7 @@ async function isPaired(userA: string, userB: string): Promise<boolean> {
     .from(pairings)
     .where(
       and(
-        eq(pairings.status, 'active'),
+        eq(pairings.status, 'accepted'),
         or(
           and(eq(pairings.guardianId, userA), eq(pairings.childId, userB)),
           and(eq(pairings.guardianId, userB), eq(pairings.childId, userA))
