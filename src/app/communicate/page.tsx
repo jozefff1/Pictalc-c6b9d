@@ -8,6 +8,8 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIconLabels } from '@/hooks/useIconLabels';
 import { getIconsByCategory, searchIcons } from '@/lib/data/icons';
+import { matchTextToIcons } from '@/lib/ai/iconMatcher';
+import type { IconMatch } from '@/lib/ai/iconMatcher';
 import { setCustomIcons, addIconToSentence, clearSentence } from '@/store/slices/communicationSlice';
 import CategorySelector from '@/components/features/CategorySelector';
 import IconGrid from '@/components/features/IconGrid';
@@ -30,6 +32,7 @@ export default function CommunicatePage() {
   const [hasPairedUsers, setHasPairedUsers] = useState(false);
   const [sending, setSending] = useState(false);
   const [replyText, setReplyText] = useState('');
+  const [replySuggestions, setReplySuggestions] = useState<IconMatch[]>([]);
 
   const selectedCategory = useAppSelector((state) => state.communication.selectedCategory);
   const customIcons = useAppSelector((state) => state.communication.customIcons);
@@ -90,26 +93,57 @@ export default function CommunicatePage() {
     } finally { setSending(false); }
   }, [sentence, session?.user?.id, getLabel, dispatch]);
 
+  // Convert reply text to icons word-by-word; fall back to plain text if no matches
   const handleSendText = useCallback(async () => {
     const text = replyText.trim();
     if (!text || !session?.user?.id) return;
     const thread = (window as unknown as Record<string, { addMessage: (m: ThreadMessage) => void; getActiveRoom: () => { userId: string; name: string } | null }>).__snakkeThread;
     const activeRoom = thread?.getActiveRoom();
     if (!activeRoom) return;
+
+    // Try converting each word to an icon
+    const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+    const matchedIcons: Icon[] = [];
+    for (const word of words) {
+      const results = matchTextToIcons(word, 1, language, customIcons, labels);
+      if (results.length > 0 && results[0].confidence >= 0.3) {
+        matchedIcons.push(results[0].icon);
+      }
+    }
+
+    const useIcons = matchedIcons.length > 0;
+    const sentenceText = useIcons ? matchedIcons.map(getLabel).join(' ') : text;
+    const content = useIcons
+      ? { type: 'icons' as const, icons: matchedIcons.map((ic) => ({ id: ic.id, name: ic.name, imageUrl: ic.imageUrl, symbol: ic.symbol })), sentence: sentenceText }
+      : { type: 'text' as const, text };
+
     setSending(true);
     try {
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipientId: activeRoom.userId, content: { type: 'text', text } }),
+        body: JSON.stringify({ recipientId: activeRoom.userId, content }),
       });
       if (res.ok) {
         const data = await res.json();
         thread.addMessage({ ...data.message, senderName: null });
         setReplyText('');
+        setReplySuggestions([]);
       }
     } finally { setSending(false); }
-  }, [replyText, session?.user?.id]);
+  }, [replyText, session?.user?.id, language, customIcons, labels, getLabel]);
+
+  // Show icon suggestions as user types in the reply input
+  const handleReplyChange = useCallback((value: string) => {
+    setReplyText(value);
+    const currentWord = value.trim().split(/\s+/).pop()?.toLowerCase() ?? '';
+    if (currentWord.length >= 2) {
+      const results = matchTextToIcons(currentWord, 5, language, customIcons, labels);
+      setReplySuggestions(results.filter((r) => r.confidence >= 0.3));
+    } else {
+      setReplySuggestions([]);
+    }
+  }, [language, customIcons, labels]);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
@@ -135,28 +169,49 @@ export default function CommunicatePage() {
 
         {/* Send bar — only when signed in and paired */}
         {session?.user?.id && hasPairedUsers && (
-          <div className="flex items-center gap-2 px-4 pb-3 pt-1 border-t border-gray-100 dark:border-gray-700">
-            <button
-              onClick={handleSendToThread}
-              disabled={sentence.length === 0 || sending}
-              className="flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2.5 text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-40 shrink-0"
-            >
-              <span>📤</span>{sending ? 'Sending…' : 'Send'}
-            </button>
-            <div className="flex flex-1 items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3 overflow-hidden">
-              <input
-                type="text"
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendText(); } }}
-                placeholder="Type a reply…"
-                className="flex-1 py-2.5 text-sm bg-transparent focus:outline-none"
-              />
+          <div className="flex flex-col gap-1 px-4 pb-3 pt-1 border-t border-gray-100 dark:border-gray-700">
+            {/* Live icon suggestions while typing reply */}
+            {replySuggestions.length > 0 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                <span className="text-[10px] text-gray-400 shrink-0">Icons:</span>
+                {replySuggestions.map((m) => (
+                  <button
+                    key={m.icon.id}
+                    onClick={() => dispatch(addIconToSentence(m.icon))}
+                    title={`Add "${getLabel(m.icon)}" to sentence`}
+                    className="shrink-0 flex flex-col items-center gap-0.5 p-1 rounded-lg bg-primary/10 hover:bg-primary/20 active:scale-95 transition-all"
+                  >
+                    {m.icon.imageUrl
+                      ? <Image src={m.icon.imageUrl} alt={getLabel(m.icon)} width={28} height={28} className="object-contain" />
+                      : <span className="text-lg leading-none">{m.icon.symbol}</span>}
+                    <span className="text-[9px] text-primary max-w-[40px] truncate">{getLabel(m.icon)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-2">
               <button
-                onClick={handleSendText}
-                disabled={!replyText.trim() || sending}
-                className="shrink-0 text-primary hover:opacity-70 disabled:opacity-30 text-lg leading-none"
-              >↑</button>
+                onClick={handleSendToThread}
+                disabled={sentence.length === 0 || sending}
+                className="flex items-center gap-2 rounded-xl bg-primary text-white px-4 py-2.5 text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-40 shrink-0"
+              >
+                <span>📤</span>{sending ? 'Sending…' : 'Send'}
+              </button>
+              <div className="flex flex-1 items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3 overflow-hidden">
+                <input
+                  type="text"
+                  value={replyText}
+                  onChange={(e) => handleReplyChange(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendText(); } }}
+                  placeholder="Type to reply (auto-converts to icons)…"
+                  className="flex-1 py-2.5 text-sm bg-transparent focus:outline-none"
+                />
+                <button
+                  onClick={handleSendText}
+                  disabled={!replyText.trim() || sending}
+                  className="shrink-0 text-primary hover:opacity-70 disabled:opacity-30 text-lg leading-none"
+                >↑</button>
+              </div>
             </div>
           </div>
         )}
