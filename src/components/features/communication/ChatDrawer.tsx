@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useAppSelector } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIconLabels } from '@/hooks/useIconLabels';
@@ -232,9 +233,9 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
           <div className="text-4xl">🔗</div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             No paired users yet. Go to{' '}
-            <a href="/dashboard/patients" className="text-primary hover:underline">
+            <Link href="/dashboard/patients" className="text-primary hover:underline">
               Patients
-            </a>{' '}
+            </Link>{' '}
             to send an invite.
           </p>
         </div>

@@ -8,12 +8,19 @@ declare global {
   }
 }
 
-const serwist = new Serwist({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const serwistConfig: any = {
   precacheEntries: (self as unknown as WorkerGlobalScope).__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: defaultCache,
-});
+  // navigateFallback + denylist exist in serwist@9.5.11 runtime but the
+  // bundler-resolved type file omits them — cast via `any` to work around it
+  navigateFallback: "/",
+  navigateFallbackDenylist: [/^\/api\//],
+};
+
+const serwist = new Serwist(serwistConfig);
 
 serwist.addEventListeners();
