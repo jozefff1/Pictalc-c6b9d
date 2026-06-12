@@ -52,7 +52,7 @@ Vercel Blob uploads require `BLOB_READ_WRITE_TOKEN` in the Vercel environment. C
 The landing page has been fully redesigned and translated. It is now a `'use client'` component (`LandingPage.tsx`) that uses the `LanguageContext` for full EN/NO translation. The `page.tsx` server component acts as a thin auth guard that renders `<LandingPage />` for unauthenticated users and redirects to `/dashboard` for signed-in users.
 
 ### 6. ARASAAC Integration ✅ Implemented (Static CDN)
-All 95 built-in icons now use real ARASAAC pictograms (CC BY-NC-SA 4.0):
+All 101 built-in icons now use real ARASAAC pictograms (CC BY-NC-SA 4.0):
 - Image URL format: `https://static.arasaac.org/pictograms/{id}/{id}_500.png`
 - IDs selected via the ARASAAC public API, preferring `aac:true + schematic:true` results
 - `IconGrid.tsx` renders `<img>` when `imageUrl` is set, falls back to emoji symbol

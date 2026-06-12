@@ -51,6 +51,9 @@ Root
 ├── src/
 │   ├── app/
 │   │   ├── (auth)/                  # Login, Register, Verify-email, Forgot/Reset-password pages
+│   │   ├── about/                   # About Snakke — bilingual EN/NO (uses AboutContent.tsx)
+│   │   ├── research/                # Research & Institutional page — bilingual EN/NO (ResearchPageContent.tsx)
+│   │   ├── plans/                   # Roadmap plans page — bilingual EN/NO (PlansPageContent.tsx)
 │   │   ├── communicate/             # Public AAC board (guest + authenticated)
 │   │   │   └── layout.tsx           # Communicate-specific layout (header + guest banner)
 │   │   ├── (app)/                   # Protected routes (redirect to /login if unauthenticated)
@@ -94,8 +97,8 @@ Root
 │   │   │   ├── LanguageSwitcher.tsx # Language selector (EN/NO/ES/FR/DE)
 │   │   │   └── DarkModeToggle.tsx   # Sun/moon toggle
 │   │   └── layout/
-│   │       ├── Header.tsx           # Top nav (💬 communicate + Learn links) — landing, about, learn pages
-│   │       └── AppHeader.tsx        # Client header for (app) + communicate layouts; hamburger menu + sign-out
+│   │       ├── Header.tsx           # Top nav (all public pages) — fully localised via t() including About, Research, Plans, Learn
+│   │       └── AppHeader.tsx        # Client header for (app) + communicate layouts — fully localised via t()
 │   ├── lib/
 │   │   ├── ai/
 │   │   │   ├── iconMatcher.ts       # Text → icon matching engine
@@ -143,13 +146,14 @@ Root
 
 ---
 
-## Database Schema (8 Tables)
+## Database Schema (10 Tables)
 
 ```
-users                → All user accounts
+tenants              → Institutional isolation unit (school, clinic, research group) — RLS policy applied
+users                → All user accounts (tenantId nullable; set for institutional users)
 devices              → Registered devices per user
 pairings             → Guardian ↔ Child relationships
-pairing_requests     → Invite tokens (email-bound, rate-limited, expiring 7d)
+pairing_requests     → Invite tokens (email-bound, rate-limited, expiring)
 messages             → Communication history between users
 communication_sessions → Icon sentence session logs
 user_preferences     → Per-user settings (theme, language, TTS)
@@ -167,7 +171,7 @@ password_history     → Last 5 password hashes per user (prevents password reus
 | Email verification + password reset (Resend) | ✅ |
 | Password history — prevent reuse of last 5 | ✅ |
 | Role-based accounts (child/guardian/teacher/therapist) | ✅ |
-| AAC icon board — 89 icons, 6 categories | ✅ |
+| AAC icon board — 101 icons, 6 categories | ✅ |
 | ARASAAC pictograms (static CDN, CC BY-NC-SA 4.0) | ✅ |
 | Text → Icon auto-conversion (keyword matcher) | ✅ |
 | Speech → Icon conversion (Web Speech API) | ✅ |
@@ -206,7 +210,13 @@ password_history     → Last 5 password hashes per user (prevents password reus
 | Collapsible chat thread on communicate page with unread badge | ✅ |
 | Sound chime (Web Audio API) + visual effects on new messages | ✅ |
 | Compact communicate page — icon board dominates, slim toolbar | ✅ |
-| Device pairing (QR code) | ❌ Not started |
+| Device pairing (QR code) — generate, display, auto-refresh, 5-min expiry, rate-limited; supervisor redirects to `/dashboard/patients/[requesterId]` on accept | ✅ |
+| `/about` page — bilingual EN/NO, table of contents, contact form | ✅ |
+| `/research` page — institutional/research information, bilingual EN/NO | ✅ |
+| `/plans` page — roadmap summary for all stakeholders, bilingual EN/NO | ✅ |
+| Navigation fully localised (EN/NO) — all nav labels in Header + AppHeader use `t()` | ✅ |
+| `tenants` table with `pgPolicy` tenant isolation — RLS foundation | ✅ |
+| `withTenantContext()` in DB client — transaction wrapper for Phase 9 RLS routes | ✅ |
 | Guardian real-time dashboard | ❌ Not started |
 | Dynamic ARASAAC API search (30,000+ symbols) | ❌ Not started |
 
@@ -216,6 +226,10 @@ password_history     → Last 5 password hashes per user (prevents password reus
 
 - **No `next-intl`**: Attempted and abandoned after persistent failures with Next.js App Router (routing conflicts, middleware issues, build failures). Client-side React Context i18n is used instead. **Do NOT reintroduce `next-intl`.**
 - **Build flags**: Must use `next build --webpack` and `next dev --webpack` — Serwist (PWA) is incompatible with Next.js 16's default Turbopack.
+- **Nav localisation**: All navigation labels in `Header.tsx` and `AppHeader.tsx` use `t()` from `LanguageContext`. Do not add hardcoded English strings to either header. New nav keys follow the `nav.*` namespace.
+- **Information pages pattern**: `/about`, `/research`, `/plans` use a server page wrapper (for `metadata` export) + a `'use client'` content component (for `useLanguage()`). Do not add `'use client'` or `useLanguage()` directly to a page file that also exports `metadata`.
+- **RLS pattern**: The `tenants` table has `pgPolicy` applied. Use `withTenantContext(tenantId, tx => ...)` from `src/lib/db/client.ts` for any query on RLS-protected tables once Phase 9 migration enables policies on those tables. Never add `pgPolicy` to existing tables without first wrapping all their API routes.
+- **QR code pairing**: Fully implemented and working — `GET /api/pairings/qr` generates a 5-minute `nanoid` token stored in `pairing_requests` (not email-bound), rate-limited at 10/hour. `QRCodeModal.tsx` renders a `QRCodeSVG`, counts down, auto-refreshes 10 s before expiry, and shows a manual URL fallback. Triggered from a "QR Code" button in `/dashboard/patients`. Recipient scans with their device camera → opens `/join/[token]` where they review and **accept** the pairing invite — access is not granted automatically on scan. Optional enhancement: `html5-qrcode` is installed for a future in-app scanner (scan from within Snakke itself).
 - **Git remotes**: `origin` → `Pictalc-copy.git` (backup), `snakke` → `snakke.git` (Vercel deployment). Always push to `snakke` to trigger a deploy.
 - **NextAuth v5**: Uses `AUTH_SECRET` env var (not `NEXTAUTH_SECRET`) and `AUTH_URL` (not `NEXTAUTH_URL`). `trustHost: true` required for Vercel. Auth state is owned by NextAuth — no Redux `authSlice`.
 - **Forgot-password validates email**: `/api/auth/forgot-password` returns 404 if the email is not registered. Reset links are only sent to verified, existing accounts.

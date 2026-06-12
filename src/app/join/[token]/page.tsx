@@ -64,7 +64,10 @@ export default function JoinPage() {
         return;
       }
       setDone(true);
-      setTimeout(() => router.push('/dashboard/patients'), 2500);
+      const destination = data.isSupervisorRole && data.requesterId
+        ? `/dashboard/patients/${data.requesterId}`
+        : '/dashboard/patients';
+      setTimeout(() => router.push(destination), 2500);
     } catch {
       setError('Network error — please try again');
     } finally {
@@ -78,7 +81,7 @@ export default function JoinPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
           <div className="text-5xl mb-4">✅</div>
           <h1 className="text-xl font-bold mb-2">Pairing accepted!</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Redirecting to your patients page…</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Redirecting you to the communication page…</p>
         </div>
       </div>
     );

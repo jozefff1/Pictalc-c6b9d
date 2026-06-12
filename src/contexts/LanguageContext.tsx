@@ -58,6 +58,11 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.profile': 'Profile',
     'nav.settings': 'Settings',
     'nav.learn': 'Learn',
+    'nav.about': 'About',
+    'nav.research': 'Research',
+    'nav.plans': 'Plans',
+    'nav.signIn': 'Sign In',
+    'nav.signUp': 'Sign Up',
     'nav.signOut': 'Sign Out',
     
     // Communicate page
@@ -517,6 +522,11 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.profile': 'Profil',
     'nav.settings': 'Innstillinger',
     'nav.learn': 'Lær',
+    'nav.about': 'Om',
+    'nav.research': 'Forskning',
+    'nav.plans': 'Planer',
+    'nav.signIn': 'Logg inn',
+    'nav.signUp': 'Registrer deg',
     'nav.signOut': 'Logg ut',
     
     // Communicate page

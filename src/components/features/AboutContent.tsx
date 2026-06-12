@@ -30,7 +30,7 @@ AAC tools like Snakke are used when verbal communication is difficult or impossi
   {
     id: 'features',
     heading: 'Features',
-    body: `**Communication board**: 89+ ARASAAC pictograms across 6 categories — Needs, Actions, Feelings, People, Places, and Custom. Tap icons to build sentences.
+    body: `**Communication board**: 101 ARASAAC pictograms across 6 categories — Needs, Actions, Feelings, People, Places, and Custom. Tap icons to build sentences.
 
 **Text-to-speech**: Built-in speech synthesis with adjustable speed and pitch. Supports English and Norwegian.
 
@@ -120,7 +120,7 @@ ASK-verktøy som Snakke brukes når verbal kommunikasjon er vanskelig eller umul
   {
     id: 'features',
     heading: 'Funksjoner',
-    body: `**Kommunikasjonskort**: 89+ ARASAAC-piktogrammer i 6 kategorier — Behov, Handlinger, Følelser, Personer, Steder og Egendefinerte. Trykk på ikoner for å bygge setninger.
+    body: `**Kommunikasjonskort**: 101 ARASAAC-piktogrammer i 6 kategorier — Behov, Handlinger, Følelser, Personer, Steder og Egendefinerte. Trykk på ikoner for å bygge setninger.
 
 **Tekst-til-tale**: Innebygd talesyntese med justerbar hastighet og tonehøyde. Støtter norsk og engelsk.
 
@@ -293,6 +293,8 @@ export default function AboutContent() {
           <p>{t('about.footer.rights')}</p>
           <div className="flex gap-6">
             <Link href="/" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{t('about.footer.home')}</Link>
+            <Link href="/research" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Research</Link>
+            <Link href="/plans" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Plans</Link>
             <Link href="/register" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{t('about.footer.signUp')}</Link>
             <a
               href="https://github.com/jozefff1/Pictalc-c6b9d"

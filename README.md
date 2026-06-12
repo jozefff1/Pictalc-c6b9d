@@ -10,7 +10,7 @@ Snakke lets users express themselves through picture-based communication boards,
 
 ## Features
 
-- 🎯 **Icon Board** — tap icons to build sentences across 6 AAC categories
+- 🎯 **Icon Board** — tap icons to build sentences across 6 AAC categories (101 built-in ARASAAC pictograms)
 - ⌨️ **Text → Icons** — type a word and it auto-converts to matching icons
 - 🎤 **Speech → Icons** — speak and your words become icons instantly
 - 🖼️ **Custom Icons** — upload your own images as personal AAC symbols
@@ -98,6 +98,9 @@ src/
 │   │       ├── patients/    # Pairing management (invite, access control)
 │   │       ├── profile/     # User profile (view/edit)
 │   │       └── settings/    # Voice + accessibility preferences
+│   ├── about/               # About Snakke (bilingual EN/NO)
+│   ├── research/            # Research & Institutional info page (bilingual EN/NO)
+│   ├── plans/               # Roadmap & delivery plans page (bilingual EN/NO)
 │   ├── api/
 │   │   ├── auth/            # NextAuth + registration + verify/reset API
 │   │   ├── icons/           # Custom icon upload/fetch/rename/delete API
@@ -109,14 +112,14 @@ src/
 │   ├── learn/               # Language learning mode
 │   └── page.tsx             # Landing page
 ├── components/
-│   ├── features/            # AAC board, sentence builder, icon upload, learning, pairing
+│   ├── features/            # AAC board, sentence builder, icon upload, learning, pairing, info pages
 │   ├── common/              # Language switcher, dark mode toggle
-│   └── layout/              # Header
+│   └── layout/              # Header + AppHeader (both fully localised via t())
 ├── lib/
 │   ├── ai/                  # Icon matcher + keyword maps (EN/NO)
 │   ├── auth/                # NextAuth v5 config
 │   ├── data/icons.ts        # Built-in icon database
-│   ├── db/                  # Drizzle client + schema (9 tables)
+│   ├── db/                  # Drizzle client + withTenantContext() + schema (10 tables)
 │   └── services/            # Web Speech API wrapper
 ├── contexts/
 │   └── LanguageContext.tsx  # i18n: EN/NO full + ES/FR/DE icon labels (React Context)
@@ -127,7 +130,7 @@ src/
 
 ## Database Schema
 
-9 tables: `users`, `devices`, `pairings`, `pairing_requests`, `messages`, `communication_sessions`, `user_preferences`, `custom_icons`, `password_history`
+10 tables: `tenants`, `users`, `devices`, `pairings`, `pairing_requests`, `messages`, `communication_sessions`, `user_preferences`, `custom_icons`, `password_history`
 
 Push schema to your database:
 ```bash
@@ -189,18 +192,24 @@ To add a new language:
 - [x] Email verification + password reset (Resend)
 - [x] Favourite phrases (save/load sentences, IndexedDB-persisted)
 - [x] Voice + accessibility preferences UI (`/dashboard/settings`)
-- [x] ARASAAC pictogram integration (95 built-in icons via static CDN)
+- [x] ARASAAC pictogram integration (101 built-in icons via static CDN)
 - [x] Communication session history with supervisor patient selector
-- [x] Supervisor/guardian pairing flow (invite link + email + accept/revoke)
+- [x] Supervisor/guardian pairing flow (invite link + email + QR + accept/revoke)
+- [x] QR code pairing — generate, display, 5-min expiry, scan to invite; supervisor auto-redirects to direct comm on accept
 - [x] Language learning mode — 5 languages, 3 modes (flashcard/writing/speaking)
 - [x] Fully translated dashboard (EN + NO) — profile, settings, patients, history
+- [x] Sentence icon reordering via drag-and-drop (@dnd-kit)
+- [x] `/about`, `/research`, `/plans` information pages — bilingual EN/NO, accessible nav + footer
+- [x] All header navigation labels localised (EN + NO) — no hardcoded strings remain
+- [x] `tenants` table with pgPolicy RLS foundation + `withTenantContext()` DB helper
 - [ ] Dynamic ARASAAC search (30,000+ symbols at runtime)
 - [ ] Full ES/FR/DE UI translations (icon labels only for now)
-- [ ] Device pairing via QR code (schema + API done; QR UI not started)
+- [ ] Icon grid reordering (Phase 2.6.2 — planned)
 - [ ] Spaced repetition for language learning (SM-2)
 - [ ] Full offline sync (IndexedDB + background sync)
 - [ ] Open Board Format (OBF/OBZ) import/export
 - [ ] Switch access / scanning mode
+- [ ] Institutional org model + research consent framework (Phase 9)
 - [ ] iOS/Android App Store via Capacitor
 
 See [`PLAN.md`](./PLAN.md) for the full phased roadmap.

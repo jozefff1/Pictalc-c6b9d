@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import DarkModeToggle from '@/components/common/DarkModeToggle';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface HeaderProps {
   showAuth?: boolean;
@@ -13,6 +14,7 @@ interface HeaderProps {
 export default function Header({ showAuth = true }: HeaderProps) {
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <header className="border-b border-border bg-white px-4 py-4 dark:bg-black">
@@ -43,7 +45,25 @@ export default function Header({ showAuth = true }: HeaderProps) {
                 href="/learn"
                 className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                Learn
+                {t('nav.learn')}
+              </Link>
+              <Link
+                href="/about"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                {t('nav.about')}
+              </Link>
+              <Link
+                href="/research"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                {t('nav.research')}
+              </Link>
+              <Link
+                href="/plans"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                {t('nav.plans')}
               </Link>
             </div>
           )}
@@ -76,13 +96,13 @@ export default function Header({ showAuth = true }: HeaderProps) {
                   href="/login"
                   className="hidden sm:inline-flex rounded-lg px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
                 >
-                  Sign In
+                  {t('nav.signIn')}
                 </Link>
                 <Link
                   href="/register"
                   className="hidden sm:inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
                 >
-                  Sign Up
+                  {t('nav.signUp')}
                 </Link>
               </>
             )
@@ -117,14 +137,35 @@ export default function Header({ showAuth = true }: HeaderProps) {
             onClick={() => setMobileMenuOpen(false)}
             className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <span className="text-lg">💬</span> Communicate
+            <span className="text-lg">💬</span> {t('nav.communicate')}
           </Link>
           <Link
             href="/learn"
             onClick={() => setMobileMenuOpen(false)}
             className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <span className="text-lg">📚</span> Learn
+            <span className="text-lg">📚</span> {t('nav.learn')}
+          </Link>
+          <Link
+            href="/about"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <span className="text-lg">ℹ️</span> {t('nav.about')}
+          </Link>
+          <Link
+            href="/research"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <span className="text-lg">🔬</span> {t('nav.research')}
+          </Link>
+          <Link
+            href="/plans"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <span className="text-lg">🗺️</span> {t('nav.plans')}
           </Link>
           {session ? (
             <>
@@ -139,7 +180,7 @@ export default function Header({ showAuth = true }: HeaderProps) {
                 onClick={() => signOut({ callbackUrl: '/login' })}
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-left"
               >
-                <span className="text-lg">🚪</span> Sign Out
+                <span className="text-lg">🚶</span> {t('nav.signOut')}
               </button>
             </>
           ) : (
@@ -149,14 +190,14 @@ export default function Header({ showAuth = true }: HeaderProps) {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                <span className="text-lg">🔑</span> Sign In
+                <span className="text-lg">🔑</span> {t('nav.signIn')}
               </Link>
               <Link
                 href="/register"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors"
               >
-                <span className="text-lg">✨</span> Sign Up
+                <span className="text-lg">✨</span> {t('nav.signUp')}
               </Link>
             </>
           )}

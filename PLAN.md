@@ -2,7 +2,7 @@
 
 This document defines the phased development roadmap for Snakke. Each phase builds on the previous and is scoped to be achievable in focused sprints.
 
-_Last updated: May 27, 2026 (session 17)_
+_Last updated: June 13, 2026 (session 19)_
 
 ---
 
@@ -10,7 +10,7 @@ _Last updated: May 27, 2026 (session 17)_
 
 - [x] Next.js 16 App Router project setup
 - [x] TypeScript + Tailwind CSS v4 configuration
-- [x] Redux Toolkit state management (4 slices: communication, pairing, ui, auth)
+- [x] Redux Toolkit state management (3 slices: communication, pairing, ui)
 - [x] NextAuth v5 authentication (login / register)
 - [x] Drizzle ORM + Neon Serverless Postgres (9-table schema incl. passwordHistory)
 - [x] PWA manifest + `@serwist/next` (migrated from `@ducanh2912/next-pwa`)
@@ -22,8 +22,8 @@ _Last updated: May 27, 2026 (session 17)_
 
 ## ✅ Phase 1 — Core AAC Communication (Complete)
 
-- [x] Built-in icon database (95 icons, 6 categories)
-- [x] **ARASAAC pictogram integration** — all 95 icons use real AAC pictograms (CC BY-NC-SA 4.0) via static CDN URLs
+- [x] Built-in icon database (101 icons, 6 categories)
+- [x] **ARASAAC pictogram integration** — all 101 icons use real AAC pictograms (CC BY-NC-SA 4.0) via static CDN URLs
 - [x] Category selector tabs (Needs / Actions / Feelings / People / Places / Custom)
 - [x] Icon grid display with ARASAAC images + emoji fallback
 - [x] Sentence builder with TTS (Web Speech API, speed/pitch from preferences)
@@ -39,8 +39,8 @@ _Last updated: May 27, 2026 (session 17)_
 - [x] **iconMatcher label + word-splitting fix** — multi-word custom icon names (e.g. "my dog") are now split into individual searchable keywords; custom label overrides (via `useIconLabels`) are also matched ✅
 - [x] **IconMatchGrid label fix** — UUID icon IDs no longer shown as labels; same `tIcon(id) !== id` fallback pattern as `IconGrid` ✅
 - [x] **phrases/page.tsx icon picker** — uses `useIconRegistry` so custom icons appear alongside built-ins in category tabs and search ✅
-- [x] Favourite phrases (save/load/delete, persisted to IndexedDB, Redux slice)
-- [x] Recently used icons tracked in Redux state (`recentIcons`, max 20) and displayed in UI
+- [x] Favourite phrases (save/load/delete, persisted to IndexedDB, Redux slice) ✅
+- [x] Recently used icons tracked in Redux state (`recentIcons`, max 20) and displayed in UI ✅
 
 ---
 
@@ -70,7 +70,7 @@ _Last updated: May 27, 2026 (session 17)_
 ### 2.3 Communication Board UX
 - [x] Favourite phrases — save/load icon sentences ✅
 - [x] **Recently used icons row** — top 8 icons shown above category tabs, tappable to re-add to sentence ✅
-- [x] **Icon search bar** — searches across all 95 built-in + custom icons by name; hides category tabs and recently-used strip during search; `×` clear button; empty-state message ✅
+- [x] **Icon search bar** — searches across all 101 built-in + custom icons by name; hides category tabs and recently-used strip during search; `×` clear button; empty-state message ✅
 - [ ] Icon board layout improvements (larger icons, better spacing for touch)
 - [ ] Haptic feedback on icon tap (`navigator.vibrate` — schema supports `hapticEnabled` but not implemented)
 - [ ] Keyboard-accessible icon navigation (ARIA labels exist, full keyboard nav not done)
@@ -99,7 +99,7 @@ _Last updated: May 27, 2026 (session 17)_
 
 - [x] Extended `Language` type: `'en' | 'no' | 'es' | 'fr' | 'de'`
 - [x] `LANGUAGES` map with name, nativeName, flag for all 5 languages
-- [x] Icon translations for ES, FR, DE (all 95 icons)
+- [x] Icon translations for ES, FR, DE (all 101 icons)
 - [x] `learnFrom` / `learnTarget` state in `LanguageContext` — any two languages, freely swappable
 - [x] `tLang(key, lang)` helper — translate any key into any language explicitly
 - [x] `swapLearnLanguages()` — one-click swap
@@ -191,9 +191,10 @@ _Last updated: May 27, 2026 (session 17)_
 > Schema + Redux slice (`pairingSlice`) already exist — no UI yet.
 
 ### 3.1 Device Pairing
-- [ ] QR code generation for pairing request
-- [ ] QR code scanner (`html5-qrcode` already installed)
-- [ ] Accept/reject pairing on guardian's device
+- [x] QR code generation for pairing request ✅
+- [x] QR code camera pairing — display QR in `QRCodeModal`, scan with device camera → opens `/join/[token]` pairing invite ✅
+- [x] Accept/reject pairing on guardian's device ✅
+- [x] **Direct communication redirect** — supervisor roles redirected to `/dashboard/patients/[requesterId]` after acceptance (GET `/api/pairings/accept` now returns `requesterId`) ✅
 - [x] List of paired users in dashboard (`/dashboard/patients`) ✅
 - [x] Invite via magic link or email ✅
 - [x] Unpair / revoke access ✅
@@ -215,6 +216,7 @@ _Last updated: May 27, 2026 (session 17)_
 - [x] **Sound + visual notifications** — Web Audio API 2-note chime on incoming message; collapsed bar glow-pulse; unread badge bounce; message slide-in animation ✅
 - [ ] WebSocket or Vercel Pusher for true real-time (replace 3s polling)
 - [ ] Guardian sees child's sentence being built in real time
+- [ ] Optional: in-app QR scanner (`html5-qrcode` installed) — would allow scanning from within Snakke instead of native camera app
 
 ---
 
@@ -234,15 +236,159 @@ _Last updated: May 27, 2026 (session 17)_
 
 ## 📋 Phase 5 — Icon Library Expansion
 
-**Goal**: Grow beyond the current 89 static ARASAAC pictograms.
+**Goal**: Grow beyond the current 101 static ARASAAC pictograms.
 
-- [x] ARASAAC static CDN integration (89 icons, all categories) ✅
+- [x] ARASAAC static CDN integration (101 icons, all categories) ✅
 - [ ] Dynamic ARASAAC API search — search 30,000+ symbols by keyword at runtime
 - [ ] Cache downloaded ARASAAC symbols to IndexedDB for offline use
 - [ ] **Open Board Format (OBF/OBZ)** import/export
   - Import community-shared boards (.obz files)
   - Export user boards for use in other AAC apps
 - [ ] AI image generation for custom icons (DALL-E / Stable Diffusion)
+
+---
+
+## 📋 Phase 5.5 — Community-Contributed Icon Library (Planned)
+
+**Goal**: Transform icon system into a multi-tier library where therapists, parents, and other users can upload, share, and curate pictograms.
+
+### Current System
+- 101 static ARASAAC pictograms (built-in, read-only)
+- Per-user custom icons (private, single-user)
+- No sharing or community contribution
+
+### Future System
+- **Built-in icons** — 101 ARASAAC pictograms (maintained by core team)
+- **Community pictograms** — therapist/parent/teacher uploads (moderated, multilingual)
+- **Shared sets** — therapists can curate sets for their patients
+- **Variants** — users can create custom label overrides on shared pictograms
+
+### Database Schema Additions
+
+```sql
+CREATE TABLE pictograms (
+  id UUID PRIMARY KEY,
+  createdById UUID REFERENCES users.id,
+  name VARCHAR(100),
+  category VARCHAR(50),  -- Needs, Actions, Feelings, People, Places, etc.
+  imageUrl TEXT,         -- Blob storage or ARASAAC reference
+  description TEXT,
+  language VARCHAR(10),  -- en, no, es, fr, de
+  tags TEXT[],          -- searchable: ["help", "assist", "support"]
+  isPublic BOOLEAN DEFAULT false,
+  licenseType VARCHAR(50),  -- CC_BY_NC_SA, CUSTOM, PROPRIETARY
+  approvalStatus VARCHAR(20),  -- pending, approved, rejected
+  viewCount INT DEFAULT 0,
+  rating FLOAT,  -- 1.0-5.0 average star rating
+  createdAt TIMESTAMP,
+  updatedAt TIMESTAMP
+);
+
+CREATE TABLE pictogram_variants (
+  id UUID PRIMARY KEY,
+  pictogramId UUID REFERENCES pictograms.id,
+  userId UUID REFERENCES users.id,
+  labelOverride VARCHAR(100),  -- custom name for this variant
+  imageUrlOverride TEXT,       -- custom image (optional)
+  createdAt TIMESTAMP
+);
+
+CREATE TABLE pictogram_shares (
+  id UUID PRIMARY KEY,
+  pictogramId UUID REFERENCES pictograms.id,
+  sharedById UUID REFERENCES users.id,
+  sharedWithId UUID REFERENCES users.id,  -- recipient user
+  shareType VARCHAR(20),  -- view, use, edit
+  createdAt TIMESTAMP
+);
+
+CREATE TABLE pictogram_sets (
+  id UUID PRIMARY KEY,
+  createdById UUID REFERENCES users.id,
+  name VARCHAR(100),     -- "School therapy set", "Home communication", etc.
+  description TEXT,
+  pictogramIds UUID[],   -- ordered array of icon IDs
+  isPublic BOOLEAN,
+  createdAt TIMESTAMP
+);
+```
+
+### API Endpoints (New)
+
+```
+POST /api/pictograms                         -- Upload new community pictogram
+GET /api/pictograms?public=true              -- Discover public pictograms
+GET /api/pictograms?shared-with-me=true      -- Get pictograms shared with me
+GET /api/pictograms?createdBy=[userId]       -- User's own uploads
+GET /api/pictograms/trending                 -- Popular pictograms (by rating/views)
+POST /api/pictograms/[id]/rate               -- Rate (1-5 stars)
+POST /api/pictograms/[id]/share              -- Share with user/therapist/patient
+GET /api/pictograms/sets                     -- My saved pictogram sets
+POST /api/pictograms/sets                    -- Create new set
+DELETE /api/pictograms/sets/[id]             -- Delete set
+```
+
+### Components & Features
+
+1. **Pictogram Upload UI** (`/dashboard/icons/upload-community`)
+   - Title, description, category, language, tags
+   - License selection (CC BY-NC-SA, Custom)
+   - Public vs. private toggle
+   - Submit for approval workflow
+
+2. **Community Pictogram Marketplace** (`/marketplace/pictograms`)
+   - Search + filter (category, language, rating, license)
+   - Star rating display
+   - "Share with my patients" button (for therapists)
+   - Download stats, user reviews
+
+3. **Approval Workflow** (Admin dashboard)
+   - Queue of pending pictograms
+   - Approve / reject / request changes
+   - Licensing verification
+   - Content moderation (appropriate for children)
+
+4. **Icon Grid Integration**
+   - Show built-in (101) + community pictograms merged
+   - Mark pictogram source ("ARASAAC", "Community", "My upload")
+   - Seamless search across both
+
+5. **Therapist Curation Tools** (`/dashboard/patients/[id]/icons`)
+   - Curate a set of pictograms for specific patient
+   - Share set with patient (read-only)
+   - Mark "favorite" pictograms for easier access
+
+### Implementation Order
+
+- [ ] **Phase 5.5.1** — Database schema migration (add pictograms, variants, shares tables)
+- [ ] **Phase 5.5.2** — Pictogram upload API + Vercel Blob integration for community images
+- [ ] **Phase 5.5.3** — Admin approval workflow dashboard
+- [ ] **Phase 5.5.4** — Community marketplace UI (`/marketplace/pictograms`)
+- [ ] **Phase 5.5.5** — Pictogram sharing between users/therapists
+- [ ] **Phase 5.5.6** — Icon grid merge (built-in + community, single search)
+- [ ] **Phase 5.5.7** — Therapist curation tools for patient-specific sets
+
+### Licensing & Moderation Considerations
+
+- **Attribution**: Always credit pictogram creator
+- **License**: User must declare license (CC BY-NC-SA, Custom, Proprietary)
+- **Content**: Moderate for age-appropriate imagery (children are users)
+- **Versioning**: Track updates to pictograms (in case remixes are created)
+- **Derivatives**: If a pictogram remixes ARASAAC, mark clearly and include original credit
+
+### Performance & Search
+
+- Semantic search (Phase 6) should index community + built-in pictograms
+- Search results: sort by (1) rating, (2) recency, (3) usage frequency
+- Lazy load community pictograms (don't load all 10k+ icons on startup)
+- Cache user's "my pictograms" in Redux for fast access
+
+### Security & Permissions
+
+- Users can only edit/delete their own pictograms
+- Therapist can revoke share at any time
+- Shared pictograms are **read-only** for recipients (no edit)
+- Admin can remove inappropriate content immediately
 
 ---
 
@@ -268,7 +414,7 @@ Replace (or augment) the current keyword-map matcher with dense vector embedding
 
 1. **First load** — Transformers.js (ONNX Runtime + WebAssembly) downloads the model (~45 MB) once and caches it in the browser's Cache API. Subsequent loads are instant.
 
-2. **Index build** — On startup (or after a custom icon change) the app embeds every icon's effective name (label override → name) into a 384-dimensional float32 vector. Built-in icons: ~89 vectors, cached to IndexedDB. Custom icons: embedded on demand.
+2. **Index build** — On startup (or after a custom icon change) the app embeds every icon's effective name (label override → name) into a 384-dimensional float32 vector. Built-in icons: ~101 vectors, cached to IndexedDB. Custom icons: embedded on demand.
 
 3. **Query** — When the user types or speaks, the query string is embedded into the same space. Cosine similarity is computed against the index. Top-k results are ranked and returned in milliseconds.
 
@@ -368,6 +514,371 @@ When a production domain (e.g. `snakke.no`) is acquired, migrate persona pages t
 
 ---
 
+## 📋 Phase 9 — Research & Institutional Platform
+
+**Goal**: Transform Snakke into a multi-purpose research platform serving institutions, schools, therapists, and researchers alongside individual families.
+
+### Current State
+- Individual user accounts (child, parent, therapist, teacher)
+- Per-user data (communication sessions, preferences, custom icons)
+- No institutional aggregation, no research framework, no compliance tracking
+
+### Future State
+- **Institutional accounts** — schools, clinics, hospitals, universities, research centers
+- **Multi-user organizations** — admins, therapists, teachers, researchers managing cohorts
+- **Research participation framework** — digital consent forms, IRB tracking, data export APIs
+- **Compliance & Privacy** — GDPR, HIPAA, FERPA, institutional data processing agreements
+- **Analytics dashboard** — research metrics, anonymized data aggregation, secure export
+- **Multi-tier licensing** — free individual, professional therapist tier, institutional/research tier
+
+### Database Schema Additions
+
+```sql
+CREATE TABLE organizations (
+  id UUID PRIMARY KEY,
+  name VARCHAR(255),
+  type VARCHAR(50),              -- school, clinic, hospital, university, research_center
+  country VARCHAR(2),            -- NO, US, etc.
+  tier VARCHAR(20),              -- free, professional, institutional, research
+  adminUserId UUID REFERENCES users.id,
+  createdAt TIMESTAMP,
+  updatedAt TIMESTAMP
+);
+
+CREATE TABLE organization_members (
+  id UUID PRIMARY KEY,
+  organizationId UUID REFERENCES organizations.id,
+  userId UUID REFERENCES users.id,
+  role VARCHAR(50),              -- admin, therapist, teacher, researcher, member
+  joinedAt TIMESTAMP
+);
+
+CREATE TABLE organization_settings (
+  organizationId UUID PRIMARY KEY,
+  dataRetentionMonths INT,       -- Auto-delete policy
+  allowDataExport BOOLEAN,       -- Can members export data?
+  researchApproved BOOLEAN,      -- Has ethics board approval?
+  irbNumber VARCHAR(100),        -- IRB approval number for research
+  dataProcessingAgreement TEXT,  -- DPA reference / link
+  consentRequired BOOLEAN,       -- Require explicit consent from users?
+  createdAt TIMESTAMP
+);
+
+CREATE TABLE research_studies (
+  id UUID PRIMARY KEY,
+  organizationId UUID REFERENCES organizations.id,
+  researcherId UUID REFERENCES users.id,
+  name VARCHAR(255),
+  description TEXT,
+  irbNumber VARCHAR(100),
+  irbApprovalUrl TEXT,
+  participantCount INT DEFAULT 0,
+  dataCollectionStarted TIMESTAMP,
+  dataCollectionEnded TIMESTAMP,
+  createdAt TIMESTAMP
+);
+
+CREATE TABLE research_consent (
+  id UUID PRIMARY KEY,
+  userId UUID REFERENCES users.id,
+  studyId UUID REFERENCES research_studies.id,
+  consentType VARCHAR(50),       -- individual, institutional, guardian
+  consentDocument TEXT,          -- URL or embedded form
+  consentedAt TIMESTAMP,
+  withdrawnAt TIMESTAMP,         -- NULL if still active
+  createdAt TIMESTAMP
+);
+
+CREATE TABLE audit_log (
+  id UUID PRIMARY KEY,
+  action VARCHAR(100),           -- data_accessed, data_exported, consent_changed
+  actor UUID REFERENCES users.id,
+  targetUserId UUID REFERENCES users.id,  -- whose data was accessed
+  organizationId UUID REFERENCES organizations.id,
+  details JSON,
+  createdAt TIMESTAMP
+);
+
+CREATE TABLE research_export_requests (
+  id UUID PRIMARY KEY,
+  researcherId UUID REFERENCES users.id,
+  studyId UUID REFERENCES research_studies.id,
+  exportType VARCHAR(50),        -- anonymized, identified
+  exportedAt TIMESTAMP,
+  expiresAt TIMESTAMP,           -- 24h download window
+  downloadedAt TIMESTAMP,
+  createdAt TIMESTAMP
+);
+```
+
+### Core Features
+
+#### 9.1 Institutional Account Management
+- [ ] Organizations table (school, clinic, hospital, university, research center)
+- [ ] Organization admin dashboard (`/dashboard/organization/admin`)
+- [ ] Add/remove members (therapist, teacher, researcher roles)
+- [ ] Organization settings (data retention, DPA, research approval status)
+- [ ] Billing/subscription management (future: Stripe integration)
+
+#### 9.2 Research Consent & Ethics
+- [ ] Digital consent form builder (customizable, signed, versioned)
+- [ ] Guardian consent for minors (parent/legal guardian approval required)
+- [ ] Research study enrollment flow (link participant to study)
+- [ ] IRB number tracking + approval documentation
+- [ ] Withdrawal mechanism (user can opt out, data retained but marked)
+- [ ] Audit logging (who accessed what data, when, for what purpose)
+
+#### 9.3 Privacy & Data Governance
+- [ ] Privacy tiers (public aggregated, institutional, individual/clinical)
+- [ ] Anonymization pipeline (hash user IDs, strip PII, date-shifting)
+- [ ] Data encryption at rest (database) + in transit (TLS)
+- [ ] Data retention policies (auto-delete after X months)
+- [ ] DPA templates (GDPR) + BAA templates (HIPAA)
+- [ ] Compliance documentation
+
+#### 9.4 Research Dashboard
+- [ ] Researcher view: `/dashboard/research/`
+  - [ ] Study management (create, enroll participants, view consent status)
+  - [ ] Data analytics (usage patterns, communication frequency, vocabulary growth)
+  - [ ] Secure data export (anonymized CSV/JSON with 24h download link)
+  - [ ] Visualization (word clouds, progress charts, cohort comparisons)
+  - [ ] Collaboration (share study with co-researchers)
+- [ ] Institution admin view: `/dashboard/organization/analytics/`
+  - [ ] Aggregated metrics (total users, communication sessions, popular icons)
+  - [ ] Per-therapist productivity stats
+  - [ ] Data export for institutional reporting
+
+#### 9.5 Research Data Export API
+- [ ] Secure endpoint: `GET /api/research/export?studyId=X&format=csv&anonymized=true`
+- [ ] Generates one-time download link (24h expiry, email-confirmed access)
+- [ ] CSV headers: `participant_id_hash`, `session_count`, `icons_used`, `top_icons`, `communication_duration`, `language_learning_progress`
+- [ ] Audit trail (logged: researcher, what was requested, when, what was downloaded)
+- [ ] Rate limiting (prevent data scraping)
+
+#### 9.6 Compliance & Documentation
+- [ ] Privacy policy (research section)
+- [ ] Terms of service (institutional use)
+- [ ] Data processing agreement (GDPR DPA template)
+- [ ] Business associate agreement (HIPAA BAA template)
+- [ ] IRB guidance document (for researchers applying for ethics approval)
+- [ ] Data retention policy
+- [ ] Breach notification procedure
+
+#### 9.7 Multi-Tier Licensing
+- [ ] **Free tier** — individual users, child + family (current)
+- [ ] **Professional tier** — therapist with 1–5 patients, data export, analytics (paid)
+- [ ] **Institutional tier** — school, clinic, 50+ members, organization admin dashboard, DPA, custom domain (paid)
+- [ ] **Research tier** — 100+ members, study management, consent forms, audit logging, priority support (paid)
+
+### Implementation Order
+
+- [ ] **Phase 9.1** — Database schema (organizations, members, settings, audit log, research tables)
+- [ ] **Phase 9.2** — Organization sign-up + admin dashboard (member management, settings)
+- [ ] **Phase 9.3** — Research consent framework (digital forms, IRB tracking, withdrawal)
+- [ ] **Phase 9.4** — Anonymization pipeline + audit logging
+- [ ] **Phase 9.5** — Research dashboard (study management, analytics, export)
+- [ ] **Phase 9.6** — Compliance documentation (DPA, BAA, privacy policy updates)
+- [ ] **Phase 9.7** — Multi-tier licensing + Stripe billing integration
+
+### Key Differentiator vs. Competitors
+
+Existing AAC software (Proloquo2Go, Predictable, JABtalk):
+- Designed for individual users
+- Limited research support (some have data export, but no consent/IRB framework)
+- Not open-source
+- Not multilingual (EN only or limited languages)
+
+**Snakke's advantages**:
+- 🔬 Built for research from day 1 (consent, IRB tracking, anonymization, audit logs)
+- 🌍 Multilingual (EN/NO/ES/FR/DE) — unique for Scandinavian/European research
+- 💚 Open-source (researchers can fork, modify, run locally if needed)
+- 📱 Offline-first PWA (no app store dependency, cheap deployment in low-resource settings)
+- 🎓 Free for individual families + paid tiers for schools and researchers
+- 🏛️ Designed to scale from single user to 10,000+ research participants
+
+### Compliance Roadmap
+
+| Standard | Priority | Status | Notes |
+|---|---|---|---|
+| **GDPR** (EU) | Critical | 🔲 | Consent, DPA, right to deletion, audit logs |
+| **HIPAA** (US healthcare) | Critical | 🔲 | BAA, encryption, audit logs, access controls |
+| **FERPA** (US education) | High | 🔲 | Student data privacy, institutional agreement |
+| **CCPA** (California, US) | High | 🔲 | Consumer privacy, disclosure, data sale opt-out |
+| **SOC 2** (service provider audit) | Medium | 🔲 | Annual audit, security controls, compliance report |
+| **ISO 27001** (information security) | Medium | 🔲 | Documented policies, risk assessment, incident response |
+| **Norwegian DPA** | High | 🔲 | Noregs data protection authority compliance |
+
+---
+
+## Decision Matrix (Compliance-First)
+
+This matrix compares the highest-impact next tasks against the strategic brief (GDPR Art. 9, RLS, EU residency, institutional onboarding, and grant feasibility timeline).
+
+| Candidate Task | Strategic Alignment | Compliance Risk Reduction | Delivery Effort | Time-to-Value | Decision |
+|---|---|---|---|---|---|
+| **A. DB multi-tenant hardening (RLS + tenant boundaries + policy tests)** | Very High | Very High | Medium | High | **Do now (Sprint 1)** |
+| **B. Consent + audit foundation (research consent records, audit_log, withdrawal flow)** | Very High | Very High | Medium-High | High | **Do now (Sprint 1-2)** |
+| **C. Institutional org model (organizations + members + roles + admin shell)** | Very High | High | Medium | Medium-High | **Do next (Sprint 2)** |
+| D. Dynamic ARASAAC search | Medium | Low | Medium | Medium | Defer |
+| E. Marketing persona pages | Medium | Low | Low | Medium | Defer until compliance foundation is shipped |
+| F. Native app (Capacitor) | Low-Medium | Low | High | Low | Defer |
+
+### Selected Next 3 Tasks
+
+1. **A. DB multi-tenant hardening**
+2. **B. Consent + audit foundation**
+3. **C. Institutional org model**
+
+### Sprint-Ready Implementation Checklist (Next Execution)
+
+#### Sprint 1: Task A - DB multi-tenant hardening (RLS + policy tests)
+
+**Objective**: enforce tenant isolation in Postgres, not only in application code.
+
+**Migrations (Drizzle SQL)**
+- [ ] Create migration: `00xx_rls_foundation.sql`
+- [ ] Enable RLS on all tenant-sensitive tables:
+  - `pairings`
+  - `pairing_requests`
+  - `messages`
+  - `communication_sessions`
+  - `user_preferences`
+  - `custom_icons`
+  - `organizations`
+  - `organization_members`
+  - `research_studies`
+  - `research_consent`
+  - `audit_log`
+- [ ] Add helper SQL function: `app.current_user_id()` (reads request JWT subject / app context)
+- [ ] Add helper SQL function: `app.current_org_id()` (for org-scoped routes)
+- [ ] Create RLS policies:
+  - [ ] `tenant_isolation_select`
+  - [ ] `tenant_isolation_insert`
+  - [ ] `tenant_isolation_update`
+  - [ ] `tenant_isolation_delete`
+- [ ] Add explicit deny policy for cross-org access attempts
+
+**Verification**
+- [ ] Add SQL policy tests in migration comments or integration checks
+- [ ] Add test script in `scripts/rls-smoke-test.ts`:
+  - [ ] User A cannot read User B session rows
+  - [ ] Therapist in Org A cannot read Org B members
+  - [ ] Cross-tenant `UPDATE` returns zero rows / permission denied
+
+**Acceptance Criteria**
+- [ ] No tenant-sensitive query returns cross-tenant rows when called with constrained user context
+- [ ] RLS remains enabled in all non-local environments
+- [ ] Policy test script passes in CI
+
+#### Sprint 1-2: Task B - Consent + audit foundation
+
+**Objective**: make all research data access consent-aware and auditable.
+
+**Migrations (Drizzle SQL)**
+- [ ] Create migration: `00xy_consent_audit_foundation.sql`
+- [ ] Ensure `research_consent` supports lifecycle:
+  - [ ] `consentedAt`
+  - [ ] `withdrawnAt`
+  - [ ] `consentVersion`
+  - [ ] `consentType` (`individual`, `guardian`, `institutional`)
+- [ ] Ensure `audit_log` fields are normalized:
+  - [ ] `actor`
+  - [ ] `action`
+  - [ ] `targetUserId`
+  - [ ] `organizationId`
+  - [ ] `details` (JSON)
+  - [ ] `createdAt`
+
+**API Endpoints (exact first cut)**
+- [ ] `POST /api/research/consent`
+  - Input: `studyId`, `consentType`, `consentVersion`, `documentId`
+  - Output: consent record with `consentedAt`
+- [ ] `POST /api/research/consent/withdraw`
+  - Input: `studyId`, `reason` (optional)
+  - Output: consent record with `withdrawnAt`
+- [ ] `GET /api/research/consent/:studyId`
+  - Output: active/withdrawn consent status for caller
+- [ ] `POST /api/audit/log`
+  - Internal-only route or service wrapper; writes structured audit events
+
+**Service Layer**
+- [ ] Add `src/lib/compliance/audit.ts` with `logAuditEvent(...)`
+- [ ] Add `src/lib/compliance/consent.ts` with `hasActiveConsent(userId, studyId)`
+- [ ] Wire consent check before any research export/data endpoint response
+
+**Acceptance Criteria**
+- [ ] Any export or study read path requires active consent (or institutional lawful basis)
+- [ ] Consent withdrawal takes effect immediately for future reads/exports
+- [ ] All consent create/withdraw/read actions emit audit log events
+
+#### Sprint 2: Task C - Institutional org model
+
+**Objective**: enable institution onboarding and role-managed access.
+
+**Migrations (Drizzle SQL)**
+- [ ] Create migration: `00xz_org_model.sql`
+- [ ] Create/verify tables:
+  - [ ] `organizations`
+  - [ ] `organization_members`
+  - [ ] `organization_settings`
+- [ ] Add unique constraints:
+  - [ ] one membership per `(organizationId, userId)`
+  - [ ] one settings row per organization
+
+**API Endpoints (exact first cut)**
+- [ ] `POST /api/organizations`
+  - Create organization, set creator as admin
+- [ ] `GET /api/organizations/me`
+  - Return organizations and roles for current user
+- [ ] `POST /api/organizations/:id/members`
+  - Add member by email + role
+- [ ] `PATCH /api/organizations/:id/members/:memberId`
+  - Update member role
+- [ ] `DELETE /api/organizations/:id/members/:memberId`
+  - Remove member
+- [ ] `PATCH /api/organizations/:id/settings`
+  - Update retention/export/consent-required flags
+
+**UI First Slice**
+- [ ] `/dashboard/organization/admin` shell page
+- [ ] Member table (name/email/role/status)
+- [ ] Invite member form (email + role)
+- [ ] Settings form (retention months, export toggle, consent required)
+
+**Acceptance Criteria**
+- [ ] Only organization admins can manage members/settings
+- [ ] Non-members get 403 for org-scoped endpoints
+- [ ] Organization member changes are audited
+
+#### Cross-cutting dependencies and definition of done
+
+- [ ] Add feature flags:
+  - [ ] `RESEARCH_MODE_ENABLED`
+  - [ ] `ORG_MODE_ENABLED`
+- [ ] Add API guard utilities:
+  - [ ] `requireOrgRole(orgId, ['admin', ...])`
+  - [ ] `requireResearchConsent(studyId)`
+- [ ] Add docs updates after implementation:
+  - [ ] [README.md](README.md)
+  - [ ] [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
+  - [ ] [CHANGELOG.md](CHANGELOG.md)
+- [ ] Build + lint + tests green before merge
+
+#### Estimated timeline
+
+| Sprint | Scope | Duration |
+|---|---|---|
+| Sprint 1 | Task A complete + Task B schema/services start | 1 week |
+| Sprint 2 | Task B endpoints complete + Task C org model/API/UI shell | 1 week |
+| Sprint 3 (buffer) | hardening, security review, docs, pilot prep | 3-5 days |
+
+### Rationale
+
+- These three tasks directly satisfy the project brief's non-negotiables and unblock external GDPR/WCAG auditing and pilot institutional onboarding.
+- They also reduce downstream rework by establishing legal and data architecture constraints before feature expansion.
+
+---
+
 ## Priority Matrix
 
 | Feature | Impact | Effort | Priority | Status |
@@ -394,6 +905,10 @@ When a production domain (e.g. `snakke.no`) is acquired, migrate persona pages t
 | Native app | Medium | High | **P4** | 🔲 |
 | Persona landing pages (/for-parents etc.) | High | Low | **P2** | 🔲 |
 | Dedicated marketing site (snakke.no) | Medium | Medium | **P3** | 🔲 |
+| **Research & Institutional Platform (foundation)** | **Critical** | **Very High** | **P1** | 🔲 |
+| **Organizational account management** | High | High | **P1** | 🔲 |
+| **Research consent framework** | Critical | High | **P1** | 🔲 |
+| **Compliance (GDPR, HIPAA, FERPA)** | Critical | Very High | **P1** | 🔲 |
 
 ---
 
@@ -405,6 +920,79 @@ When a production domain (e.g. `snakke.no`) is acquired, migrate persona pages t
 | **v0.3.0** | ✅ Done | Language learning (flashcard / writing / speaking), 5-language support, premium landing page |
 | **v0.4.0** | ✅ Done | Dashboard i18n (EN+NO), supervisor pairing + patient history, accessibility preferences |
 | **v0.5.0** | Near-term | Full ES/FR/DE translations, spaced repetition, QR device pairing, guardian dashboard |
+| **v0.5.1** | Near-term | Compliance foundation sprint: RLS hardening, consent records, audit logging, organization core schema |
 | **v0.6.0** | Mid-term | Dynamic ARASAAC search, OBF import/export, full offline sync |
-| **v0.5.0** near-term add | — | Persona landing pages (`/for-parents`, `/for-therapists`, `/for-schools`) |
-| **v1.0.0** | Long-term | Production-ready, WCAG 2.1 AAA, App Store ready, dedicated marketing site |
+| **v0.7.0** | Mid-term | Community pictograms (Phase 5.5), semantic icon search (Phase 6) |
+| **v0.8.0** | Long-term | Switch access, eye-gaze compatibility, WCAG 2.1 AAA |
+| **v1.0.0** | Long-term | Production-ready, dedicated marketing site (snakke.no) |
+| **v1.1.0** | Post-launch | Research & Institutional Platform (Phase 9) — organizations, consent, compliance |
+| **v1.2.0** | Post-launch | Native iOS/Android App Store distribution (Capacitor) |
+
+---
+
+## Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         SNAKKE v1.1+                             │
+│                 Research & Institutional Platform                │
+└─────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────┐    ┌──────────────────────┐
+│   Individual Users   │    │   Institutions       │
+│                      │    │  (Schools, Clinics)  │
+│ • Child + Family     │    │                      │
+│ • Therapist (1-5p)   │    │ • Admins             │
+│ • Free tier          │    │ • Multi-therapists   │
+└──────────────────────┘    │ • Paid tier          │
+                            └──────────────────────┘
+        ↓                               ↓
+        └──────────────┬───────────────┘
+                       ↓
+        ┌──────────────────────────────┐
+        │   AUTH & PERMISSIONS         │
+        │  (JWT + Role-based access)   │
+        └──────────────────────────────┘
+                       ↓
+        ┌──────────────────────────────┐
+        │   CORE AAC FEATURES          │
+        │  (Icons, TTS, SentenceBuilder)
+        └──────────────────────────────┘
+                       ↓
+        ┌──────────────────────────────┐
+        │   RESEARCH LAYER (Phase 9)   │
+        │                              │
+        │ ┌────────────────────────┐   │
+        │ │ Consent Management     │   │
+        │ │ (Digital forms, IRB)   │   │
+        │ └────────────────────────┘   │
+        │ ┌────────────────────────┐   │
+        │ │ Anonymization          │   │
+        │ │ (Hash, deidentify)     │   │
+        │ └────────────────────────┘   │
+        │ ┌────────────────────────┐   │
+        │ │ Audit Logging          │   │
+        │ │ (Who, what, when, why) │   │
+        │ └────────────────────────┘   │
+        │ ┌────────────────────────┐   │
+        │ │ Analytics Dashboard    │   │
+        │ │ (Export, metrics)      │   │
+        │ └────────────────────────┘   │
+        └──────────────────────────────┘
+                       ↓
+        ┌──────────────────────────────┐
+        │   DATA LAYER                 │
+        │  (Encrypted DB + Audit Logs) │
+        └──────────────────────────────┘
+```
+
+---
+
+## Success Metrics (Phase 9)
+
+- **Adoption**: 50+ research participants enrolled across 5+ institutions
+- **Compliance**: 0 data breaches, 100% GDPR/HIPAA audit pass
+- **Research publications**: 3+ peer-reviewed papers using Snakke data
+- **Institutional partnerships**: 2–3 university/hospital partnerships signed
+- **Data quality**: 99%+ data integrity (no corruption, full audit trail)
+- **User trust**: 95%+ of research participants grant consent, <5% withdrawal rate

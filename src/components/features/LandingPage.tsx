@@ -121,7 +121,7 @@ export default function LandingPage() {
         <section className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 py-10 px-4">
           <div className="container mx-auto max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
-              <div className="text-3xl font-bold text-primary">89+</div>
+              <div className="text-3xl font-bold text-primary">101</div>
               <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('home.stats.icons')}</div>
             </div>
             <div>
@@ -266,6 +266,8 @@ export default function LandingPage() {
           <div className="text-xl font-bold text-white">Snakke</div>
           <nav aria-label="Footer navigation" className="flex gap-6">
             <Link href="/about" className="hover:text-white transition-colors">{t('home.footer.about')}</Link>
+            <Link href="/research" className="hover:text-white transition-colors">Research</Link>
+            <Link href="/plans" className="hover:text-white transition-colors">Plans</Link>
             <Link href="/login" className="hover:text-white transition-colors">{t('home.hero.cta.login')}</Link>
             <Link href="/register" className="hover:text-white transition-colors">{t('auth.register')}</Link>
             <a

@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (June 13, 2026 — session 19: information pages, RLS foundation, full nav localisation)
+
+#### Information Pages
+- **`/research` page** (`src/app/research/page.tsx` + `src/components/features/ResearchPageContent.tsx`)
+  - Bilingual EN/NO content using `LanguageContext`
+  - Covers: consent-first data model, institutional multi-tenancy, clinical/educational use, compliance roadmap, planned research capabilities
+  - Gradient CTA banner linking to `/plans` and `/about`
+  - Accessible footer with translated links
+  - Server wrapper page (for `metadata`) + client content component (for language switching)
+- **`/plans` page** (`src/app/plans/page.tsx` + `src/components/features/PlansPageContent.tsx`)
+  - Bilingual EN/NO content using `LanguageContext`
+  - Summarises all 9 roadmap phases in plain language for non-technical stakeholders
+  - "What is next" section explains current compliance-first sprint focus
+  - Links to `/research` and `/about`
+  - Same server/client split pattern as `/research`
+
+#### Navigation — full localisation
+- **5 new translation keys** added to `LanguageContext.tsx` (both EN and NO dictionaries):
+  - `nav.about` → About / Om
+  - `nav.research` → Research / Forskning
+  - `nav.plans` → Plans / Planer
+  - `nav.signIn` → Sign In / Logg inn
+  - `nav.signUp` → Sign Up / Registrer deg
+- **`Header.tsx`** (public pages) — all hardcoded English nav labels replaced with `t()` calls: Learn, About, Research, Plans, Sign In, Sign Up, Sign Out, Communicate (desktop + mobile menu)
+- **`AppHeader.tsx`** (authenticated pages) — identical localisation applied to all nav labels in both desktop and mobile menus
+- Navigation now switches language instantly when the user toggles EN/NO — no hardcoded strings remain in either header
+
+#### DB — RLS foundation (Phase 9 Sprint 1 groundwork)
+- **`tenants` table** added to `src/lib/db/schema.ts`
+  - Fields: `id`, `name`, `type` (school/clinic/hospital/university/research_center), `country`, `tier` (free/professional/institutional/research), `adminUserId`, timestamps
+  - `pgPolicy('tenant_self_isolation')` applied using `set_config('app.current_tenant_id', ...)` runtime context — activates SQL-layer tenant isolation for this table
+  - `tenantsRelations` wired to `users`
+- **`tenantId`** column (nullable UUID) added to `users` table
+  - Nullable by design: individual family users have no tenant; institutional users receive a `tenantId` at org onboarding
+  - `tenant` relation added to `usersRelations`
+- **`withTenantContext(tenantId, operation)`** added to `src/lib/db/client.ts`
+  - Uses `Pool` + transaction from `@neondatabase/serverless` (lazy-initialised)
+  - Sets `app.current_tenant_id` inside transaction before executing the operation — activates all `pgPolicy` rules on RLS-protected tables
+  - Pool is lazy-initialised (no cold-start overhead on non-tenant routes)
+  - Existing `db` (neon-http) export is unchanged — all current API routes continue to work without modification
+  - **Note**: `pgPolicy` on existing tables (`pairings`, `messages`, etc.) deferred to Phase 9 Sprint 1 migration to avoid breaking current routes
+
+### Fixed (June 12, 2026 — session 18: documentation audit & UX improvement)
+- **Icon count verification** — Updated all documentation to reflect actual 101 built-in icons (was 89/95 in various docs)
+  - Files updated: `README.md`, `PROJECT_OVERVIEW.md`, `PLAN.md`, `SUGGESTIONS.md`
+- **Supervisor direct communication redirect** (`/api/pairings/accept`, `/join/[token]`)
+  - API now returns `requesterId` in accept response alongside `isSupervisorRole`
+  - When supervisor (guardian/therapist/teacher) accepts a pairing, they are redirected to `/dashboard/patients/[requesterId]` (direct communication view) instead of the patient list
+  - Non-supervisor acceptors continue to redirect to `/dashboard/patients` (list view)
+  - Improves UX: supervisors can start communicating immediately after accepting
+  - Feature only takes effect after pairing acceptance; no change to invite generation or acceptance flow logic
+
 ### Refactored (May 23, 2026 — session 6: deduplication)
 - **Shared utility: `src/lib/auth/requireAuth.ts`**
   - Extracted repeated 3-line auth guard (`auth()` + null check + 401 response) into a single helper

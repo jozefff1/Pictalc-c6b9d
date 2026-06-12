@@ -119,5 +119,5 @@ export async function POST(request: NextRequest) {
     .set({ status: 'used' })
     .where(eq(pairingRequests.id, invite.id));
 
-  return NextResponse.json({ pairingId: newPairing.id, isSupervisorRole }, { status: 201 });
+  return NextResponse.json({ pairingId: newPairing.id, isSupervisorRole, requesterId: invite.requesterId }, { status: 201 });
 }

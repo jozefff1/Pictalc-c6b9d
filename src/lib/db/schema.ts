@@ -1,11 +1,37 @@
-import { pgTable, text, timestamp, varchar, uuid, boolean, integer, decimal, jsonb } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, pgPolicy, text, timestamp, varchar, uuid, boolean, integer, decimal, jsonb } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+
+/**
+ * Tenants table — institutional isolation unit (school, clinic, research group).
+ * Every RLS-protected table will reference this via tenant_id.
+ * NOTE: apply pgPolicy to individual tables during Phase 9 migration sprints
+ * only after all API routes are wrapped with withTenantContext().
+ */
+export const tenants = pgTable('tenants', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  type: varchar('type', { length: 50 }).notNull().default('school'), // school, clinic, hospital, university, research_center
+  country: varchar('country', { length: 2 }),
+  tier: varchar('tier', { length: 20 }).notNull().default('free'), // free, professional, institutional, research
+  adminUserId: uuid('admin_user_id'), // set after first admin user is created
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+},
+(table) => [
+  pgPolicy('tenant_self_isolation', {
+    for: 'all',
+    to: 'authenticated',
+    using: sql`id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+  }),
+]);
 
 /**
  * Users table - stores all user accounts
  */
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
+  // tenantId: nullable — individual (family) users have no tenant; institutional users are linked
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'set null' }),
   email: varchar('email', { length: 255 }).notNull().unique(),
   name: varchar('name', { length: 255 }).notNull(),
   password: text('password').notNull(),
@@ -124,7 +150,12 @@ export const customIcons = pgTable('custom_icons', {
 });
 
 // Relations
+export const tenantsRelations = relations(tenants, ({ many }) => ({
+  members: many(users),
+}));
+
 export const usersRelations = relations(users, ({ many, one }) => ({
+  tenant: one(tenants, { fields: [users.tenantId], references: [tenants.id] }),
   devices: many(devices),
   guardianPairings: many(pairings, { relationName: 'guardian' }),
   childPairings: many(pairings, { relationName: 'child' }),
