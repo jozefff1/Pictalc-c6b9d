@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { randomBytes } from 'crypto';
 import { db } from '@/lib/db/client';
 import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { sendPasswordResetEmail } from '@/lib/email/resend';
 
 const schema = z.object({
@@ -18,12 +18,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
     }
 
-    const { email } = result.data;
+    const email = result.data.email.trim().toLowerCase();
 
     const user = await db
       .select({ id: users.id, name: users.name, email: users.email })
       .from(users)
-      .where(eq(users.email, email))
+      .where(sql`lower(${users.email}) = ${email}`)
       .limit(1)
       .then((rows) => rows[0]);
 

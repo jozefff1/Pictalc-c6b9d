@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { db } from '@/lib/db/client';
 import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -18,14 +18,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const email = credentials.email as string;
+        const email = (credentials.email as string).trim().toLowerCase();
         const password = credentials.password as string;
 
         try {
+          // Keep this projection explicit until tenant_id has been migrated in every environment.
           const user = await db
-            .select()
+            .select({
+              id: users.id,
+              email: users.email,
+              name: users.name,
+              password: users.password,
+              role: users.role,
+              emailVerified: users.emailVerified,
+              verificationToken: users.verificationToken,
+            })
             .from(users)
-            .where(eq(users.email, email))
+            .where(sql`lower(${users.email}) = ${email}`)
             .limit(1)
             .then(rows => rows[0]);
 

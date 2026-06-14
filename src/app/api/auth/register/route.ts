@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { db } from '@/lib/db/client';
 import { users, userPreferences } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { sendVerificationEmail } from '@/lib/email/resend';
 
 const registerSchema = z.object({
@@ -40,13 +40,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, password, role } = result.data;
+    const { name, password, role } = result.data;
+    const email = result.data.email.trim().toLowerCase();
 
     // Check if email already taken
     const existing = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.email, email))
+      .where(sql`lower(${users.email}) = ${email}`)
       .limit(1)
       .then((rows) => rows[0]);
 
@@ -67,19 +68,34 @@ export async function POST(request: NextRequest) {
     const verificationToken = randomBytes(32).toString('hex');
     const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    // Insert user
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        name,
-        email,
-        password: hashedPassword,
-        role,
-        emailVerified: false,
-        verificationToken,
-        verificationTokenExpiry,
-      })
-      .returning({ id: users.id, email: users.email, name: users.name });
+    // Insert user with an explicit column list to stay compatible with DBs
+    // that have not yet added newer columns like tenant_id.
+    const inserted = await db.execute(sql`
+      insert into "users" (
+        "email",
+        "name",
+        "password",
+        "role",
+        "email_verified",
+        "verification_token",
+        "verification_token_expiry"
+      ) values (
+        ${email},
+        ${name},
+        ${hashedPassword},
+        ${role},
+        ${false},
+        ${verificationToken},
+        ${verificationTokenExpiry}
+      )
+      returning "id", "email", "name"
+    `);
+
+    const newUser = inserted.rows[0] as { id: string; email: string; name: string } | undefined;
+
+    if (!newUser) {
+      throw new Error('Failed to create user record');
+    }
 
     // Create default preferences for the new user
     await db.insert(userPreferences).values({ userId: newUser.id });
