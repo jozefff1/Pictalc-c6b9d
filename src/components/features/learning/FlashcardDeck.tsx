@@ -6,8 +6,6 @@ import { useLanguage, LANGUAGES, type Language } from '@/contexts/LanguageContex
 import { ICON_DATABASE } from '@/lib/data/icons';
 import { SENTENCE_DATABASE, getSentenceText } from '@/lib/data/sentences';
 import type { IconCategory } from '@/types/models';
-import { speakText } from '@/lib/services/speechService';
-import { getSpeechLocale } from '@/lib/services/speechLocales';
 
 type Mode = 'flashcard' | 'writing' | 'speaking';
 
@@ -24,8 +22,28 @@ const CATEGORY_ICONS: Record<IconCategory | 'all' | 'sentences', string> = {
 
 const CATEGORIES: (IconCategory | 'all' | 'sentences')[] = ['all', 'needs', 'actions', 'feelings', 'people', 'places', 'sentences'];
 
+const LANG_BCP47: Record<Language, string> = {
+  en: 'en-US', no: 'nb-NO', es: 'es-ES', fr: 'fr-FR', de: 'de-DE',
+};
+
 function speak(text: string, lang: Language) {
-  void speakText(text, { lang: getSpeechLocale(lang), speed: 0.9 });
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = LANG_BCP47[lang];
+  utter.rate = 0.9;
+  // Android Chrome workaround: poll resume() while speaking
+  let interval: ReturnType<typeof setInterval> | null = null;
+  utter.onstart = () => {
+    interval = setInterval(() => {
+      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+    }, 250);
+  };
+  const done = () => { if (interval) { clearInterval(interval); interval = null; } };
+  utter.onend = done;
+  utter.onerror = done;
+  // 50ms delay after cancel() for Android Chrome
+  setTimeout(() => { window.speechSynthesis.speak(utter); }, 50);
 }
 
 function normalize(s: string) {
@@ -130,7 +148,7 @@ export default function FlashcardDeck() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rec: any = new SR();
     recognitionRef.current = rec;
-    rec.lang = getSpeechLocale(learnTarget);
+    rec.lang = LANG_BCP47[learnTarget];
     rec.interimResults = false;
     rec.maxAlternatives = 3;
 

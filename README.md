@@ -200,7 +200,6 @@ To add a new language:
 | `CHANGELOG.md` | Version history |
 | `SETUP.md` | Quick setup and troubleshooting guide |
 | `docs/i18n.md` | Comprehensive i18n guide |
-| `docs/SPEECH_ARCHITECTURE.md` | Offline-first TTS/STT provider architecture and delivery plan |
 
 > For legal, compliance, accessibility, medical-device, AI, NAV, procurement,
 > funding, and production-readiness claims, `docs/PROJECT_BRIEF.md` takes

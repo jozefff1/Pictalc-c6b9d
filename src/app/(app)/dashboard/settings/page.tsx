@@ -6,7 +6,6 @@ import { STORAGE_KEYS } from '@/lib/utils/constants';
 import { usePreferences, type Preferences } from '@/hooks/usePreferences';
 import { useFlashMessage } from '@/hooks/useFlashMessage';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getSpeechLocale } from '@/lib/services/speechLocales';
 
 type Prefs = Preferences;
 
@@ -20,9 +19,8 @@ function applyAccessibility(prefs: Prefs) {
   localStorage.setItem(STORAGE_KEYS.REDUCE_MOTION, String(prefs.reduceMotion));
   localStorage.setItem(STORAGE_KEYS.TEXT_SIZE, String(prefs.textSize));
 }
-
 export default function SettingsPage() {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { preferences, setPreferences, loading } = usePreferences();
   const [prefs, setPrefs] = useState<Prefs>(preferences);
   const [saving, setSaving] = useState(false);
@@ -142,14 +140,7 @@ export default function SettingsPage() {
             {/* Test button */}
             <div className="flex items-center gap-4">
               <button
-                onClick={() => speakText(
-                  language === 'no' ? 'Hei! Dette er stemmen min.' : 'Hello! This is how I sound.',
-                  {
-                    speed: prefs.voiceSpeed,
-                    pitch: prefs.voicePitch,
-                    lang: getSpeechLocale(language),
-                  },
-                )}
+                onClick={() => speakText('Hello! This is how I sound.', { speed: prefs.voiceSpeed, pitch: prefs.voicePitch })}
                 disabled={!isSpeechSynthesisSupported()}
                 className="px-5 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors"
               >

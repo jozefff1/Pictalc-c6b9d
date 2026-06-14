@@ -8,7 +8,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { addIconToSentence } from '@/store/slices/communicationSlice';
 import IconMatchGrid from '@/components/features/communication/IconMatchGrid';
 import type { IconMatch } from '@/lib/ai/iconMatcher';
-import { getSpeechLocale } from '@/lib/services/speechLocales';
 
 export default function SpeechToIcons() {
   const { language } = useLanguage();
@@ -25,7 +24,7 @@ export default function SpeechToIcons() {
   useEffect(() => {
     if (!supported) return;
     try {
-      const langCode = getSpeechLocale(language);
+      const langCode = language === 'no' ? 'nb-NO' : 'en-US';
       const rec = new SpeechRecognizer({ lang: langCode, continuous: false, interimResults: true });
       recognizerRef.current = rec;
       return () => { rec.abort(); };

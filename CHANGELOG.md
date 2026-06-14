@@ -7,15 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Speech foundation
-
-- Centralized speech locales and Norwegian voice aliases.
-- Browser TTS now chooses the closest installed local voice when available.
-- Added a registerable TTS provider contract for future local neural engines.
-- Unified Sentence Builder, settings, and learning pronunciation on the shared
-  speech service.
-- Added the offline-first neural speech plan in `docs/SPEECH_ARCHITECTURE.md`.
-
 ### Documentation (June 14, 2026 — regulatory brief alignment)
 
 - Added `docs/PROJECT_BRIEF.md` as the authoritative dated regulatory and
