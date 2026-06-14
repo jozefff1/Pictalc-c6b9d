@@ -18,6 +18,32 @@ export interface SpeechRecognitionConfig {
   maxAlternatives?: number;
 }
 
+const LANGUAGE_ALIASES: Record<string, string[]> = {
+  nb: ['nb', 'no', 'nn'],
+  no: ['nb', 'no', 'nn'],
+  nn: ['nb', 'no', 'nn'],
+};
+
+function languageBase(locale: string): string {
+  return locale.toLowerCase().split(/[-_]/)[0];
+}
+
+export function findVoiceForLanguage(
+  voices: SpeechSynthesisVoice[],
+  requestedLocale: string,
+): SpeechSynthesisVoice | null {
+  const requested = requestedLocale.toLowerCase().replace('_', '-');
+  const requestedBase = languageBase(requested);
+  const acceptedBases = LANGUAGE_ALIASES[requestedBase] ?? [requestedBase];
+
+  const matching = voices.filter((voice) => acceptedBases.includes(languageBase(voice.lang)));
+  if (matching.length === 0) return null;
+
+  return matching.find((voice) => voice.lang.toLowerCase().replace('_', '-') === requested)
+    ?? matching.find((voice) => voice.localService)
+    ?? matching[0];
+}
+
 // Check if browser supports speech synthesis
 export function isSpeechSynthesisSupported(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
@@ -57,6 +83,12 @@ export function speakText(text: string, config: SpeechConfig = {}): Promise<void
     
     if (config.voice) {
       utterance.voice = config.voice;
+    } else {
+      const matchingVoice = findVoiceForLanguage(
+        window.speechSynthesis.getVoices(),
+        utterance.lang,
+      );
+      if (matchingVoice) utterance.voice = matchingVoice;
     }
 
     // Android Chrome workaround: after cancel(), the engine may silently pause

@@ -6,6 +6,7 @@ import { useLanguage, LANGUAGES, type Language } from '@/contexts/LanguageContex
 import { ICON_DATABASE } from '@/lib/data/icons';
 import { SENTENCE_DATABASE, getSentenceText } from '@/lib/data/sentences';
 import type { IconCategory } from '@/types/models';
+import { speakText } from '@/lib/services/speechService';
 
 type Mode = 'flashcard' | 'writing' | 'speaking';
 
@@ -27,23 +28,7 @@ const LANG_BCP47: Record<Language, string> = {
 };
 
 function speak(text: string, lang: Language) {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = LANG_BCP47[lang];
-  utter.rate = 0.9;
-  // Android Chrome workaround: poll resume() while speaking
-  let interval: ReturnType<typeof setInterval> | null = null;
-  utter.onstart = () => {
-    interval = setInterval(() => {
-      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-    }, 250);
-  };
-  const done = () => { if (interval) { clearInterval(interval); interval = null; } };
-  utter.onend = done;
-  utter.onerror = done;
-  // 50ms delay after cancel() for Android Chrome
-  setTimeout(() => { window.speechSynthesis.speak(utter); }, 50);
+  void speakText(text, { lang: LANG_BCP47[lang], speed: 0.9 });
 }
 
 function normalize(s: string) {
