@@ -2,6 +2,13 @@
 
 _Created: May 23, 2026_
 
+> **Planning note:** This document contains product hypotheses, not approved
+> clinical, research, privacy, or regulatory workflows. Before implementing
+> workspace notes, experiments, analytics, or shared child data, apply the
+> gates in [`docs/PROJECT_BRIEF.md`](docs/PROJECT_BRIEF.md): lawful-basis and
+> Article 9 assessment, DPIA decision, role mapping, tenant isolation, consent
+> where applicable, retention, access logging, and domain-expert review.
+
 ---
 
 ## Background
@@ -102,7 +109,9 @@ A therapist develops an excellent board for non-verbal 5-year-olds with autism. 
 - Should session notes be visible to parents by default, or therapist-controlled?
 - What metadata is most useful for an experiment? (icon tap count, session length, spontaneous vs prompted use?)
 - Are there existing data standards for AAC research that Snakke should align with?
-- GDPR / HIPAA considerations for storing session notes linked to a child's identity
+- Which lawful basis, Article 9 condition (if applicable), controller/processor
+  roles, DPIA safeguards, retention rules, and access controls are required for
+  session notes linked to a child's identity?
 
 ---
 

@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Speech foundation
+
+- Centralized speech locales and Norwegian voice aliases.
+- Browser TTS now chooses the closest installed local voice when available.
+- Added a registerable TTS provider contract for future local neural engines.
+- Unified Sentence Builder, settings, and learning pronunciation on the shared
+  speech service.
+- Added the offline-first neural speech plan in `docs/SPEECH_ARCHITECTURE.md`.
+
+### Documentation (June 14, 2026 — regulatory brief alignment)
+
+- Added `docs/PROJECT_BRIEF.md` as the authoritative dated regulatory and
+  market-validation brief.
+- Added `docs/DOCUMENTATION_ALIGNMENT.md` comparing every project document
+  against the brief.
+- Clarified selected offline persistence versus complete offline sync.
+- Marked compliance, accessibility, medical-device, AI, NAV, procurement, and
+  production-readiness statements as validation targets rather than established
+  conformity.
+- Archived the obsolete `next-intl` portion of `MULTILINGUAL_SETUP.md` in favor
+  of the maintained `docs/i18n.md` guide.
+
+### Fixed (June 14, 2026 — auth compatibility before tenant migration)
+
+- Fixed login failure introduced when nullable `users.tenant_id` was added to
+  the Drizzle schema before the matching database migration was applied.
+- Credentials login now selects only the user columns required for
+  authentication, avoiding staged/unmigrated columns.
+- Login, registration, and forgot-password email lookups now trim and normalize
+  email addresses and use case-insensitive SQL matching.
+- Registration uses an explicit SQL column list so it remains compatible with
+  databases that do not yet contain `users.tenant_id`.
+- Documented that tenant/RLS definitions are staged in code and require a
+  reviewed, verified migration before being treated as deployed.
+
 ### Added (June 13, 2026 — session 19: information pages, RLS foundation, full nav localisation)
 
 #### Information Pages
@@ -34,12 +69,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`AppHeader.tsx`** (authenticated pages) — identical localisation applied to all nav labels in both desktop and mobile menus
 - Navigation now switches language instantly when the user toggles EN/NO — no hardcoded strings remain in either header
 
-#### DB — RLS foundation (Phase 9 Sprint 1 groundwork)
-- **`tenants` table** added to `src/lib/db/schema.ts`
+#### DB — staged RLS foundation (Phase 9 Sprint 1 groundwork)
+- **`tenants` table definition** added to `src/lib/db/schema.ts`
   - Fields: `id`, `name`, `type` (school/clinic/hospital/university/research_center), `country`, `tier` (free/professional/institutional/research), `adminUserId`, timestamps
   - `pgPolicy('tenant_self_isolation')` applied using `set_config('app.current_tenant_id', ...)` runtime context — activates SQL-layer tenant isolation for this table
   - `tenantsRelations` wired to `users`
-- **`tenantId`** column (nullable UUID) added to `users` table
+- **`tenantId`** column definition (nullable UUID) added to the `users` schema
   - Nullable by design: individual family users have no tenant; institutional users receive a `tenantId` at org onboarding
   - `tenant` relation added to `usersRelations`
 - **`withTenantContext(tenantId, operation)`** added to `src/lib/db/client.ts`
@@ -48,6 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Pool is lazy-initialised (no cold-start overhead on non-tenant routes)
   - Existing `db` (neon-http) export is unchanged — all current API routes continue to work without modification
   - **Note**: `pgPolicy` on existing tables (`pairings`, `messages`, etc.) deferred to Phase 9 Sprint 1 migration to avoid breaking current routes
+- **Deployment note**: these definitions are staged in code; the corresponding
+  database migration has not yet been applied or policy-tested in every environment
 
 ### Fixed (June 12, 2026 — session 18: documentation audit & UX improvement)
 - **Icon count verification** — Updated all documentation to reflect actual 101 built-in icons (was 89/95 in various docs)
@@ -95,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added (May 17, 2026 — session 4)
 - **Premium landing page redesign** (`src/app/page.tsx`)
   - Dark glassmorphism hero (`from-slate-900 via-blue-950`) with animated floating emoji icons
-  - Stats strip: 89+ icons · 2 languages · 100% offline · Free
+  - Stats strip originally displayed: 101 icons · 2 languages · 100% offline · Free; the offline and licensing claims were later corrected
   - Live demo preview: mock communication board showing 8 icon tiles
   - 6-column feature grid with coloured icon backgrounds
   - Persona cards for Children, Parents & Guardians, Therapists & Teachers

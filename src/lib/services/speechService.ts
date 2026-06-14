@@ -1,7 +1,10 @@
 /**
  * Speech Service - Text-to-Speech and Speech-to-Text
- * Uses Web Speech API for browser-native functionality
+ * Browser speech is the built-in fallback. Downloadable local neural or
+ * opt-in online providers can be registered without changing feature code.
  */
+
+import { getSpeechLocale, rankVoiceLanguage } from './speechLocales';
 
 export interface SpeechConfig {
   speed?: number; // 0.1 to 10
@@ -11,6 +14,14 @@ export interface SpeechConfig {
   lang?: string;
 }
 
+export interface SpeechSynthesisProvider {
+  id: string;
+  priority: number;
+  isAvailable(): boolean;
+  speak(text: string, config: SpeechConfig): Promise<void>;
+  stop(): void;
+}
+
 export interface SpeechRecognitionConfig {
   lang?: string;
   continuous?: boolean;
@@ -18,9 +29,23 @@ export interface SpeechRecognitionConfig {
   maxAlternatives?: number;
 }
 
+const externalSpeechProviders: SpeechSynthesisProvider[] = [];
+
+export function registerSpeechSynthesisProvider(provider: SpeechSynthesisProvider): () => void {
+  const existingIndex = externalSpeechProviders.findIndex((item) => item.id === provider.id);
+  if (existingIndex >= 0) externalSpeechProviders.splice(existingIndex, 1);
+  externalSpeechProviders.push(provider);
+
+  return () => {
+    const index = externalSpeechProviders.findIndex((item) => item.id === provider.id);
+    if (index >= 0) externalSpeechProviders.splice(index, 1);
+  };
+}
+
 // Check if browser supports speech synthesis
 export function isSpeechSynthesisSupported(): boolean {
-  return typeof window !== 'undefined' && 'speechSynthesis' in window;
+  return externalSpeechProviders.some((provider) => provider.isAvailable())
+    || (typeof window !== 'undefined' && 'speechSynthesis' in window);
 }
 
 // Check if browser supports speech recognition
@@ -32,7 +57,7 @@ export function isSpeechRecognitionSupported(): boolean {
 /**
  * Text-to-Speech: Speak text aloud
  */
-export function speakText(text: string, config: SpeechConfig = {}): Promise<void> {
+function speakWithBrowser(text: string, config: SpeechConfig = {}): Promise<void> {
   return new Promise((resolve, reject) => {
     if (!isSpeechSynthesisSupported()) {
       reject(new Error('Speech synthesis not supported in this browser'));
@@ -53,10 +78,15 @@ export function speakText(text: string, config: SpeechConfig = {}): Promise<void
     utterance.rate = config.speed ?? 1.0;
     utterance.pitch = config.pitch ?? 1.0;
     utterance.volume = config.volume ?? 1.0;
-    utterance.lang = config.lang ?? 'en-US';
+    utterance.lang = getSpeechLocale(config.lang ?? 'en-US');
     
     if (config.voice) {
       utterance.voice = config.voice;
+    } else {
+      utterance.voice = selectBestBrowserVoice(
+        window.speechSynthesis.getVoices(),
+        utterance.lang,
+      );
     }
 
     // Android Chrome workaround: after cancel(), the engine may silently pause
@@ -87,13 +117,54 @@ export function speakText(text: string, config: SpeechConfig = {}): Promise<void
   });
 }
 
+const browserSpeechProvider: SpeechSynthesisProvider = {
+  id: 'browser',
+  priority: 0,
+  isAvailable: () => typeof window !== 'undefined' && 'speechSynthesis' in window,
+  speak: speakWithBrowser,
+  stop: () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  },
+};
+
+/**
+ * Text-to-Speech: use the highest-priority available provider.
+ *
+ * A downloaded local neural provider should use a priority above 0. Browser
+ * speech remains available as the zero-download fallback.
+ */
+export async function speakText(text: string, config: SpeechConfig = {}): Promise<void> {
+  if (!text || text.trim().length === 0) throw new Error('No text to speak');
+
+  const providers = [...externalSpeechProviders, browserSpeechProvider]
+    .filter((provider) => provider.isAvailable())
+    .sort((a, b) => b.priority - a.priority);
+
+  if (providers.length === 0) {
+    throw new Error('Speech synthesis not supported in this browser');
+  }
+
+  let latestError: unknown;
+  for (const provider of providers) {
+    try {
+      await provider.speak(text, { ...config, lang: getSpeechLocale(config.lang ?? 'en-US') });
+      return;
+    } catch (error) {
+      latestError = error;
+    }
+  }
+
+  throw latestError instanceof Error ? latestError : new Error('Speech synthesis failed');
+}
+
 /**
  * Stop any ongoing speech
  */
 export function stopSpeaking(): void {
-  if (isSpeechSynthesisSupported()) {
-    window.speechSynthesis.cancel();
-  }
+  externalSpeechProviders.forEach((provider) => provider.stop());
+  browserSpeechProvider.stop();
 }
 
 /**
@@ -120,6 +191,25 @@ export function getAvailableVoices(): Promise<SpeechSynthesisVoice[]> {
   });
 }
 
+export function selectBestBrowserVoice(
+  voices: SpeechSynthesisVoice[],
+  requestedLocale: string,
+): SpeechSynthesisVoice | null {
+  const ranked = voices
+    .map((voice, index) => ({
+      voice,
+      index,
+      score:
+        rankVoiceLanguage(voice.lang, requestedLocale)
+        + (voice.localService ? 10 : 0)
+        + (voice.default ? 1 : 0),
+    }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index);
+
+  return ranked[0]?.voice ?? null;
+}
+
 /**
  * Speech Recognition Class
  */
@@ -141,7 +231,7 @@ export class SpeechRecognizer {
 
     // Configure recognition
     if (this.recognition) {
-      this.recognition.lang = config.lang ?? 'en-US';
+      this.recognition.lang = getSpeechLocale(config.lang ?? 'en-US');
       this.recognition.continuous = config.continuous ?? false;
       this.recognition.interimResults = config.interimResults ?? true;
       this.recognition.maxAlternatives = config.maxAlternatives ?? 1;

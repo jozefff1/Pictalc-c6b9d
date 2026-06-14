@@ -1,7 +1,15 @@
-# Snakke - Next.js PWA Setup Progress
+# Snakke - Contributor Instructions
+
+> Read `docs/PROJECT_BRIEF.md` before making changes involving personal data,
+> institutions, research, accessibility, AI, offline claims, NAV, procurement,
+> or compliance. Distinguish implemented, tested, planned, and externally
+> verified claims.
 
 ## Project Overview
-AAC (Augmentative and Alternative Communication) app for children with communication challenges. Modern PWA built with Next.js 15, TypeScript, Tailwind CSS, deployed on Vercel with offline-first capabilities.
+AAC (Augmentative and Alternative Communication) prototype for children and
+adults with communication challenges. Modern PWA built with Next.js 16,
+TypeScript, and Tailwind CSS. It has selected offline persistence; complete
+offline synchronization is planned.
 
 ## Setup Checklist
 
@@ -15,13 +23,13 @@ AAC (Augmentative and Alternative Communication) app for children with communica
 - [ ] Ensure Documentation is Complete
 
 ## Project Details
-- **Type**: Next.js 15 PWA
+- **Type**: Next.js 16 PWA
 - **Language**: TypeScript
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router, webpack)
 - **Styling**: Tailwind CSS
 - **State**: Redux Toolkit + RTK Query
 - **i18n**: Custom React Context (client-side)
-- **Database**: Vercel Postgres (Drizzle ORM)
+- **Database**: Neon Serverless Postgres (Drizzle ORM)
 - **Storage**: Vercel Blob
 - **Auth**: NextAuth.js v5
 - **Deployment**: Vercel

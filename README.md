@@ -1,10 +1,13 @@
 # Snakke
 
-> An open-source AAC (Augmentative and Alternative Communication) Progressive Web App for children and adults with communication challenges.
+> A source-available AAC (Augmentative and Alternative Communication) Progressive Web App prototype for children and adults with communication challenges.
 
-Snakke lets users express themselves through picture-based communication boards, text-to-icon conversion, and speech recognition — **online and offline**.
+Snakke lets users express themselves through picture-based communication
+boards, text-to-icon conversion, and speech recognition. Selected communication
+features persist locally; complete conflict-safe offline synchronization is
+still planned.
 
-🌐 **Live**: [pictalc-c6b9d.vercel.app](https://pictalc-c6b9d.vercel.app)
+🌐 **Live**: [snakke.vercel.app](https://snakke.vercel.app)
 
 ---
 
@@ -17,7 +20,7 @@ Snakke lets users express themselves through picture-based communication boards,
 - 🔊 **Text-to-Speech** — built sentence is spoken aloud via Web Speech API
 - 🌍 **Multilingual** — English and Norwegian, with instant switching
 - 🌙 **Dark Mode** — full dark theme support
-- 📱 **PWA** — installable, works offline, mobile-first
+- 📱 **PWA** — installable, mobile-first, with selected offline persistence
 - 👥 **Multi-role accounts** — Child, Guardian, Therapist, Teacher
 
 ---
@@ -44,26 +47,28 @@ Snakke lets users express themselves through picture-based communication boards,
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/jozefff1/Pictalc-c6b9d.git
-cd Pictalc-c6b9d
+git clone https://github.com/jozefff1/snakke.git
+cd snakke
 npm install
 ```
 
 ### 2. Configure environment variables
 
-Copy the example and fill in your values:
+Create `.env.local` in the project root and add the required values:
 
 ```bash
-cp .env.example .env.local
+touch .env.local
 ```
 
 | Variable | Description | Required |
 |---|---|---|
 | `DATABASE_URL` | Neon Postgres pooled connection string | ✅ |
 | `AUTH_SECRET` | Random secret for JWT (`openssl rand -base64 32`) | ✅ |
-| `AUTH_URL` | `http://localhost:3001` for local dev | Dev only |
+| `AUTH_URL` | `http://localhost:3000` for local dev | Dev only |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob token (for custom icon uploads) | ✅ |
 | `RESEND_API_KEY` | Resend API key (for email verification + password reset) | ✅ |
+| `RESEND_FROM_EMAIL` | Verified sender address override | Optional |
+| `RESEND_WEBHOOK_SECRET` | Svix secret for inbound Resend webhook verification | Inbound email only |
 | `NEXT_PUBLIC_APP_URL` | Public app URL (used in invite emails) | Optional |
 
 > **Note**: This project uses **NextAuth.js v5**. The secret variable is `AUTH_SECRET` and the URL variable is `AUTH_URL` (not `NEXTAUTH_SECRET` / `NEXTAUTH_URL`).
@@ -74,13 +79,19 @@ cp .env.example .env.local
 npm run db:push
 ```
 
+> **Migration note**: `src/lib/db/schema.ts` includes the staged Phase 9 tenant/RLS
+> foundation (`tenants` and nullable `users.tenant_id`). Review the generated
+> changes before pushing them to an existing database. Until that migration is
+> applied everywhere, auth routes intentionally use explicit compatible column
+> lists instead of selecting or inserting every field from the Drizzle schema.
+
 ### 4. Run development server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001).
+Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
@@ -130,7 +141,10 @@ src/
 
 ## Database Schema
 
-10 tables: `tenants`, `users`, `devices`, `pairings`, `pairing_requests`, `messages`, `communication_sessions`, `user_preferences`, `custom_icons`, `password_history`
+The Drizzle schema defines 10 tables: `tenants`, `users`, `devices`, `pairings`, `pairing_requests`, `messages`, `communication_sessions`, `user_preferences`, `custom_icons`, `password_history`.
+
+`tenants` and `users.tenant_id` are Phase 9 foundation definitions. Existing
+databases may not contain them until the reviewed tenant migration is applied.
 
 Push schema to your database:
 ```bash
@@ -178,12 +192,19 @@ To add a new language:
 
 | File | Description |
 |---|---|
+| `docs/PROJECT_BRIEF.md` | Authoritative regulatory and market-validation brief, status dated June 14, 2026 |
+| `docs/DOCUMENTATION_ALIGNMENT.md` | Comparison of every documentation file against the project brief |
 | `PROJECT_OVERVIEW.md` | Architecture, schema, feature status |
 | `PLAN.md` | Phased development roadmap |
 | `SUGGESTIONS.md` | Improvement ideas and technical recommendations |
 | `CHANGELOG.md` | Version history |
 | `SETUP.md` | Quick setup and troubleshooting guide |
 | `docs/i18n.md` | Comprehensive i18n guide |
+| `docs/SPEECH_ARCHITECTURE.md` | Offline-first TTS/STT provider architecture and delivery plan |
+
+> For legal, compliance, accessibility, medical-device, AI, NAV, procurement,
+> funding, and production-readiness claims, `docs/PROJECT_BRIEF.md` takes
+> precedence over older planning or historical documents.
 
 ---
 
@@ -201,7 +222,8 @@ To add a new language:
 - [x] Sentence icon reordering via drag-and-drop (@dnd-kit)
 - [x] `/about`, `/research`, `/plans` information pages — bilingual EN/NO, accessible nav + footer
 - [x] All header navigation labels localised (EN + NO) — no hardcoded strings remain
-- [x] `tenants` table with pgPolicy RLS foundation + `withTenantContext()` DB helper
+- [x] Tenant/RLS foundation defined in code (`tenants`, nullable `users.tenant_id`, `withTenantContext()`)
+- [ ] Apply and verify the tenant/RLS migration in every environment
 - [ ] Dynamic ARASAAC search (30,000+ symbols at runtime)
 - [ ] Full ES/FR/DE UI translations (icon labels only for now)
 - [ ] Icon grid reordering (Phase 2.6.2 — planned)
@@ -224,7 +246,8 @@ Snakke is a passion project to help children with communication challenges and t
 
 ## License
 
-MIT — free to use, modify, and distribute.
+No project license file is currently included. Usage, modification, and
+distribution rights must be formalized before describing Snakke as open-source.
 
 ---
 

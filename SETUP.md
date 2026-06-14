@@ -19,11 +19,14 @@
 
 3. **Create Database Tables**
    ```bash
-   npx drizzle-kit push
+   npm run db:push
    ```
+   Review the proposed changes before applying them to an existing database.
+   The code schema includes staged Phase 9 tenant/RLS definitions that may not
+   yet exist in older environments.
 
 4. **Test Registration**
-   - Go to [http://localhost:3001/register](http://localhost:3001/register)
+   - Go to [http://localhost:3000/register](http://localhost:3000/register)
    - Fill in the form with:
      - **Name**: At least 2 characters
      - **Email**: Valid email format
@@ -37,7 +40,7 @@
 
 5. **Test Login**
    - After registration, you'll be redirected to login
-   - Enter your email and password
+   - Enter your email and password (email matching is case-insensitive)
    - You'll be redirected to the dashboard
 
 ### Option 2: Mock Database (For UI Testing Only)
@@ -81,12 +84,17 @@ When signing up, your password **must** include:
 ### "Database connection error"
 - Make sure you've set up the Neon database
 - Verify `DATABASE_URL` in `.env.local` is correct
-- Run `npx drizzle-kit push` to create tables
+- Run `npm run db:push` to create tables after reviewing the proposed schema changes
+
+### Login fails after changing the Drizzle schema
+- Confirm the database migration was applied before relying on newly declared columns
+- `users.tenant_id` and `tenants` are currently staged Phase 9 definitions and may be absent in older databases
+- Auth queries must use explicit compatible column lists until every environment has the tenant migration
 
 ## 🎨 Features to Try
 
 After logging in:
-- ✓ AAC icon board — 89 pictograms across 6 categories
+- ✓ AAC icon board — 101 pictograms across 6 categories
 - ✓ Sentence builder with text-to-speech (speed + pitch configurable)
 - ✓ Text → icons and Speech → icons conversion
 - ✓ Custom icon upload (your own photos as AAC symbols)
@@ -97,4 +105,7 @@ After logging in:
 - ✓ Supervisor pairing — invite participants via link or email (`/dashboard/patients`)
 - ✓ Voice + accessibility preferences (`/dashboard/settings`)
 - ✓ Dark mode and language switcher (EN / NO / ES / FR / DE)
-- ✓ PWA — installable from browser, works offline
+- ✓ PWA — installable from browser with selected offline persistence
+
+Complete offline synchronization, conflict handling, and offline upload queues
+are planned and should not be treated as production-ready.

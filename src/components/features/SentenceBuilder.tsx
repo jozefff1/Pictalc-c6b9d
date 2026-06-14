@@ -16,6 +16,7 @@ import {
 import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable, isSortable } from '@dnd-kit/react/sortable';
 import { speakText, isSpeechSynthesisSupported } from '@/lib/services/speechService';
+import { getSpeechLocale } from '@/lib/services/speechLocales';
 import { indexedDB } from '@/lib/offline/indexedDB';
 import { useSession } from 'next-auth/react';
 import { usePreferences } from '@/hooks/usePreferences';
@@ -121,12 +122,11 @@ export default function SentenceBuilder({
     dispatch(setSpeaking(true));
 
     try {
-      const langMap: Record<string, string> = { en: 'en-US', no: 'nb-NO' };
       await speakText(sentenceText, {
         speed: voiceSpeed,
         pitch: voicePitch,
         volume: 1.0,
-        lang: langMap[language] ?? 'en-US',
+        lang: getSpeechLocale(language),
       });
 
       // Save session locally first (works offline)

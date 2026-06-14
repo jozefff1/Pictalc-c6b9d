@@ -4,6 +4,11 @@ This document captures improvement suggestions, UX observations, and technical r
 
 _Last updated: May 27, 2026 (session 17)_
 
+> **Status note:** Product and competitive ideas in this file are hypotheses.
+> Regulatory, accessibility, clinical, NAV, procurement, funding, and
+> production-readiness claims must follow
+> [`docs/PROJECT_BRIEF.md`](docs/PROJECT_BRIEF.md).
+
 ---
 
 ## 🔴 Critical (Fix Soon)
@@ -157,7 +162,7 @@ Many users of AAC software cannot use a touchscreen directly. They use a single 
 - `src/app/api/preferences/route.ts` — handle new fields in PATCH
 
 ### 19. Icon Search ✅ Implemented
-A search bar on the communicate page searches all 95 built-in icons + any uploaded custom icons by name. Hides category tabs and recently-used strip during search; `×` clear button; empty-state message.
+A search bar on the communicate page searches all 101 built-in icons + any uploaded custom icons by name. Hides category tabs and recently-used strip during search; `×` clear button; empty-state message.
 
 ### 20. Sentence & Grid Drag-and-Drop Reordering ⬅️ Planned (Phase 2.6)
 **Problem**: Icons can be removed from the sentence but new taps always append to the end. If a user taps icons out of order (e.g. "want cookie I") they must clear and rebuild — no insert or reorder is possible. Similarly, icons in the picker grid cannot be reordered.
@@ -242,9 +247,9 @@ Store recently spoken sentences on the communicate page itself (not just in the 
 | **Proloquo2Go** | Best-in-class UX | Available on Android + web, not just iOS |
 | **LetMeTalk** (Android) | Simple, free | Better i18n, web-based |
 
-**Snakke's differentiators to lean into**:
-1. **Truly free and open source** — no subscription
-2. **Works offline** as a PWA without an app store
+**Differentiator hypotheses to validate**:
+1. **Source-available prototype** — an explicit license, future pricing, and the operating model remain to be validated
+2. **Browser-based PWA with selected offline persistence** — full offline sync remains planned
 3. **Custom icon upload** with user's own photos
 4. **ARASAAC pictograms** — professional AAC-grade symbols
 5. **Multilingual** from the ground up (EN + NO, easily extendable)

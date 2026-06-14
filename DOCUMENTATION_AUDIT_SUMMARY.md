@@ -1,6 +1,14 @@
 # Documentation Audit Summary — June 12, 2026
 
-**Status**: ✅ Complete — All documentation unified, verified against code, and updated with real implementation details.
+> **Historical audit:** Superseded by
+> [`docs/DOCUMENTATION_ALIGNMENT.md`](docs/DOCUMENTATION_ALIGNMENT.md) and the
+> regulatory baseline in [`docs/PROJECT_BRIEF.md`](docs/PROJECT_BRIEF.md).
+> Statements below such as "all accessibility features", "no contradictions",
+> and "ready for production" no longer represent the current assessment.
+
+**Status at the time**: Code-focused audit completed on June 12, 2026. It did
+not establish regulatory conformity, full offline reliability, accessibility
+conformance, or production readiness.
 
 ---
 

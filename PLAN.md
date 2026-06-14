@@ -4,6 +4,8 @@ This document defines the phased development roadmap for Snakke. Each phase buil
 
 _Last updated: June 13, 2026 (session 19)_
 
+> For regulatory, legal, funding, procurement, and market claims, [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) is the authoritative planning brief. Items below are implementation plans or hypotheses until validated as described there.
+
 ---
 
 ## ✅ Phase 0 — Foundation (Complete)
@@ -76,7 +78,7 @@ _Last updated: June 13, 2026 (session 19)_
 - [ ] Keyboard-accessible icon navigation (ARIA labels exist, full keyboard nav not done)
 - [ ] **Switch access / scanning mode** — scanning cursor moves through icons at a configurable interval; user activates selection via spacebar, single key, or Bluetooth button; required for users with severe motor disabilities (see SUGGESTIONS.md §18 for full spec)
 - [ ] Long-press on icon to see icon details / delete custom icon
-- [ ] **Sentence reordering** — drag-and-drop to reorder icons in the built sentence; currently new icons always append to end
+- [x] **Sentence reordering** — drag-and-drop to reorder icons in the built sentence
 - [ ] **Icon grid sorting** — user-defined ordering of icons within each category in the picker
 
 ### 2.4 Visual Design Upgrade
@@ -222,7 +224,7 @@ _Last updated: June 13, 2026 (session 19)_
 
 ## 📋 Phase 4 — Offline & PWA Hardening
 
-**Goal**: Full offline functionality — Snakke must work with no internet connection.
+**Goal**: Define and verify an offline capability matrix for priority workflows, then implement conflict-safe synchronization where required.
 
 - [x] **Service worker** — `@serwist/next` + `src/app/sw.ts`; `public/sw.js` generated at build time; correct `Cache-Control: no-cache` headers ✅
 - [x] Service worker caching strategy — `defaultCache` (stale-while-revalidate for assets) ✅
@@ -527,7 +529,7 @@ When a production domain (e.g. `snakke.no`) is acquired, migrate persona pages t
 - **Institutional accounts** — schools, clinics, hospitals, universities, research centers
 - **Multi-user organizations** — admins, therapists, teachers, researchers managing cohorts
 - **Research participation framework** — digital consent forms, IRB tracking, data export APIs
-- **Compliance & Privacy** — GDPR, HIPAA, FERPA, institutional data processing agreements
+- **Compliance & Privacy validation** — GDPR and Norwegian privacy-law readiness; assess HIPAA, FERPA, and institutional agreements only where market scope makes them applicable
 - **Analytics dashboard** — research metrics, anonymized data aggregation, secure export
 - **Multi-tier licensing** — free individual, professional therapist tier, institutional/research tier
 
@@ -688,13 +690,13 @@ Existing AAC software (Proloquo2Go, Predictable, JABtalk):
 - Not open-source
 - Not multilingual (EN only or limited languages)
 
-**Snakke's advantages**:
-- 🔬 Built for research from day 1 (consent, IRB tracking, anonymization, audit logs)
+**Snakke's hypotheses to validate**:
+- 🔬 Research workflows may become a differentiator after consent, ethics-review, anonymization, and audit requirements are implemented and validated
 - 🌍 Multilingual (EN/NO/ES/FR/DE) — unique for Scandinavian/European research
-- 💚 Open-source (researchers can fork, modify, run locally if needed)
-- 📱 Offline-first PWA (no app store dependency, cheap deployment in low-resource settings)
-- 🎓 Free for individual families + paid tiers for schools and researchers
-- 🏛️ Designed to scale from single user to 10,000+ research participants
+- 💚 Source-available prototype; an explicit license is required before open-source reuse claims are made
+- 📱 Installable PWA with selected local persistence; complete offline workflows and synchronization remain planned
+- 🎓 Low-cost/open development model; licensing and sustainable operating costs must be formalized
+- 🏛️ Architecture can be evaluated for institutional scaling after tenancy, security, and procurement requirements are validated
 
 ### Compliance Roadmap
 
@@ -706,13 +708,13 @@ Existing AAC software (Proloquo2Go, Predictable, JABtalk):
 | **CCPA** (California, US) | High | 🔲 | Consumer privacy, disclosure, data sale opt-out |
 | **SOC 2** (service provider audit) | Medium | 🔲 | Annual audit, security controls, compliance report |
 | **ISO 27001** (information security) | Medium | 🔲 | Documented policies, risk assessment, incident response |
-| **Norwegian DPA** | High | 🔲 | Noregs data protection authority compliance |
+| **Norwegian privacy law / Datatilsynet guidance** | Critical | 🔲 | Establish lawful basis, assess Article 9 applicability, complete DPIA where required, and review processor, transfer, and privacy-by-design controls |
 
 ---
 
 ## Decision Matrix (Compliance-First)
 
-This matrix compares the highest-impact next tasks against the strategic brief (GDPR Art. 9, RLS, EU residency, institutional onboarding, and grant feasibility timeline).
+This matrix compares the highest-impact next tasks against the assessment topics in the strategic brief, including lawful basis, Article 9 applicability, RLS, data residency, institutional onboarding, and grant feasibility.
 
 | Candidate Task | Strategic Alignment | Compliance Risk Reduction | Delivery Effort | Time-to-Value | Decision |
 |---|---|---|---|---|---|
@@ -736,7 +738,9 @@ This matrix compares the highest-impact next tasks against the strategic brief (
 **Objective**: enforce tenant isolation in Postgres, not only in application code.
 
 **Migrations (Drizzle SQL)**
-- [ ] Create migration: `00xx_rls_foundation.sql`
+- [x] Stage `tenants`, nullable `users.tenant_id`, tenant policy, and `withTenantContext()` in code
+- [ ] Create and review migration: `00xx_rls_foundation.sql`
+- [ ] Apply the migration in each environment before removing pre-tenant compatibility queries
 - [ ] Enable RLS on all tenant-sensitive tables:
   - `pairings`
   - `pairing_requests`
@@ -759,6 +763,8 @@ This matrix compares the highest-impact next tasks against the strategic brief (
 - [ ] Add explicit deny policy for cross-org access attempts
 
 **Verification**
+- [ ] Verify `tenants` and `users.tenant_id` exist in each target database
+- [ ] Verify login, registration, verification, and password reset before and after migration
 - [ ] Add SQL policy tests in migration comments or integration checks
 - [ ] Add test script in `scripts/rls-smoke-test.ts`:
   - [ ] User A cannot read User B session rows
@@ -896,7 +902,7 @@ This matrix compares the highest-impact next tasks against the strategic brief (
 | Accessibility prefs UI | High | Medium | **P2** | ✅ Done |
 | Premium landing page redesign | Medium | Medium | **P2** | ✅ Done |
 | Spaced repetition for learning | High | Medium | **P2** | 🔲 |
-| Device pairing (QR) | High | High | **P3** | 🔲 |
+| Device pairing (QR) | High | High | **P3** | ✅ Done |
 | Dynamic ARASAAC search | High | Medium | **P3** | 🔲 |
 | OBF import/export | Medium | Medium | **P3** | 🔲 |
 | Offline sync | High | High | **P3** | 🔲 |
@@ -991,8 +997,8 @@ This matrix compares the highest-impact next tasks against the strategic brief (
 ## Success Metrics (Phase 9)
 
 - **Adoption**: 50+ research participants enrolled across 5+ institutions
-- **Compliance**: 0 data breaches, 100% GDPR/HIPAA audit pass
+- **Compliance evidence**: required assessments completed, findings tracked, and applicable controls independently reviewed before regulated deployment
 - **Research publications**: 3+ peer-reviewed papers using Snakke data
 - **Institutional partnerships**: 2–3 university/hospital partnerships signed
 - **Data quality**: 99%+ data integrity (no corruption, full audit trail)
-- **User trust**: 95%+ of research participants grant consent, <5% withdrawal rate
+- **Participant protection**: consent is informed and non-coercive, withdrawal is straightforward, and withdrawal rates are monitored without treating lower withdrawal as a success target

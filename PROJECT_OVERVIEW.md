@@ -1,6 +1,14 @@
 # Snakke — Project Overview
 
-> **Snakke** is an open-source Augmentative and Alternative Communication (AAC) Progressive Web App designed for children and adults with communication challenges. It allows users to express themselves through icons, text-to-icon conversion, and speech recognition — both online and offline. It also includes a language learning module to help users (and their caregivers) build vocabulary across five languages.
+> **Snakke** is a source-available Augmentative and Alternative Communication
+> (AAC) Progressive Web App prototype designed for children and adults with communication
+> challenges. It provides icons, text-to-icon conversion, speech features, and
+> selected offline persistence. Complete offline synchronization is not yet
+> implemented.
+
+> **Authority note:** For regulatory, compliance, market, funding, accessibility,
+> medical-device, AI, NAV, and procurement claims, see
+> [`docs/PROJECT_BRIEF.md`](docs/PROJECT_BRIEF.md).
 
 ---
 
@@ -146,11 +154,11 @@ Root
 
 ---
 
-## Database Schema (10 Tables)
+## Database Schema (10 Code Definitions)
 
 ```
-tenants              → Institutional isolation unit (school, clinic, research group) — RLS policy applied
-users                → All user accounts (tenantId nullable; set for institutional users)
+tenants              → Staged Phase 9 institutional isolation unit; migration pending
+users                → All user accounts; nullable tenantId is staged in code and migration pending
 devices              → Registered devices per user
 pairings             → Guardian ↔ Child relationships
 pairing_requests     → Invite tokens (email-bound, rate-limited, expiring)
@@ -160,6 +168,12 @@ user_preferences     → Per-user settings (theme, language, TTS)
 custom_icons         → User-uploaded icon images (Blob URL + metadata)
 password_history     → Last 5 password hashes per user (prevents password reuse)
 ```
+
+The connected database can remain on the pre-tenant schema while Phase 9 is
+being prepared. Declaring a column in Drizzle does not add it to Postgres until
+the migration is applied. During this compatibility window, auth routes use
+explicit projections/inserts so login and registration do not request the
+staged `users.tenant_id` column.
 
 ---
 
@@ -189,7 +203,8 @@ password_history     → Last 5 password hashes per user (prevents password reus
 | 5-language learning mode — Flashcard / Writing / Speaking | ✅ |
 | Dark mode (Tailwind v4 class-based, FOUC-free) | ✅ |
 | PWA — installable, service worker (Serwist) | ✅ |
-| Offline-first IndexedDB storage | ✅ |
+| Selected IndexedDB-backed local persistence | ✅ |
+| Complete conflict-safe offline synchronization | ❌ Not started |
 | Voice settings UI (speed, pitch, test) | ✅ |
 | User profile page (view / edit name) | ✅ |
 | Accessibility preferences (high contrast, reduce motion, text size, haptic) | ✅ |
@@ -215,7 +230,8 @@ password_history     → Last 5 password hashes per user (prevents password reus
 | `/research` page — institutional/research information, bilingual EN/NO | ✅ |
 | `/plans` page — roadmap summary for all stakeholders, bilingual EN/NO | ✅ |
 | Navigation fully localised (EN/NO) — all nav labels in Header + AppHeader use `t()` | ✅ |
-| `tenants` table with `pgPolicy` tenant isolation — RLS foundation | ✅ |
+| Tenant/RLS schema foundation defined in code | ✅ |
+| Tenant/RLS migration applied and policy-tested in every environment | ❌ Not started |
 | `withTenantContext()` in DB client — transaction wrapper for Phase 9 RLS routes | ✅ |
 | Guardian real-time dashboard | ❌ Not started |
 | Dynamic ARASAAC API search (30,000+ symbols) | ❌ Not started |
@@ -228,13 +244,20 @@ password_history     → Last 5 password hashes per user (prevents password reus
 - **Build flags**: Must use `next build --webpack` and `next dev --webpack` — Serwist (PWA) is incompatible with Next.js 16's default Turbopack.
 - **Nav localisation**: All navigation labels in `Header.tsx` and `AppHeader.tsx` use `t()` from `LanguageContext`. Do not add hardcoded English strings to either header. New nav keys follow the `nav.*` namespace.
 - **Information pages pattern**: `/about`, `/research`, `/plans` use a server page wrapper (for `metadata` export) + a `'use client'` content component (for `useLanguage()`). Do not add `'use client'` or `useLanguage()` directly to a page file that also exports `metadata`.
-- **RLS pattern**: The `tenants` table has `pgPolicy` applied. Use `withTenantContext(tenantId, tx => ...)` from `src/lib/db/client.ts` for any query on RLS-protected tables once Phase 9 migration enables policies on those tables. Never add `pgPolicy` to existing tables without first wrapping all their API routes.
+- **RLS migration state**: `tenants`, nullable `users.tenant_id`, and the tenant policy are defined in `src/lib/db/schema.ts`, but must be treated as staged until a reviewed migration is applied and verified in each environment.
+- **RLS pattern**: Use `withTenantContext(tenantId, tx => ...)` from `src/lib/db/client.ts` for any query on RLS-protected tables once Phase 9 migrations enable policies. Never add `pgPolicy` to existing tables without first wrapping all their API routes.
 - **QR code pairing**: Fully implemented and working — `GET /api/pairings/qr` generates a 5-minute `nanoid` token stored in `pairing_requests` (not email-bound), rate-limited at 10/hour. `QRCodeModal.tsx` renders a `QRCodeSVG`, counts down, auto-refreshes 10 s before expiry, and shows a manual URL fallback. Triggered from a "QR Code" button in `/dashboard/patients`. Recipient scans with their device camera → opens `/join/[token]` where they review and **accept** the pairing invite — access is not granted automatically on scan. Optional enhancement: `html5-qrcode` is installed for a future in-app scanner (scan from within Snakke itself).
-- **Git remotes**: `origin` → `Pictalc-copy.git` (backup), `snakke` → `snakke.git` (Vercel deployment). Always push to `snakke` to trigger a deploy.
-- **NextAuth v5**: Uses `AUTH_SECRET` env var (not `NEXTAUTH_SECRET`) and `AUTH_URL` (not `NEXTAUTH_URL`). `trustHost: true` required for Vercel. Auth state is owned by NextAuth — no Redux `authSlice`.
+- **Git remote**: `origin` → `https://github.com/jozefff1/snakke.git`.
+- **NextAuth v5**: Uses `AUTH_SECRET` env var (not `NEXTAUTH_SECRET`) and `AUTH_URL` (not `NEXTAUTH_URL`). `trustHost: true` required for Vercel. Auth state is owned by NextAuth — no Redux `authSlice`. Credential emails are trimmed and normalized to lowercase, then matched case-insensitively.
+- **Auth/schema compatibility**: Until `users.tenant_id` exists in every database, auth routes must use explicit user column projections/inserts. Avoid `.select()` or full schema-driven inserts on `users`, because Drizzle will include staged columns that older databases do not have.
 - **Forgot-password validates email**: `/api/auth/forgot-password` returns 404 if the email is not registered. Reset links are only sent to verified, existing accounts.
 - **Password history**: `password_history` table stores last 5 hashes per user. Reuse returns "You cannot reuse a previous password."
-- **Offline-first**: IndexedDB (via `idb`) is the primary store for sessions and favourite phrases. Neon DB is the cloud backup and analytics layer.
+- **Offline scope**: IndexedDB persists selected state such as favourite phrases
+  and local session data. Complete queued synchronization, retries, conflict
+  handling, and verified offline capability remain planned.
+- **Compliance status**: Existing controls and roadmap items are not a
+  declaration of GDPR, WCAG, medical-device, AI Act, CRA, NAV, or procurement
+  conformity. Use `docs/PROJECT_BRIEF.md` as the dated regulatory baseline.
 - **ARASAAC pictograms**: Built-in icons use `https://static.arasaac.org/pictograms/{id}/{id}_500.png`. Emoji symbol is the fallback on image error. License: CC BY-NC-SA 4.0.
 - **Keyword-based icon matching**: `iconMatcher.ts` is keyword/string based. ML embeddings planned for Phase 6.
 - **Language learning**: `learnFrom` / `learnTarget` are any two of EN/NO/ES/FR/DE, freely swappable. Persisted in `localStorage`. ES/FR/DE currently only have icon-label translations — UI strings remain English for those languages until professional translators contribute.
