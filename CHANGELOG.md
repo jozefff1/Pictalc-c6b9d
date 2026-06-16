@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (June 16, 2026 - TTS voice selection hardening)
+
+- Added a browser voice picker in dashboard settings with language-aware filtering
+  and one-tap voice preview.
+- Added local per-language voice preference persistence in localStorage
+  (`snakke-speech-voice-preferences`) to avoid live DB migration risk.
+- Improved Web Speech voice loading reliability by waiting for `voiceschanged`
+  with a timeout fallback when browsers delay voice registration.
+- Expanded speech tests to cover Norwegian alias behavior (`nb/no/nn`) and
+  preferred voice URI resolution fallbacks.
+
+### Added (June 16, 2026 - paired user presence in chat)
+
+- Enhanced room listing in `GET /api/messages/room` to return accepted paired
+  users with relationship, pairing role, last activity timestamp, and
+  activity-window online status.
+- Updated communicate chat UI (`CommunicateThread`) to show participant online
+  indicators and last-active fallback text.
+- Updated side chat drawer (`ChatDrawer`) to list approved paired users from
+  the room endpoint and display selectable online/offline participant status.
+
 ### Documentation (June 14, 2026 — regulatory brief alignment)
 
 - Added `docs/PROJECT_BRIEF.md` as the authoritative dated regulatory and

@@ -3,11 +3,14 @@
  * Uses Web Speech API for browser-native functionality
  */
 
+import { STORAGE_KEYS } from '../utils/constants';
+
 export interface SpeechConfig {
   speed?: number; // 0.1 to 10
   pitch?: number; // 0 to 2
   volume?: number; // 0 to 1
   voice?: SpeechSynthesisVoice;
+  voiceURI?: string;
   lang?: string;
 }
 
@@ -28,20 +31,81 @@ function languageBase(locale: string): string {
   return locale.toLowerCase().split(/[-_]/)[0];
 }
 
+function normalizeLocale(locale: string): string {
+  return locale.toLowerCase().replace('_', '-');
+}
+
+function getSpeechPreferenceKey(locale: string): string {
+  const base = languageBase(locale);
+  if (base === 'nb' || base === 'nn' || base === 'no') return 'no';
+  return base;
+}
+
+type SpeechVoicePreferences = Record<string, string>;
+
+function readVoicePreferences(): SpeechVoicePreferences {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.SPEECH_VOICE_PREFERENCES);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed !== null ? parsed as SpeechVoicePreferences : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeVoicePreferences(preferences: SpeechVoicePreferences): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(STORAGE_KEYS.SPEECH_VOICE_PREFERENCES, JSON.stringify(preferences));
+}
+
+export function getPreferredVoiceURI(locale: string): string | null {
+  const key = getSpeechPreferenceKey(locale);
+  const preferences = readVoicePreferences();
+  return preferences[key] ?? null;
+}
+
+export function setPreferredVoiceURI(locale: string, voiceURI: string): void {
+  const key = getSpeechPreferenceKey(locale);
+  const preferences = readVoicePreferences();
+  preferences[key] = voiceURI;
+  writeVoicePreferences(preferences);
+}
+
+export function clearPreferredVoiceURI(locale: string): void {
+  const key = getSpeechPreferenceKey(locale);
+  const preferences = readVoicePreferences();
+  delete preferences[key];
+  writeVoicePreferences(preferences);
+}
+
 export function findVoiceForLanguage(
   voices: SpeechSynthesisVoice[],
   requestedLocale: string,
 ): SpeechSynthesisVoice | null {
-  const requested = requestedLocale.toLowerCase().replace('_', '-');
+  const requested = normalizeLocale(requestedLocale);
   const requestedBase = languageBase(requested);
   const acceptedBases = LANGUAGE_ALIASES[requestedBase] ?? [requestedBase];
 
   const matching = voices.filter((voice) => acceptedBases.includes(languageBase(voice.lang)));
   if (matching.length === 0) return null;
 
-  return matching.find((voice) => voice.lang.toLowerCase().replace('_', '-') === requested)
+  return matching.find((voice) => normalizeLocale(voice.lang) === requested)
     ?? matching.find((voice) => voice.localService)
     ?? matching[0];
+}
+
+export function resolveVoice(
+  voices: SpeechSynthesisVoice[],
+  requestedLocale: string,
+  preferredVoiceURI?: string | null,
+): SpeechSynthesisVoice | null {
+  if (preferredVoiceURI) {
+    const preferred = voices.find((voice) => voice.voiceURI === preferredVoiceURI);
+    if (preferred) return preferred;
+  }
+  return findVoiceForLanguage(voices, requestedLocale);
 }
 
 // Check if browser supports speech synthesis
@@ -83,12 +147,15 @@ export function speakText(text: string, config: SpeechConfig = {}): Promise<void
     
     if (config.voice) {
       utterance.voice = config.voice;
+      utterance.lang = config.voice.lang;
     } else {
-      const matchingVoice = findVoiceForLanguage(
-        window.speechSynthesis.getVoices(),
-        utterance.lang,
-      );
-      if (matchingVoice) utterance.voice = matchingVoice;
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoiceURI = config.voiceURI ?? getPreferredVoiceURI(utterance.lang);
+      const matchingVoice = resolveVoice(voices, utterance.lang, preferredVoiceURI);
+      if (matchingVoice) {
+        utterance.voice = matchingVoice;
+        utterance.lang = matchingVoice.lang;
+      }
     }
 
     // Android Chrome workaround: after cancel(), the engine may silently pause
@@ -138,16 +205,39 @@ export function getAvailableVoices(): Promise<SpeechSynthesisVoice[]> {
       return;
     }
 
-    let voices = window.speechSynthesis.getVoices();
-    
-    if (voices.length > 0) {
+    const synth = window.speechSynthesis;
+    const initial = synth.getVoices();
+    if (initial.length > 0) {
+      resolve(initial);
+      return;
+    }
+
+    let settled = false;
+    const settle = (voices: SpeechSynthesisVoice[]) => {
+      if (settled) return;
+      settled = true;
+      if (typeof synth.removeEventListener === 'function') {
+        synth.removeEventListener('voiceschanged', onVoicesChanged);
+      }
+      if (synth.onvoiceschanged === onVoicesChanged) {
+        synth.onvoiceschanged = null;
+      }
+      clearTimeout(fallbackTimeout);
       resolve(voices);
+    };
+
+    const onVoicesChanged = () => {
+      settle(synth.getVoices());
+    };
+
+    const fallbackTimeout = setTimeout(() => {
+      settle(synth.getVoices());
+    }, 1200);
+
+    if (typeof synth.addEventListener === 'function') {
+      synth.addEventListener('voiceschanged', onVoicesChanged);
     } else {
-      // Voices might not be loaded yet
-      window.speechSynthesis.onvoiceschanged = () => {
-        voices = window.speechSynthesis.getVoices();
-        resolve(voices);
-      };
+      synth.onvoiceschanged = onVoicesChanged;
     }
   });
 }

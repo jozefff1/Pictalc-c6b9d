@@ -27,6 +27,9 @@ interface RoomUser {
   userId: string;
   name: string;
   role: string;
+  relationship?: string;
+  isOnline?: boolean;
+  lastActiveAt?: string | null;
 }
 
 interface Props {
@@ -82,6 +85,16 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const getLabel = useCallback((icon: ThreadIcon) => iconLabels[icon.id] || icon.name, [iconLabels]);
+
+  const formatLastActive = useCallback((iso?: string | null) => {
+    if (!iso) return 'Offline';
+    const deltaMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.max(1, Math.round(deltaMs / 60000));
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.round(hours / 24)}d ago`;
+  }, []);
 
   // Load paired rooms
   useEffect(() => {
@@ -239,6 +252,7 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
               <span className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center font-bold text-[10px]">
                 {r.name[0]?.toUpperCase() ?? '?'}
               </span>
+              <span className={`w-1.5 h-1.5 rounded-full ${r.isOnline ? 'bg-green-400' : 'bg-gray-400'}`} />
               {r.name}
             </button>
           ))}
@@ -253,9 +267,14 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
           <span className="font-medium text-gray-700 dark:text-gray-300">{activeRoom.name}</span>
           <span className="ml-auto flex items-center gap-2">
             <span className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              Live
+              <span className={`w-1.5 h-1.5 rounded-full ${activeRoom.isOnline ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
+              {activeRoom.isOnline ? 'Online' : `Last active ${formatLastActive(activeRoom.lastActiveAt)}`}
             </span>
+            {activeRoom.relationship && (
+              <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 capitalize">
+                {activeRoom.relationship}
+              </span>
+            )}
             {onToggleCollapse && (
               <button
                 onClick={onToggleCollapse}

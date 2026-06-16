@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth/requireAuth';
 import { db } from '@/lib/db/client';
-import { messages, pairings, users } from '@/lib/db/schema';
+import { communicationSessions, messages, pairings, users } from '@/lib/db/schema';
 import { eq, or, and, gt, desc } from 'drizzle-orm';
+
+const ONLINE_WINDOW_MS = 5 * 60 * 1000;
 
 // GET /api/messages/room
 // Returns the merged conversation thread between the current user and a specific
@@ -29,7 +31,7 @@ export async function GET(request: NextRequest) {
         pairingId: pairings.id,
         guardianId: pairings.guardianId,
         childId: pairings.childId,
-        role: pairings.status,
+        relationship: pairings.relationship,
         otherName: users.name,
         otherRole: users.role,
       })
@@ -43,11 +45,51 @@ export async function GET(request: NextRequest) {
       )
       .where(and(eq(pairings.status, 'accepted'), or(eq(pairings.guardianId, userId), eq(pairings.childId, userId))));
 
-    const rooms = rows.map((r) => ({
-      userId: r.guardianId === userId ? r.childId : r.guardianId,
-      name: r.otherName ?? 'Unknown',
-      role: r.otherRole ?? 'user',
+    const rooms = await Promise.all(rows.map(async (r) => {
+      const otherUserId = r.guardianId === userId ? r.childId : r.guardianId;
+
+      const [latestMessage] = await db
+        .select({ createdAt: messages.createdAt })
+        .from(messages)
+        .where(
+          or(
+            and(eq(messages.senderId, userId), eq(messages.recipientId, otherUserId)),
+            and(eq(messages.senderId, otherUserId), eq(messages.recipientId, userId))
+          )
+        )
+        .orderBy(desc(messages.createdAt))
+        .limit(1);
+
+      const [latestSession] = await db
+        .select({ timestamp: communicationSessions.timestamp })
+        .from(communicationSessions)
+        .where(eq(communicationSessions.userId, otherUserId))
+        .orderBy(desc(communicationSessions.timestamp))
+        .limit(1);
+
+      const latestActivityDate = [latestMessage?.createdAt, latestSession?.timestamp]
+        .filter((value): value is Date => Boolean(value))
+        .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+
+      return {
+        pairingId: r.pairingId,
+        userId: otherUserId,
+        name: r.otherName ?? 'Unknown',
+        role: r.otherRole ?? 'user',
+        relationship: r.relationship,
+        pairingRole: r.guardianId === userId ? 'supervisor' : 'supervised',
+        isOnline: latestActivityDate ? (Date.now() - latestActivityDate.getTime()) <= ONLINE_WINDOW_MS : false,
+        lastActiveAt: latestActivityDate?.toISOString() ?? null,
+      };
     }));
+
+    rooms.sort((a, b) => {
+      if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
+      const aTs = a.lastActiveAt ? Date.parse(a.lastActiveAt) : 0;
+      const bTs = b.lastActiveAt ? Date.parse(b.lastActiveAt) : 0;
+      if (aTs !== bTs) return bTs - aTs;
+      return a.name.localeCompare(b.name);
+    });
 
     return NextResponse.json({ rooms });
   }

@@ -1,7 +1,14 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { speakText, isSpeechSynthesisSupported } from '@/lib/services/speechService';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import {
+  speakText,
+  isSpeechSynthesisSupported,
+  getAvailableVoices,
+  getPreferredVoiceURI,
+  setPreferredVoiceURI,
+  clearPreferredVoiceURI,
+} from '@/lib/services/speechService';
 import { STORAGE_KEYS } from '@/lib/utils/constants';
 import { usePreferences, type Preferences } from '@/hooks/usePreferences';
 import { useFlashMessage } from '@/hooks/useFlashMessage';
@@ -19,12 +26,64 @@ function applyAccessibility(prefs: Prefs) {
   localStorage.setItem(STORAGE_KEYS.REDUCE_MOTION, String(prefs.reduceMotion));
   localStorage.setItem(STORAGE_KEYS.TEXT_SIZE, String(prefs.textSize));
 }
+
+const LOCALE_BY_LANGUAGE: Record<string, string> = {
+  en: 'en-US',
+  no: 'nb-NO',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  de: 'de-DE',
+};
+
+function languageBase(locale: string): string {
+  return locale.toLowerCase().split(/[-_]/)[0];
+}
+
+function localeBases(locale: string): string[] {
+  const base = languageBase(locale);
+  if (base === 'no' || base === 'nb' || base === 'nn') return ['no', 'nb', 'nn'];
+  return [base];
+}
+
+function isVoiceMatchForLocale(voice: SpeechSynthesisVoice, locale: string): boolean {
+  const accepted = localeBases(locale);
+  return accepted.includes(languageBase(voice.lang));
+}
+
 export default function SettingsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { preferences, setPreferences, loading } = usePreferences();
   const [prefs, setPrefs] = useState<Prefs>(preferences);
   const [saving, setSaving] = useState(false);
   const [saved, triggerSaved] = useFlashMessage();
+  const [voicesLoading, setVoicesLoading] = useState(true);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [voiceURI, setVoiceURI] = useState('');
+
+  const ttsLocale = useMemo(
+    () => LOCALE_BY_LANGUAGE[language] ?? 'en-US',
+    [language],
+  );
+
+  const matchingVoices = useMemo(
+    () => voices.filter((voice) => isVoiceMatchForLocale(voice, ttsLocale)),
+    [voices, ttsLocale],
+  );
+
+  const voiceOptions = useMemo(() => {
+    const source = matchingVoices.length > 0 ? matchingVoices : voices;
+    const seen = new Set<string>();
+    return source.filter((voice) => {
+      if (seen.has(voice.voiceURI)) return false;
+      seen.add(voice.voiceURI);
+      return true;
+    });
+  }, [matchingVoices, voices]);
+
+  const selectedVoice = useMemo(
+    () => voiceOptions.find((voice) => voice.voiceURI === voiceURI),
+    [voiceOptions, voiceURI],
+  );
 
   // Sync local prefs state once hook resolves and apply accessibility settings
   useEffect(() => {
@@ -33,6 +92,26 @@ export default function SettingsPage() {
       applyAccessibility(preferences);
     }
   }, [loading, preferences]);
+
+  useEffect(() => {
+    let active = true;
+    setVoicesLoading(true);
+    getAvailableVoices()
+      .then((available) => {
+        if (active) setVoices(available);
+      })
+      .finally(() => {
+        if (active) setVoicesLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const preferred = getPreferredVoiceURI(ttsLocale);
+    setVoiceURI(preferred ?? '');
+  }, [ttsLocale]);
 
   const save = useCallback(async (patch: Partial<Prefs>) => {
     setSaving(true);
@@ -61,6 +140,20 @@ export default function SettingsPage() {
       return updated;
     });
   }, [save, setPreferences]);
+
+  const handleVoiceChange = (nextVoiceURI: string) => {
+    if (nextVoiceURI) {
+      setPreferredVoiceURI(ttsLocale, nextVoiceURI);
+    } else {
+      clearPreferredVoiceURI(ttsLocale);
+    }
+    setVoiceURI(nextVoiceURI);
+    triggerSaved();
+  };
+
+  const testPhrase = language === 'no'
+    ? 'Hei! Dette er hvordan stemmen min høres ut.'
+    : 'Hello! This is how I sound.';
 
   if (loading) {
     return (
@@ -111,6 +204,34 @@ export default function SettingsPage() {
               </div>
             </div>
 
+            {/* Voice */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('settings.voice.select')}
+                </label>
+                <span className="text-xs text-gray-400">{t('settings.voice.selectDesc')}</span>
+              </div>
+              <select
+                value={voiceURI}
+                onChange={(e) => handleVoiceChange(e.target.value)}
+                disabled={!isSpeechSynthesisSupported() || voicesLoading}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-800 dark:text-gray-200 disabled:opacity-60"
+              >
+                <option value="">{t('settings.voice.browserDefault')}</option>
+                {voiceOptions.map((voice) => (
+                  <option key={voice.voiceURI} value={voice.voiceURI}>
+                    {voice.name} ({voice.lang})
+                  </option>
+                ))}
+              </select>
+              {matchingVoices.length === 0 && voices.length > 0 && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  {t('settings.voice.noVoiceMatch')}
+                </p>
+              )}
+            </div>
+
             {/* Pitch */}
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -140,7 +261,13 @@ export default function SettingsPage() {
             {/* Test button */}
             <div className="flex items-center gap-4">
               <button
-                onClick={() => speakText('Hello! This is how I sound.', { speed: prefs.voiceSpeed, pitch: prefs.voicePitch })}
+                onClick={() => speakText(testPhrase, {
+                  speed: prefs.voiceSpeed,
+                  pitch: prefs.voicePitch,
+                  lang: ttsLocale,
+                  voice: selectedVoice,
+                  voiceURI: voiceURI || undefined,
+                })}
                 disabled={!isSpeechSynthesisSupported()}
                 className="px-5 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary-hover disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors"
               >

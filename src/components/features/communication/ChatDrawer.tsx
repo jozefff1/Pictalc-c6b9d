@@ -34,6 +34,9 @@ interface PairedUser {
   name: string | null;
   role: string;
   pairingRole: 'supervisor' | 'supervised';
+  relationship?: string;
+  isOnline?: boolean;
+  lastActiveAt?: string | null;
 }
 
 interface Props {
@@ -44,7 +47,7 @@ interface Props {
 const POLL_INTERVAL = 3000; // 3 seconds
 
 export default function ChatDrawer({ currentUserId, onClose }: Props) {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { labels } = useIconLabels(language);
 
   // Current sentence from Redux store
@@ -58,30 +61,47 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
   const [loadingPaired, setLoadingPaired] = useState(true);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const lastIdRef = useRef<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const latestTimestampRef = useRef<string | null>(null);
 
   // Load paired users on mount
   useEffect(() => {
-    fetch('/api/pairings')
+    fetch('/api/messages/room')
       .then((r) => r.json())
       .then((data) => {
-        const list: PairedUser[] = (data.pairings ?? []).map((p: {
-          guardianId: string; childId: string;
-          role: string; otherUser: { id: string; name: string; role: string } | null
+        const list: PairedUser[] = (data.rooms ?? []).map((room: {
+          userId: string;
+          name: string;
+          role: string;
+          pairingRole: 'supervisor' | 'supervised';
+          relationship?: string;
+          isOnline?: boolean;
+          lastActiveAt?: string | null;
         }) => ({
-          id: p.otherUser?.id ?? (p.role === 'supervisor' ? p.childId : p.guardianId),
-          name: p.otherUser?.name ?? 'Unknown',
-          role: p.otherUser?.role ?? 'user',
-          pairingRole: p.role as 'supervisor' | 'supervised',
+          id: room.userId,
+          name: room.name,
+          role: room.role,
+          pairingRole: room.pairingRole,
+          relationship: room.relationship,
+          isOnline: room.isOnline,
+          lastActiveAt: room.lastActiveAt,
         }));
         setPairedUsers(list);
-        if (list.length === 1) setSelectedUser(list[0]);
+        if (list.length > 0) setSelectedUser(list[0]);
       })
       .catch(() => {})
       .finally(() => setLoadingPaired(false));
   }, []);
+
+  const formatLastActive = (iso?: string | null) => {
+    if (!iso) return 'Offline';
+    const deltaMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.max(1, Math.round(deltaMs / 60000));
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.round(hours / 24)}d ago`;
+  };
 
   // Fetch full history when selected user changes
   const fetchHistory = useCallback(async (userId: string) => {
@@ -221,6 +241,7 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
               <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold">
                 {u.name?.[0]?.toUpperCase() ?? '?'}
               </span>
+              <span className={`w-1.5 h-1.5 rounded-full ${u.isOnline ? 'bg-green-400' : 'bg-gray-400'}`} />
               {u.name}
             </button>
           ))}
@@ -251,6 +272,18 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
       {/* Message thread */}
       {selectedUser && (
         <>
+          <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-xs flex items-center justify-between text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${selectedUser.isOnline ? 'bg-green-400' : 'bg-gray-400'}`} />
+              {selectedUser.isOnline ? 'Online' : `Last active ${formatLastActive(selectedUser.lastActiveAt)}`}
+            </span>
+            {selectedUser.relationship && (
+              <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 capitalize">
+                {selectedUser.relationship}
+              </span>
+            )}
+          </div>
+
           <div
             ref={scrollRef}
             className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0"
@@ -303,7 +336,7 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
                                     <span className="text-xl">{icon.symbol}</span>
                                   )}
                                 </div>
-                                <span className={`text-[9px] text-center leading-tight max-w-[40px] truncate ${isMine ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                                <span className={`text-[9px] text-center leading-tight max-w-10 truncate ${isMine ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
                                   {labels[icon.id] || icon.name}
                                 </span>
                               </div>
