@@ -4,6 +4,18 @@
 
 ### Option 1: Set Up Real Database (Recommended)
 
+#### Optional demo mode: open pairing
+
+For demo presentations where anyone should be able to pair quickly, add this to
+`.env.local`:
+
+```bash
+DEMO_OPEN_PAIRING=true
+```
+
+When enabled, pairing invite acceptance is not restricted to a specific invited
+email account.
+
 1. **Create a Neon Database (Free)**
    - Go to [https://neon.tech](https://neon.tech)
    - Sign up for a free account

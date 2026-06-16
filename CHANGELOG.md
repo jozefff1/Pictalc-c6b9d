@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with a timeout fallback when browsers delay voice registration.
 - Expanded speech tests to cover Norwegian alias behavior (`nb/no/nn`) and
   preferred voice URI resolution fallbacks.
+- Switched Norwegian speech locale requests from `nb-NO` to `no-NO` in runtime
+  TTS callers (settings test, sentence speak, learning mode) to improve Android
+  voice-engine compatibility.
 
 ### Added (June 16, 2026 - paired user presence in chat)
 
@@ -27,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   indicators and last-active fallback text.
 - Updated side chat drawer (`ChatDrawer`) to list approved paired users from
   the room endpoint and display selectable online/offline participant status.
+
+### Added (June 16, 2026 - demo open pairing flag)
+
+- Added `DEMO_OPEN_PAIRING` environment flag for presentation/demo scenarios.
+- With `DEMO_OPEN_PAIRING=true`, pairing invites are not recipient-email bound,
+  acceptance bypasses invited-email account lock, and join preview hides email
+  mismatch warnings.
 
 ### Documentation (June 14, 2026 — regulatory brief alignment)
 

@@ -3,6 +3,10 @@ import { db } from '@/lib/db/client';
 import { pairingRequests, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
+function isDemoOpenPairingEnabled() {
+  return process.env.DEMO_OPEN_PAIRING === 'true';
+}
+
 type Params = { params: Promise<{ token: string }> };
 
 // Mask an email address for display: jose@example.com → jo***@example.com
@@ -16,6 +20,7 @@ function maskEmail(email: string): string {
 // Returns only enough info to display a preview on the /join/[token] page.
 export async function GET(_req: NextRequest, { params }: Params) {
   const { token } = await params;
+  const isDemoOpenPairing = isDemoOpenPairingEnabled();
 
   if (!token || token.length < 10) {
     return NextResponse.json({ valid: false, error: 'Invalid token' }, { status: 400 });
@@ -55,8 +60,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
     valid: true,
     requesterName: invite.requesterName ?? 'Someone',
     // Masked email so the recipient knows which account to use, without exposing full address
-    invitedEmailMasked: invite.invitedEmail ? maskEmail(invite.invitedEmail) : null,
-    invitedEmailFull: invite.invitedEmail ?? null,
+    invitedEmailMasked: (invite.invitedEmail && !isDemoOpenPairing) ? maskEmail(invite.invitedEmail) : null,
+    invitedEmailFull: (invite.invitedEmail && !isDemoOpenPairing) ? invite.invitedEmail : null,
     expiresAt: invite.expiresAt,
   });
 }

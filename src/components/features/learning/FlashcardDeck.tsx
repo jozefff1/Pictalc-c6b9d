@@ -24,7 +24,7 @@ const CATEGORY_ICONS: Record<IconCategory | 'all' | 'sentences', string> = {
 const CATEGORIES: (IconCategory | 'all' | 'sentences')[] = ['all', 'needs', 'actions', 'feelings', 'people', 'places', 'sentences'];
 
 const LANG_BCP47: Record<Language, string> = {
-  en: 'en-US', no: 'nb-NO', es: 'es-ES', fr: 'fr-FR', de: 'de-DE',
+  en: 'en-US', no: 'no-NO', es: 'es-ES', fr: 'fr-FR', de: 'de-DE',
 };
 
 function speak(text: string, lang: Language) {

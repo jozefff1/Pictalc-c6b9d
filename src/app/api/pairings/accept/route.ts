@@ -5,6 +5,10 @@ import { db } from '@/lib/db/client';
 import { pairings, pairingRequests, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
+function isDemoOpenPairingEnabled() {
+  return process.env.DEMO_OPEN_PAIRING === 'true';
+}
+
 const acceptSchema = z.object({
   token: z.string().min(1),
   relationship: z.enum(['parent', 'therapist', 'teacher', 'researcher', 'caregiver']),
@@ -29,6 +33,7 @@ export async function POST(request: NextRequest) {
 
   const { token, relationship, shareHistory, shareStats, allowExport } = result.data;
   const { userId: acceptorId } = authResult as { userId: string };
+  const isDemoOpenPairing = isDemoOpenPairingEnabled();
 
   // Look up the invite token
   const [invite] = await db
@@ -54,7 +59,7 @@ export async function POST(request: NextRequest) {
   }
 
   // If the invite was addressed to a specific email, enforce it
-  if (invite.invitedEmail) {
+  if (invite.invitedEmail && !isDemoOpenPairing) {
     const [acceptorUser] = await db
       .select({ email: users.email })
       .from(users)

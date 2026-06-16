@@ -29,7 +29,7 @@ function applyAccessibility(prefs: Prefs) {
 
 const LOCALE_BY_LANGUAGE: Record<string, string> = {
   en: 'en-US',
-  no: 'nb-NO',
+  no: 'no-NO',
   es: 'es-ES',
   fr: 'fr-FR',
   de: 'de-DE',

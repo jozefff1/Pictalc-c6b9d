@@ -7,6 +7,10 @@ import { pairings, pairingRequests, users } from '@/lib/db/schema';
 import { eq, or, and, gte, sql } from 'drizzle-orm';
 import { sendInviteEmail } from '@/lib/email/resend';
 
+function isDemoOpenPairingEnabled() {
+  return process.env.DEMO_OPEN_PAIRING === 'true';
+}
+
 // GET /api/pairings — list all pairings for the current user (as guardian or child)
 export async function GET() {
   const authResult = await requireAuth();
@@ -65,6 +69,7 @@ export async function POST(request: NextRequest) {
   const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
   const { userId } = authResult;
+  const isDemoOpenPairing = isDemoOpenPairingEnabled();
 
   const body = await request.json().catch(() => ({}));
   const result = inviteSchema.safeParse(body);
@@ -97,14 +102,14 @@ export async function POST(request: NextRequest) {
     token,
     status: 'pending',
     expiresAt,
-    invitedEmail: result.data.email?.toLowerCase().trim() ?? null,
+    invitedEmail: isDemoOpenPairing ? null : (result.data.email?.toLowerCase().trim() ?? null),
   });
 
   const baseUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://snakke.vercel.app';
   const inviteUrl = `${baseUrl}/join/${token}`;
 
   let emailSent = false;
-  if (result.data.email) {
+  if (result.data.email && !isDemoOpenPairing) {
     try {
       const [inviter] = await db
         .select({ name: users.name })

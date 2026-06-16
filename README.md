@@ -70,8 +70,13 @@ touch .env.local
 | `RESEND_FROM_EMAIL` | Verified sender address override | Optional |
 | `RESEND_WEBHOOK_SECRET` | Svix secret for inbound Resend webhook verification | Inbound email only |
 | `NEXT_PUBLIC_APP_URL` | Public app URL (used in invite emails) | Optional |
+| `DEMO_OPEN_PAIRING` | Demo-only toggle. `true` allows open pairing (any authenticated user can accept invite links, no email recipient lock) | Optional |
 
 > **Note**: This project uses **NextAuth.js v5**. The secret variable is `AUTH_SECRET` and the URL variable is `AUTH_URL` (not `NEXTAUTH_SECRET` / `NEXTAUTH_URL`).
+
+> **Demo pairing mode**: Set `DEMO_OPEN_PAIRING=true` for presentations where
+> pairing should be frictionless. In this mode, pairing invites are not locked
+> to a target email account.
 
 ### 3. Push database schema
 

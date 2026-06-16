@@ -121,7 +121,7 @@ export default function SentenceBuilder({
     dispatch(setSpeaking(true));
 
     try {
-      const langMap: Record<string, string> = { en: 'en-US', no: 'nb-NO' };
+      const langMap: Record<string, string> = { en: 'en-US', no: 'no-NO' };
       await speakText(sentenceText, {
         speed: voiceSpeed,
         pitch: voicePitch,
