@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { requireAuth } from '@/lib/auth/requireAuth';
 import { db } from '@/lib/db/client';
 import { pairings, pairingRequests, users } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 
 function isDemoOpenPairingEnabled() {
   return process.env.DEMO_OPEN_PAIRING === 'true';
@@ -93,8 +93,17 @@ export async function POST(request: NextRequest) {
     .from(pairings)
     .where(
       and(
-        eq(pairings.guardianId, invite.requesterId),
-        eq(pairings.childId, acceptorId)
+        eq(pairings.status, 'accepted'),
+        or(
+          and(
+            eq(pairings.guardianId, invite.requesterId),
+            eq(pairings.childId, acceptorId)
+          ),
+          and(
+            eq(pairings.guardianId, acceptorId),
+            eq(pairings.childId, invite.requesterId)
+          )
+        )
       )
     )
     .limit(1);

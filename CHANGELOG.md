@@ -38,6 +38,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   acceptance bypasses invited-email account lock, and join preview hides email
   mismatch warnings.
 
+### Fixed (June 16, 2026 - pairing participant list stability)
+
+- Pairing acceptance now blocks reciprocal duplicate accepted pairings (A->B and
+  B->A duplicates).
+- `GET /api/messages/room` now deduplicates participant entries by user ID to
+  prevent repeated users in chat room lists.
+- `GET /api/sessions/paired-users` now deduplicates users to keep selector
+  lists stable when legacy duplicate pairings exist.
+
 ### Documentation (June 14, 2026 — regulatory brief alignment)
 
 - Added `docs/PROJECT_BRIEF.md` as the authoritative dated regulatory and

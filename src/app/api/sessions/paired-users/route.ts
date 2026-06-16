@@ -29,7 +29,14 @@ export async function GET() {
       )
       .orderBy(users.name);
 
-    return NextResponse.json({ users: paired });
+    const deduped = Array.from(
+      paired.reduce((map, row) => {
+        if (!map.has(row.id)) map.set(row.id, row);
+        return map;
+      }, new Map<string, (typeof paired)[number]>()).values()
+    );
+
+    return NextResponse.json({ users: deduped });
   } catch (error) {
     return handleApiError(error, 'GET /api/sessions/paired-users');
   }

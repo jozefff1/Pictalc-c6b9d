@@ -83,7 +83,35 @@ export async function GET(request: NextRequest) {
       };
     }));
 
-    rooms.sort((a, b) => {
+    const dedupedRooms = Array.from(
+      rooms.reduce((map, room) => {
+        const existing = map.get(room.userId);
+        if (!existing) {
+          map.set(room.userId, room);
+          return map;
+        }
+
+        const existingTs = existing.lastActiveAt ? Date.parse(existing.lastActiveAt) : 0;
+        const roomTs = room.lastActiveAt ? Date.parse(room.lastActiveAt) : 0;
+
+        map.set(
+          room.userId,
+          {
+            ...existing,
+            name: existing.name || room.name,
+            role: existing.role || room.role,
+            relationship: existing.relationship || room.relationship,
+            pairingRole: existing.pairingRole,
+            isOnline: existing.isOnline || room.isOnline,
+            lastActiveAt: roomTs >= existingTs ? room.lastActiveAt : existing.lastActiveAt,
+          }
+        );
+
+        return map;
+      }, new Map<string, (typeof rooms)[number]>()).values()
+    );
+
+    dedupedRooms.sort((a, b) => {
       if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
       const aTs = a.lastActiveAt ? Date.parse(a.lastActiveAt) : 0;
       const bTs = b.lastActiveAt ? Date.parse(b.lastActiveAt) : 0;
@@ -91,7 +119,7 @@ export async function GET(request: NextRequest) {
       return a.name.localeCompare(b.name);
     });
 
-    return NextResponse.json({ rooms });
+    return NextResponse.json({ rooms: dedupedRooms });
   }
 
   // Verify pairing exists
