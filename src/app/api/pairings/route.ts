@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
     token,
     status: 'pending',
     expiresAt,
+    // Link invites work in both modes. In legacy mode, providing an email enables account lock.
     invitedEmail: isDemoOpenPairing ? null : (result.data.email?.toLowerCase().trim() ?? null),
   });
 

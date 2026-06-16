@@ -130,12 +130,10 @@ function PhraseForm({
   initial,
   onSave,
   onCancel,
-  language,
 }: {
   initial?: Partial<UserSentence>;
   onSave: (text: string, iconIds: string[], category: string) => Promise<void>;
   onCancel: () => void;
-  language: string;
 }) {
   const { t } = useLanguage();
   const [text, setText] = useState(initial?.text ?? '');
@@ -259,7 +257,7 @@ export default function PhrasesPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Phrases</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
-            Create custom phrases that appear in the communication board's sentence browser.
+            Create custom phrases that appear in the communication board&apos;s sentence browser.
           </p>
         </div>
         {!showForm && !editing && (
@@ -276,7 +274,7 @@ export default function PhrasesPage() {
       {showForm && (
         <div className="p-5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
           <h2 className="text-base font-bold mb-4 text-gray-900 dark:text-white">New phrase</h2>
-          <PhraseForm onSave={handleAdd} onCancel={() => setShowForm(false)} language={language} />
+          <PhraseForm onSave={handleAdd} onCancel={() => setShowForm(false)} />
         </div>
       )}
 
@@ -300,7 +298,7 @@ export default function PhrasesPage() {
                 {editing?.id === s.id ? (
                   <div className="p-5">
                     <h2 className="text-base font-bold mb-4 text-gray-900 dark:text-white">Edit phrase</h2>
-                    <PhraseForm initial={editing} onSave={handleUpdate} onCancel={() => setEditing(null)} language={language} />
+                    <PhraseForm initial={editing} onSave={handleUpdate} onCancel={() => setEditing(null)} />
                   </div>
                 ) : (
                   <div className="flex items-center gap-4 p-4">

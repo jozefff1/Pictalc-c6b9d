@@ -38,6 +38,7 @@ export default function PatientsPage() {
   const [relationship, setRelationship] = useState<string>('therapist');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteResult, setInviteResult] = useState<{ inviteUrl: string; expiresAt: string; emailSent?: boolean } | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -79,6 +80,7 @@ export default function PatientsPage() {
 
   const handleGenerateInvite = async () => {
     setInviting(true);
+    setInviteError(null);
     try {
       const body: Record<string, string> = { relationship };
       if (inviteEmail.trim()) body.email = inviteEmail.trim();
@@ -90,7 +92,11 @@ export default function PatientsPage() {
       const data = await res.json();
       if (res.ok) {
         setInviteResult({ inviteUrl: data.inviteUrl, expiresAt: data.expiresAt, emailSent: data.emailSent });
+      } else {
+        setInviteError(data.error ?? 'Failed to create invite. Please try again.');
       }
+    } catch {
+      setInviteError('Network error while creating invite. Please try again.');
     } finally {
       setInviting(false);
     }
@@ -150,7 +156,7 @@ export default function PatientsPage() {
             <span className="text-base leading-none">⬛</span> QR Code
           </button>
           <button
-            onClick={() => { setShowInvite(true); setInviteResult(null); setInviteEmail(''); }}
+            onClick={() => { setShowInvite(true); setInviteResult(null); setInviteEmail(''); setInviteError(null); }}
             className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-all"
           >
             {t('patients.invite')}
@@ -365,6 +371,9 @@ export default function PatientsPage() {
                 <label className="block text-sm font-medium mb-1">
                   {t('patients.modal.emailLabel')} <span className="text-gray-400 font-normal">{t('patients.modal.emailOptional')}</span>
                 </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  Leave email empty for open link/QR pairing. Add an email to lock acceptance to that account in legacy mode.
+                </p>
                 <input
                   type="email"
                   value={inviteEmail}
@@ -388,6 +397,9 @@ export default function PatientsPage() {
                     {inviting ? t('patients.modal.generating') : t('patients.modal.generate')}
                   </button>
                 </div>
+                {inviteError && (
+                  <p className="mt-3 text-sm text-red-600 dark:text-red-400">{inviteError}</p>
+                )}
               </>
             ) : (
               <>

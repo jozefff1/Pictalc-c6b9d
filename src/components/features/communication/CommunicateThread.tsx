@@ -83,8 +83,28 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
   const scrollRef = useRef<HTMLDivElement>(null);
   const latestTsRef = useRef<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onRoomLoadedRef = useRef(onRoomLoaded);
+  const onNewMessageRef = useRef(onNewMessage);
+  const collapsedRef = useRef(collapsed);
+  const currentUserIdRef = useRef(currentUserId);
 
   const getLabel = useCallback((icon: ThreadIcon) => iconLabels[icon.id] || icon.name, [iconLabels]);
+
+  useEffect(() => {
+    onRoomLoadedRef.current = onRoomLoaded;
+  }, [onRoomLoaded]);
+
+  useEffect(() => {
+    onNewMessageRef.current = onNewMessage;
+  }, [onNewMessage]);
+
+  useEffect(() => {
+    collapsedRef.current = collapsed;
+  }, [collapsed]);
+
+  useEffect(() => {
+    currentUserIdRef.current = currentUserId;
+  }, [currentUserId]);
 
   const formatLastActive = useCallback((iso?: string | null) => {
     if (!iso) return 'Offline';
@@ -103,29 +123,38 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
       .then((data) => {
         const list: RoomUser[] = data.rooms ?? [];
         setRooms(list);
-        if (list.length > 0) setActiveRoom(list[0]);
-        onRoomLoaded?.(list);
+        setActiveRoom((prev) => {
+          if (!prev) return list[0] ?? null;
+          return list.find((room) => room.userId === prev.userId) ?? (list[0] ?? null);
+        });
+        onRoomLoadedRef.current?.(list);
       })
       .catch(() => {})
       .finally(() => setLoadingRooms(false));
-  }, [onRoomLoaded]);
-
-  // Fetch full history when room changes
-  const fetchHistory = useCallback(async (roomUserId: string) => {
-    const res = await fetch(`/api/messages/room?roomUserId=${roomUserId}&limit=100`);
-    if (!res.ok) return;
-    const data = await res.json();
-    const loaded: ThreadMessage[] = data.messages ?? [];
-    setMsgs(loaded);
-    latestTsRef.current = loaded.length > 0 ? loaded[loaded.length - 1].createdAt : null;
   }, []);
 
   useEffect(() => {
     if (!activeRoom) return;
-    setMsgs([]);
+    let cancelled = false;
+
     latestTsRef.current = null;
-    fetchHistory(activeRoom.userId);
-  }, [activeRoom, fetchHistory]);
+
+    const run = async () => {
+      const res = await fetch(`/api/messages/room?roomUserId=${activeRoom.userId}&limit=100`);
+      if (!res.ok || cancelled) return;
+      const data = await res.json();
+      const loaded: ThreadMessage[] = data.messages ?? [];
+      if (cancelled) return;
+      setMsgs(loaded);
+      latestTsRef.current = loaded.length > 0 ? loaded[loaded.length - 1].createdAt : null;
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeRoom]);
 
   // Poll for new messages
   useEffect(() => {
@@ -150,10 +179,10 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
         if (!fresh.length) return prev;
         latestTsRef.current = fresh[fresh.length - 1].createdAt;
         // Track unread when panel is collapsed
-        const fromOthers = fresh.filter((m) => m.senderId !== currentUserId);
-        if (fromOthers.length > 0 && collapsed) {
+        const fromOthers = fresh.filter((m) => m.senderId !== currentUserIdRef.current);
+        if (fromOthers.length > 0 && collapsedRef.current) {
           setUnreadCount((n) => n + fromOthers.length);
-          onNewMessage?.();
+          onNewMessageRef.current?.();
         }
         // Play chime for messages from others (collapsed or not)
         if (fromOthers.length > 0) {
@@ -169,11 +198,6 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
 
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [activeRoom]);
-
-  // Clear unread badge when panel is opened
-  useEffect(() => {
-    if (!collapsed) setUnreadCount(0);
-  }, [collapsed]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -209,7 +233,10 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
   if (collapsed) {
     return (
       <button
-        onClick={onToggleCollapse}
+        onClick={() => {
+          setUnreadCount(0);
+          onToggleCollapse?.();
+        }}
         className={`w-full flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors text-left${unreadCount > 0 ? ' snakke-bar-pulse' : ''}`}
       >
         <span className="text-base">💬</span>

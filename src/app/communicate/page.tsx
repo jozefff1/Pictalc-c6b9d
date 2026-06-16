@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIconLabels } from '@/hooks/useIconLabels';
-import { getIconsByCategory, searchIcons } from '@/lib/data/icons';
+import { getIconsByCategory, searchIcons, CATEGORIES } from '@/lib/data/icons';
 import { setCustomIcons, addIconToSentence, clearSentence } from '@/store/slices/communicationSlice';
 import CategorySelector from '@/components/features/CategorySelector';
 import IconGrid from '@/components/features/IconGrid';
@@ -14,9 +14,15 @@ import SentenceBuilder from '@/components/features/SentenceBuilder';
 import TextToIcons from '@/components/features/TextToIcons';
 import SpeechToIcons from '@/components/features/SpeechToIcons';
 import CommunicateThread, { type ThreadMessage } from '@/components/features/communication/CommunicateThread';
-import type { Icon } from '@/types/models';
+import type { Icon, IconCategory } from '@/types/models';
 
 type CommunicationMode = 'icons' | 'text' | 'speech';
+
+const iconCategoryIds = new Set<IconCategory>(CATEGORIES.map((category) => category.id));
+
+function isIconCategory(value: string): value is IconCategory {
+  return iconCategoryIds.has(value as IconCategory);
+}
 
 export default function CommunicatePage() {
   const { t, language } = useLanguage();
@@ -49,8 +55,9 @@ export default function CommunicatePage() {
       .catch(err => console.error('Failed to load custom icons:', err));
   }, [dispatch, session?.user?.id]);
 
-  const defaultIcons = getIconsByCategory(selectedCategory as any);
-  const filteredCustomIcons = customIcons.filter(icon => icon.category === selectedCategory);
+  const resolvedCategory: IconCategory = isIconCategory(selectedCategory) ? selectedCategory : 'needs';
+  const defaultIcons = getIconsByCategory(resolvedCategory);
+  const filteredCustomIcons = customIcons.filter(icon => icon.category === resolvedCategory);
   const categoryIcons = [...defaultIcons, ...filteredCustomIcons];
 
   // Search: built-in matches + custom icon matches, deduped by id

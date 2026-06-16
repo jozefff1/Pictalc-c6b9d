@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (June 17, 2026 - pairing safety and lint hardening)
+
+- Link and QR pairing are available in both legacy and demo modes.
+- In legacy mode, invite email is optional for link pairing; when provided,
+  acceptance remains account-locked to that email.
+- Pairing invite modal now surfaces backend and network errors so users get
+  clear feedback when invite creation fails.
+- Pairing invite modal now includes a helper note that explains open link/QR
+  pairing (empty email) versus email-locked legacy invite behavior.
+- Excluded generated service worker output (`public/sw.js`) from ESLint to
+  avoid false positives from minified generated code.
+- Removed current lint blockers in source code:
+  - eliminated `any` cast in `communicate/page.tsx` via `IconCategory` guard
+  - fixed unescaped apostrophe and unused prop in phrases dashboard page
+  - adjusted `useFetch` loading flow to satisfy `set-state-in-effect` rule
+
 ### Added (June 16, 2026 - TTS voice selection hardening)
 
 - Added a browser voice picker in dashboard settings with language-aware filtering

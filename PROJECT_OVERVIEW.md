@@ -161,7 +161,7 @@ tenants              → Staged Phase 9 institutional isolation unit; migration 
 users                → All user accounts; nullable tenantId is staged in code and migration pending
 devices              → Registered devices per user
 pairings             → Guardian ↔ Child relationships
-pairing_requests     → Invite tokens (email-bound, rate-limited, expiring)
+pairing_requests     → Invite tokens (link + QR in both modes; optional email lock in legacy mode, open in demo mode, rate-limited, expiring)
 messages             → Communication history between users
 communication_sessions → Icon sentence session logs
 user_preferences     → Per-user settings (theme, language, TTS)

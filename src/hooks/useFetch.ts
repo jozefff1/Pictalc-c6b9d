@@ -22,7 +22,6 @@ export function useFetch<T>(url: string): FetchState<T> {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     fetch(url)
       .then((r) => r.json())
       .then((d) => {
@@ -42,7 +41,10 @@ export function useFetch<T>(url: string): FetchState<T> {
     };
   }, [url, version]);
 
-  const refetch = useCallback(() => setVersion((v) => v + 1), []);
+  const refetch = useCallback(() => {
+    setLoading(true);
+    setVersion((v) => v + 1);
+  }, []);
 
   return { data, loading, error, refetch };
 }

@@ -35,6 +35,17 @@ function normalizeLocale(locale: string): string {
   return locale.toLowerCase().replace('_', '-');
 }
 
+function getLocaleCandidates(requestedLocale: string): string[] {
+  const normalized = normalizeLocale(requestedLocale);
+  const base = languageBase(normalized);
+
+  if (base === 'nb' || base === 'nn' || base === 'no') {
+    return Array.from(new Set([normalized, 'no-no', 'nb-no', 'nn-no', 'no']));
+  }
+
+  return [normalized];
+}
+
 function getSpeechPreferenceKey(locale: string): string {
   const base = languageBase(locale);
   if (base === 'nb' || base === 'nn' || base === 'no') return 'no';
@@ -151,10 +162,20 @@ export function speakText(text: string, config: SpeechConfig = {}): Promise<void
     } else {
       const voices = window.speechSynthesis.getVoices();
       const preferredVoiceURI = config.voiceURI ?? getPreferredVoiceURI(utterance.lang);
-      const matchingVoice = resolveVoice(voices, utterance.lang, preferredVoiceURI);
+      const localeCandidates = getLocaleCandidates(utterance.lang);
+      let matchingVoice: SpeechSynthesisVoice | null = null;
+
+      for (const locale of localeCandidates) {
+        matchingVoice = resolveVoice(voices, locale, preferredVoiceURI);
+        if (matchingVoice) break;
+      }
+
       if (matchingVoice) {
         utterance.voice = matchingVoice;
         utterance.lang = matchingVoice.lang;
+      } else if (localeCandidates.length > 1) {
+        // Android engines vary between no-NO and nb-NO support. Keep a Norwegian fallback.
+        utterance.lang = 'no-NO';
       }
     }
 
