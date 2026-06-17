@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed (June 17, 2026 - pairing safety and lint hardening)
 
+- In the Type tab, quick phrases now remain visible after selecting a phrase,
+  so users can tap multiple quick phrases in sequence without the strip
+  disappearing.
 - Link and QR pairing are available in both legacy and demo modes.
 - In legacy mode, invite email is optional for link pairing; when provided,
   acceptance remains account-locked to that email.

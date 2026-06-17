@@ -184,11 +184,9 @@ export default function TextToIcons() {
           </div>
         )}
 
-        {/* Sentence Browser — shown when input is empty */}
-        {!autoConverted && matches.length === 0 && !inputText && (
+        {/* Quick phrases remain visible so users can chain multiple phrase taps */}
+        {!inputText && (
           <div className="mt-4">
-
-            {/* ── Quick Phrases ─────────────────────────────────────── */}
             <p className="text-xs font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
               ⚡ {t('type.quickPhrases')}
             </p>
@@ -203,7 +201,12 @@ export default function TextToIcons() {
                 </button>
               ))}
             </div>
+          </div>
+        )}
 
+        {/* Sentence Browser — shown when input is empty */}
+        {!autoConverted && matches.length === 0 && !inputText && (
+          <div className="mt-4">
             {/* ── Category browser ──────────────────────────────────── */}
             <p className="text-xs font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
               {t('type.examples')}
