@@ -4,6 +4,8 @@
  * Image URL format: https://static.arasaac.org/pictograms/{id}/{id}_500.png
  */
 import type { Icon, IconCategory } from '@/types/models';
+import { KEYWORD_MAP_EN } from '@/lib/ai/keywordMappings/en';
+import { KEYWORD_MAP_NO } from '@/lib/ai/keywordMappings/no';
 
 export const ICON_DATABASE: Icon[] = [
   // NEEDS Category
@@ -108,6 +110,25 @@ export const ICON_DATABASE: Icon[] = [
   { id: 'no', name: 'No', category: 'custom', symbol: '❌', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/5526/5526_500.png' },
   { id: 'please', name: 'Please', category: 'custom', symbol: '🙏', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/8195/8195_500.png' },
   { id: 'thankyou', name: 'Thank You', category: 'custom', symbol: '🙏', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/8129/8129_500.png' },
+  { id: 'who', name: 'Who', category: 'custom', symbol: '❓', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/7031/7031_500.png' },
+  { id: 'what', name: 'What', category: 'custom', symbol: '❓', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/6517/6517_500.png' },
+  { id: 'where', name: 'Where', category: 'custom', symbol: '📍', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/6964/6964_500.png' },
+  { id: 'when', name: 'When', category: 'custom', symbol: '⏰', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/32749/32749_500.png' },
+  { id: 'this', name: 'This', category: 'custom', symbol: '👉', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/6625/6625_500.png' },
+  { id: 'that', name: 'That', category: 'custom', symbol: '👉', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/9202/9202_500.png' },
+  { id: 'here', name: 'Here', category: 'custom', symbol: '📍', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/6964/6964_500.png' },
+  { id: 'there', name: 'There', category: 'custom', symbol: '➡️', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/8142/8142_500.png' },
+  { id: 'can', name: 'Can', category: 'custom', symbol: '✅', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/32751/32751_500.png' },
+  { id: 'cannot', name: 'Cannot', category: 'custom', symbol: '🚫', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/5526/5526_500.png' },
+  { id: 'because', name: 'Because', category: 'custom', symbol: '💬', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/6517/6517_500.png' },
+  { id: 'i', name: 'I', category: 'custom', symbol: '👤', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/6632/6632_500.png' },
+  { id: 'my', name: 'My', category: 'custom', symbol: '👤', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/6632/6632_500.png' },
+  { id: 'iam', name: 'I Am', category: 'custom', symbol: '👤', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/6632/6632_500.png' },
+  { id: 'on', name: 'On', category: 'custom', symbol: '⬆️', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/5388/5388_500.png' },
+  { id: 'under', name: 'Under', category: 'custom', symbol: '⬇️', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/24723/24723_500.png' },
+  { id: 'at', name: 'At', category: 'custom', symbol: '📍', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/6964/6964_500.png' },
+  { id: 'in', name: 'In', category: 'custom', symbol: '📍', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/6964/6964_500.png' },
+  { id: 'over', name: 'Over', category: 'custom', symbol: '⬆️', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/5388/5388_500.png' },
   { id: 'more', name: 'More', category: 'custom', symbol: '➕', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/32753/32753_500.png' },
   { id: 'all', name: 'All Done', category: 'custom', symbol: '👐', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/28429/28429_500.png' },
   { id: 'now', name: 'Now', category: 'custom', symbol: '👇', color: '#BF5AF2', imageUrl: 'https://static.arasaac.org/pictograms/32747/32747_500.png' },
@@ -127,11 +148,44 @@ export function getIconById(id: string): Icon | undefined {
 // Helper function to search icons by keywords
 export function searchIcons(query: string): Icon[] {
   const normalizedQuery = query.toLowerCase().trim();
-  
-  return ICON_DATABASE.filter(icon => {
-    return icon.name.toLowerCase().includes(normalizedQuery) ||
-           icon.id.toLowerCase().includes(normalizedQuery);
-  });
+  if (!normalizedQuery) return [];
+
+  const scored = ICON_DATABASE
+    .map((icon) => {
+      let score = 0;
+      const id = icon.id.toLowerCase();
+      const name = icon.name.toLowerCase();
+      const keywordSet = new Set([
+        ...(KEYWORD_MAP_EN[icon.id] ?? []),
+        ...(KEYWORD_MAP_NO[icon.id] ?? []),
+      ].map((k) => k.toLowerCase().trim()));
+
+      if (id === normalizedQuery || name === normalizedQuery) score += 100;
+      if (id.startsWith(normalizedQuery) || name.startsWith(normalizedQuery)) score += 40;
+      if (id.includes(normalizedQuery) || name.includes(normalizedQuery)) score += 20;
+
+      for (const keyword of keywordSet) {
+        if (!keyword) continue;
+        if (keyword === normalizedQuery) {
+          score += 60;
+          continue;
+        }
+        if (keyword.startsWith(normalizedQuery)) {
+          score += 25;
+          continue;
+        }
+        if (keyword.includes(normalizedQuery) && normalizedQuery.length >= 2) {
+          score += 10;
+        }
+      }
+
+      return { icon, score };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((entry) => entry.icon);
+
+  return Array.from(new Map(scored.map((icon) => [icon.id, icon])).values());
 }
 
 // Category metadata

@@ -50,6 +50,11 @@ function isVoiceMatchForLocale(voice: SpeechSynthesisVoice, locale: string): boo
   return accepted.includes(languageBase(voice.lang));
 }
 
+function isNorwegianLocale(locale: string): boolean {
+  const base = languageBase(locale);
+  return base === 'no' || base === 'nb' || base === 'nn';
+}
+
 export default function SettingsPage() {
   const { t, language } = useLanguage();
   const { preferences, setPreferences, loading } = usePreferences();
@@ -59,6 +64,7 @@ export default function SettingsPage() {
   const [voicesLoading, setVoicesLoading] = useState(true);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceURI, setVoiceURI] = useState('');
+  const [isAndroid, setIsAndroid] = useState(false);
 
   const ttsLocale = useMemo(
     () => LOCALE_BY_LANGUAGE[language] ?? 'en-US',
@@ -112,6 +118,11 @@ export default function SettingsPage() {
     const preferred = getPreferredVoiceURI(ttsLocale);
     setVoiceURI(preferred ?? '');
   }, [ttsLocale]);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined') return;
+    setIsAndroid(/android/i.test(navigator.userAgent));
+  }, []);
 
   const save = useCallback(async (patch: Partial<Prefs>) => {
     setSaving(true);
@@ -228,6 +239,11 @@ export default function SettingsPage() {
               {matchingVoices.length === 0 && voices.length > 0 && (
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
                   {t('settings.voice.noVoiceMatch')}
+                </p>
+              )}
+              {isAndroid && isNorwegianLocale(ttsLocale) && matchingVoices.length === 0 && (
+                <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+                  Android tip: install Norwegian voice data in system settings under Accessibility, Text-to-speech output, Install voice data.
                 </p>
               )}
             </div>

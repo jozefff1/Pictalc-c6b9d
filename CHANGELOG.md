@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (June 17, 2026 - AAC vocabulary expansion pack)
+
+- Added 11 high-frequency AAC vocabulary icons to the built-in collection:
+  `who`, `what`, `where`, `when`, `this`, `that`, `here`, `there`, `can`,
+  `cannot`, `because`.
+- Expanded EN/NO matcher keyword maps for the new entries to improve
+  text-to-icon conversion and search quality for question words, demonstratives,
+  and sentence connectors.
+- Added icon-label translations for the new entries in EN, NO, ES, FR, and DE
+  to keep icon-label coverage consistent across all supported languages.
+- Tuned EN/NO keyword synonyms for the new entries to reduce overly broad
+  matches and improve precision in text-to-icon conversion/search.
+- Fixed a malformed Norwegian keyword alias for `ball` in the NO mapping.
+
 ### Fixed (June 17, 2026 - pairing safety and lint hardening)
 
 - Link and QR pairing are available in both legacy and demo modes.
@@ -16,6 +30,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   clear feedback when invite creation fails.
 - Pairing invite modal now includes a helper note that explains open link/QR
   pairing (empty email) versus email-locked legacy invite behavior.
+- Settings voice panel now shows an Android-specific Norwegian TTS hint when no
+  matching Norwegian voice is detected, guiding users to install voice data in
+  system text-to-speech settings.
+- Added a local-test alternate communication skin on `/communicate` using
+  `?view=alt`, preserving all existing communication behavior while changing
+  only presentation.
+- Expanded functional AAC vocabulary with additional pronoun and positional
+  icons (`i`, `my`, `iam`, `on`, `under`, `at`, `in`, `over`) and keyword maps
+  in English/Norwegian.
+- Hardened icon search ranking to include keyword mappings (EN+NO) instead of
+  relying only on icon id/name substring matches.
+- Updated chat icon sentence rendering to rebuild sentence text from local icon
+  labels so messages display in the currently selected language.
 - Excluded generated service worker output (`public/sw.js`) from ESLint to
   avoid false positives from minified generated code.
 - Removed current lint blockers in source code:

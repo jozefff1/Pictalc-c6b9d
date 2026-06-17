@@ -33,8 +33,14 @@ export function matchTextToIcons(
     return [];
   }
 
-  const normalizedText = text.toLowerCase().trim();
-  const words = normalizedText.split(/\s+/);
+  const normalize = (value: string) => value
+    .toLowerCase()
+    .replace(/[.,!?;:()"'`]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const normalizedText = normalize(text);
+  const words = normalizedText.split(/\s+/).filter(Boolean);
   const matches: IconMatch[] = [];
 
   // Get keyword map for locale (fallback to English)
@@ -49,7 +55,7 @@ export function matchTextToIcons(
    *  - Custom label override from localStorage (so relabelled icons are findable)
    */
   const buildKeywords = (icon: Icon): string[] => {
-    const labelStr = iconLabels[icon.id]?.toLowerCase().trim() ?? '';
+    const labelStr = normalize(iconLabels[icon.id] ?? '');
     const labelWords = labelStr
       ? [labelStr, ...labelStr.split(/\s+/).filter((w) => w.length >= 2)]
       : [];
@@ -57,26 +63,41 @@ export function matchTextToIcons(
     const builtinKeywords = KEYWORD_MAP[icon.id];
     if (builtinKeywords) {
       // Built-in icon: keyword map is source of truth, label adds extra aliases
-      return [...builtinKeywords, ...labelWords];
+      return [...builtinKeywords.map((k) => normalize(k)), ...labelWords];
     }
 
     // Custom uploaded icon: derive keywords from its name + individual words + label
-    const nameLower = icon.name.toLowerCase().trim();
+    const nameLower = normalize(icon.name);
     const nameWords = nameLower.split(/\s+/).filter((w) => w.length >= 2);
-    return [icon.id, nameLower, ...nameWords, ...labelWords];
+    return [normalize(icon.id), nameLower, ...nameWords, ...labelWords];
   };
 
-  // Words to skip entirely (stop words that cause false positives)
-  const STOP_WORDS = new Set(['i', 'a', 'an', 'to', 'the', 'of', 'and', 'or', 'is', 'it', 'in', 'on', 'at', 'by', 'for', 'with', 'as', 'be', 'was', 'are']);
+  // Words to skip only for partial matching (to avoid false positives)
+  const PARTIAL_STOP_WORDS = new Set([
+    'a', 'an', 'the', 'of', 'and', 'or', 'is', 'it', 'by', 'for', 'with', 'as', 'be', 'was', 'are',
+    'en', 'ei', 'et', 'og', 'eller', 'er', 'som', 'til', 'av', 'fra', 'med',
+  ]);
 
   // Check each icon for matches
   for (const icon of combinedDatabase) {
     const keywords = buildKeywords(icon);
+
+    const keywordSet = new Set(keywords);
+
+    // Phrase match pass — useful for "i am" / "jeg er" and similar multi-word entries
+    const phraseMatched = keywords.find((keyword) => keyword.includes(' ') && normalizedText.includes(keyword));
+    if (phraseMatched) {
+      matches.push({
+        icon,
+        confidence: 0.95,
+        matchType: 'exact',
+      });
+      continue;
+    }
     
     // Exact match pass — any word exactly in the keyword list
     for (const word of words) {
-      if (STOP_WORDS.has(word)) continue; // never exact-match stop words
-      if (keywords.includes(word)) {
+      if (keywordSet.has(word)) {
         matches.push({
           icon,
           confidence: 1.0,
@@ -91,7 +112,7 @@ export function matchTextToIcons(
       for (const keyword of keywords) {
         if (keyword.length < 4) continue; // skip very short keywords to avoid false substrings
         for (const word of words) {
-          if (STOP_WORDS.has(word)) continue; // never partial-match stop words
+          if (PARTIAL_STOP_WORDS.has(word)) continue;
           if (word.length < 3) continue;      // skip very short input words
           // word must share a meaningful substring - require the match to cover >50% of both strings
           const wordInKeyword = keyword.includes(word) && word.length >= 4;

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIconLabels } from '@/hooks/useIconLabels';
@@ -28,6 +29,9 @@ export default function CommunicatePage() {
   const { t, language } = useLanguage();
   const { labels } = useIconLabels(language);
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const [mode, setMode] = useState<CommunicationMode>('icons');
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,6 +40,7 @@ export default function CommunicatePage() {
   const [hasPairedUsers, setHasPairedUsers] = useState(false);
   const [sending, setSending] = useState(false);
   const [threadCollapsed, setThreadCollapsed] = useState(true);
+  const isAltView = searchParams.get('view') === 'alt';
 
   const selectedCategory = useAppSelector((state) => state.communication.selectedCategory);
   const customIcons = useAppSelector((state) => state.communication.customIcons);
@@ -97,12 +102,37 @@ export default function CommunicatePage() {
     } finally { setSending(false); }
   }, [sentence, session?.user?.id, getLabel, dispatch]);
 
+  const setAltView = useCallback((enabled: boolean) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (enabled) {
+      params.set('view', 'alt');
+    } else {
+      params.delete('view');
+    }
+    const next = params.toString();
+    router.replace(next ? `${pathname}?${next}` : pathname);
+  }, [pathname, router, searchParams]);
+
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className={`relative h-screen flex flex-col overflow-hidden ${
+      isAltView
+        ? 'bg-linear-to-br from-orange-50 via-rose-50 to-cyan-50 dark:from-gray-950 dark:via-gray-900 dark:to-slate-950'
+        : 'bg-gray-50 dark:bg-gray-900'
+    }`}>
+
+      {isAltView && (
+        <>
+          <div className="pointer-events-none absolute -left-24 -top-20 h-72 w-72 rounded-full bg-rose-300/25 blur-3xl dark:bg-rose-700/20" />
+          <div className="pointer-events-none absolute -right-24 top-16 h-80 w-80 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-700/20" />
+          <div className="pointer-events-none absolute -bottom-27.5 left-1/3 h-72 w-72 rounded-full bg-amber-300/25 blur-3xl dark:bg-amber-700/15" />
+        </>
+      )}
+
+      <div className={`relative z-10 flex h-full flex-col ${isAltView ? 'mx-auto w-full max-w-350 gap-2 px-2 py-2 sm:px-4 sm:py-3' : ''}`}>
 
       {/* ── Thread panel — collapsible, always mounts when signed in ── */}
       {session?.user?.id && (
-        <div className={hasPairedUsers ? (threadCollapsed ? 'shrink-0' : 'flex-1 min-h-0 flex flex-col border-b-2 border-gray-200 dark:border-gray-700') : 'hidden'}>
+        <div className={hasPairedUsers ? (threadCollapsed ? 'shrink-0' : `flex-1 min-h-0 flex flex-col border-b-2 ${isAltView ? 'rounded-2xl border-amber-200/90 bg-white/75 shadow-lg shadow-rose-100/50 dark:border-amber-700/60 dark:bg-gray-900/80 dark:shadow-none' : 'border-gray-200 dark:border-gray-700'}`) : 'hidden'}>
           <CommunicateThread
             currentUserId={session.user.id}
             iconLabels={labels}
@@ -114,7 +144,7 @@ export default function CommunicatePage() {
       )}
 
       {/* ── SentenceBuilder — compact, with Send ── */}
-      <div className="shrink-0">
+      <div className={`shrink-0 ${isAltView ? 'rounded-2xl border border-rose-200/80 bg-white/80 px-1 py-1 shadow-lg shadow-rose-100/40 dark:border-rose-800/60 dark:bg-gray-900/80 dark:shadow-none' : ''}`}>
         <SentenceBuilder
           isPrivate={isPrivate}
           compact={true}
@@ -124,8 +154,18 @@ export default function CommunicatePage() {
       </div>
 
       {/* ── Mode tabs — slim, with inline search toggle ── */}
-      <div className="shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-0.5 px-2">
+      <div className={`shrink-0 border-b ${
+        isAltView
+          ? 'rounded-2xl border-amber-200/90 bg-white/85 dark:border-amber-700/60 dark:bg-gray-800/90 backdrop-blur-sm'
+          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+      }`}>
+        <div className={`flex items-center gap-0.5 px-2 ${isAltView ? 'py-1.5' : ''}`}>
+          {isAltView && (
+            <div className="mr-2 hidden items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-rose-700 dark:border-rose-700/70 dark:bg-rose-900/25 dark:text-rose-300 sm:flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+              Play Mode
+            </div>
+          )}
           {/* Mode buttons */}
           {([
             { id: 'icons', emoji: '🎯', label: t('communicate.tab.icons') },
@@ -135,11 +175,12 @@ export default function CommunicatePage() {
             <button
               key={id}
               onClick={() => setMode(id)}
-              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 rounded-t-md transition-colors ${
                 mode === id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? (isAltView ? 'border-rose-500 text-rose-600 bg-rose-50/70 dark:bg-rose-900/20 dark:text-rose-300' : 'border-primary text-primary')
+                  : (isAltView ? 'border-transparent text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-300' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200')
               }`}
+              style={isAltView ? { fontFamily: "'Trebuchet MS', 'Avenir Next', 'Segoe UI', sans-serif" } : undefined}
             >
               <span>{emoji}</span>
               <span className="hidden sm:inline">{label}</span>
@@ -152,7 +193,11 @@ export default function CommunicatePage() {
           {mode === 'icons' && (
             <button
               onClick={() => { setSearchOpen((p) => !p); if (searchOpen) setSearchQuery(''); }}
-              className={`p-2 rounded-lg text-sm transition-colors ${searchOpen ? 'text-primary bg-primary/10' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+              className={`p-2 rounded-lg text-sm transition-colors ${
+                searchOpen
+                  ? (isAltView ? 'text-rose-600 bg-rose-100 dark:text-rose-300 dark:bg-rose-900/30' : 'text-primary bg-primary/10')
+                  : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
               aria-label="Toggle search"
             >
               🔍
@@ -169,6 +214,18 @@ export default function CommunicatePage() {
               {isPrivate ? '🔒' : '🔓'}
             </button>
           )}
+
+          <button
+            onClick={() => setAltView(!isAltView)}
+            className={`ml-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors ${
+              isAltView
+                ? 'bg-rose-500 text-white hover:bg-rose-600'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+            }`}
+            title="Local visual test mode"
+          >
+            {isAltView ? 'Alt View On' : 'Alt View Off'}
+          </button>
         </div>
 
         {/* Inline search bar — expands below tabs */}
@@ -199,13 +256,19 @@ export default function CommunicatePage() {
       </div>
 
       {/* ── Icon board — dominant, takes all remaining space ── */}
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div className={`flex-1 overflow-y-auto min-h-0 ${isAltView ? 'rounded-2xl border border-cyan-200/80 bg-white/70 shadow-xl shadow-cyan-100/40 dark:border-cyan-800/60 dark:bg-gray-900/75 dark:shadow-none' : ''}`}>
         {mode === 'icons' && (
           <div>
             {/* Recently used — hidden during search */}
             {!trimmedQuery && recentIcons.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+              <div className={`border-b px-4 py-2 ${
+                isAltView
+                  ? 'bg-white/80 dark:bg-gray-800/80 border-amber-200/80 dark:border-amber-700/50'
+                  : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+              }`}>
+                <p className={`text-xs font-medium mb-2 uppercase tracking-wide ${
+                  isAltView ? 'text-rose-600 dark:text-rose-300' : 'text-gray-500 dark:text-gray-400'
+                }`}>
                   {t('communicate.recent')}
                 </p>
                 <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -213,7 +276,11 @@ export default function CommunicatePage() {
                     <button
                       key={icon.id}
                       onClick={() => dispatch(addIconToSentence(icon))}
-                      className="shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-primary/10 dark:hover:bg-primary/20 active:scale-95 transition-all w-16"
+                      className={`shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl active:scale-95 transition-all w-16 ${
+                        isAltView
+                          ? 'bg-linear-to-b from-amber-100 to-rose-100 dark:from-gray-700 dark:to-gray-700 hover:from-rose-200 hover:to-amber-200 dark:hover:from-gray-600 dark:hover:to-gray-600 border border-amber-200/80 dark:border-gray-600'
+                          : 'bg-gray-50 dark:bg-gray-700 hover:bg-primary/10 dark:hover:bg-primary/20'
+                      }`}
                       title={labels[icon.id] || icon.name}
                     >
                       {icon.imageUrl ? (
@@ -235,7 +302,9 @@ export default function CommunicatePage() {
 
             {/* Icon grid */}
             {trimmedQuery && iconsToShow.length === 0 ? (
-              <div className="flex items-center justify-center h-48 text-gray-500 dark:text-gray-400 text-sm">
+              <div className={`flex items-center justify-center h-48 text-sm ${
+                isAltView ? 'text-rose-600 dark:text-rose-300' : 'text-gray-500 dark:text-gray-400'
+              }`}>
                 {t('communicate.searchEmpty')} &ldquo;{trimmedQuery}&rdquo;
               </div>
             ) : (
@@ -246,6 +315,7 @@ export default function CommunicatePage() {
 
         {mode === 'text' && <TextToIcons />}
         {mode === 'speech' && <SpeechToIcons />}
+      </div>
       </div>
     </div>
   );

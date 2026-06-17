@@ -296,6 +296,7 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
 
             {msgs.map((msg) => {
               const isMine = msg.senderId === currentUserId;
+              const localizedSentence = (msg.content.icons ?? []).map((icon) => getIconLabel(icon)).join(' ').trim();
               return (
                 <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[85%] ${isMine ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
@@ -343,9 +344,9 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
                             ))}
                           </div>
                           {/* Sentence text below icons */}
-                          {msg.content.sentence && (
+                          {(localizedSentence || msg.content.sentence) && (
                             <p className={`text-xs italic ${isMine ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
-                              &ldquo;{msg.content.sentence}&rdquo;
+                              &ldquo;{localizedSentence || msg.content.sentence}&rdquo;
                             </p>
                           )}
                         </div>

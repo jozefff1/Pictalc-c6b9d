@@ -329,6 +329,7 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
         {msgs.map((msg) => {
           const isMine = msg.senderId === currentUserId;
           const isNew = newMsgIds.has(msg.id);
+          const localizedSentence = (msg.content.icons ?? []).map((icon) => getLabel(icon)).join(' ').trim();
           return (
             <div
               key={msg.id}
@@ -387,13 +388,13 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
                           </div>
                         ))}
                       </div>
-                      {msg.content.sentence && (
+                      {(localizedSentence || msg.content.sentence) && (
                         <p
                           className={`text-xs italic leading-relaxed ${
                             isMine ? 'text-white/70' : 'text-gray-400 dark:text-gray-500'
                           }`}
                         >
-                          &ldquo;{msg.content.sentence}&rdquo;
+                          &ldquo;{localizedSentence || msg.content.sentence}&rdquo;
                         </p>
                       )}
                     </div>

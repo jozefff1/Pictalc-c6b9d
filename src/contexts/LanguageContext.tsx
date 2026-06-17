@@ -193,12 +193,20 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.baby': 'Baby',
     'icon.family': 'Family',
     'icon.me': 'Me',
+    'icon.i': 'I',
+    'icon.my': 'My',
+    'icon.iam': 'I am',
     'icon.you': 'You',
     'icon.they': 'They',
     
     // Icons - DIRECTIONS (within ACTIONS)
     'icon.up': 'Up',
     'icon.down': 'Down',
+    'icon.on': 'On',
+    'icon.under': 'Under',
+    'icon.at': 'At',
+    'icon.in': 'In',
+    'icon.over': 'Over',
     'icon.left': 'Left',
     'icon.right': 'Right',
     
@@ -235,6 +243,17 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.no': 'No',
     'icon.please': 'Please',
     'icon.thankyou': 'Thank You',
+    'icon.who': 'Who',
+    'icon.what': 'What',
+    'icon.where': 'Where',
+    'icon.when': 'When',
+    'icon.this': 'This',
+    'icon.that': 'That',
+    'icon.here': 'Here',
+    'icon.there': 'There',
+    'icon.can': 'Can',
+    'icon.cannot': 'Cannot',
+    'icon.because': 'Because',
 
     // Landing page
     'home.skip': 'Skip to main content',
@@ -661,12 +680,20 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.baby': 'Baby',
     'icon.family': 'Familie',
     'icon.me': 'Meg',
+    'icon.i': 'Jeg',
+    'icon.my': 'Min',
+    'icon.iam': 'Jeg er',
     'icon.you': 'Deg',
     'icon.they': 'De',
     
     // Icons - DIRECTIONS (within ACTIONS)
     'icon.up': 'Opp',
     'icon.down': 'Ned',
+    'icon.on': 'På',
+    'icon.under': 'Under',
+    'icon.at': 'Ved',
+    'icon.in': 'I',
+    'icon.over': 'Over',
     'icon.left': 'Venstre',
     'icon.right': 'Høyre',
     
@@ -703,6 +730,17 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.no': 'Nei',
     'icon.please': 'Vær så snill',
     'icon.thankyou': 'Takk',
+    'icon.who': 'Hvem',
+    'icon.what': 'Hva',
+    'icon.where': 'Hvor',
+    'icon.when': 'Når',
+    'icon.this': 'Denne',
+    'icon.that': 'Den',
+    'icon.here': 'Her',
+    'icon.there': 'Der',
+    'icon.can': 'Kan',
+    'icon.cannot': 'Kan ikke',
+    'icon.because': 'Fordi',
 
     // Landing page
     'home.skip': 'Hopp til hovedinnhold',
@@ -1017,6 +1055,9 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.milk': 'Leche', 'icon.cookie': 'Galleta', 'icon.toy': 'Juguete', 'icon.book': 'Libro',
     'icon.ball': 'Pelota', 'icon.phone': 'Teléfono', 'icon.music': 'Música',
     'icon.yes': 'Sí', 'icon.no': 'No', 'icon.please': 'Por favor', 'icon.thankyou': 'Gracias',
+    'icon.who': 'Quién', 'icon.what': 'Qué', 'icon.where': 'Dónde', 'icon.when': 'Cuándo',
+    'icon.this': 'Este', 'icon.that': 'Ese', 'icon.here': 'Aquí', 'icon.there': 'Allí',
+    'icon.can': 'Puede', 'icon.cannot': 'No puede', 'icon.because': 'Porque',
   },
   fr: {
     // Icons - NEEDS
@@ -1052,6 +1093,9 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.milk': 'Lait', 'icon.cookie': 'Biscuit', 'icon.toy': 'Jouet', 'icon.book': 'Livre',
     'icon.ball': 'Ballon', 'icon.phone': 'Téléphone', 'icon.music': 'Musique',
     'icon.yes': 'Oui', 'icon.no': 'Non', 'icon.please': "S'il vous plaît", 'icon.thankyou': 'Merci',
+    'icon.who': 'Qui', 'icon.what': 'Quoi', 'icon.where': 'Où', 'icon.when': 'Quand',
+    'icon.this': 'Ceci', 'icon.that': 'Cela', 'icon.here': 'Ici', 'icon.there': 'Là-bas',
+    'icon.can': 'Peut', 'icon.cannot': 'Ne peut pas', 'icon.because': 'Parce que',
   },
   de: {
     // Icons - NEEDS
@@ -1087,6 +1131,9 @@ const translations: Record<Language, Record<string, string>> = {
     'icon.milk': 'Milch', 'icon.cookie': 'Keks', 'icon.toy': 'Spielzeug', 'icon.book': 'Buch',
     'icon.ball': 'Ball', 'icon.phone': 'Telefon', 'icon.music': 'Musik',
     'icon.yes': 'Ja', 'icon.no': 'Nein', 'icon.please': 'Bitte', 'icon.thankyou': 'Danke',
+    'icon.who': 'Wer', 'icon.what': 'Was', 'icon.where': 'Wo', 'icon.when': 'Wann',
+    'icon.this': 'Dies', 'icon.that': 'Das', 'icon.here': 'Hier', 'icon.there': 'Dort',
+    'icon.can': 'Kann', 'icon.cannot': 'Kann nicht', 'icon.because': 'Weil',
   },
 };
 
