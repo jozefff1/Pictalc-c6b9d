@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIconLabels } from '@/hooks/useIconLabels';
@@ -78,11 +78,13 @@ export default function SentenceBuilder({
   compact = false,
   onSend,
   sendDisabled = false,
+  inlineActions,
 }: {
   isPrivate?: boolean;
   compact?: boolean;
   onSend?: () => void;
   sendDisabled?: boolean;
+  inlineActions?: ReactNode;
 }) {
   const { t, tIcon, language } = useLanguage();
   const { labels } = useIconLabels(language);
@@ -329,6 +331,8 @@ export default function SentenceBuilder({
             {!compact && 'Send'}
           </button>
         )}
+
+        {inlineActions}
 
         {!compact && (
           <button

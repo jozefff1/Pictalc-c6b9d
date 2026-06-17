@@ -23,6 +23,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed (June 17, 2026 - pairing safety and lint hardening)
 
+- Moved the `/communicate` `Pairing` button inline with sentence action
+  controls (next to `Send`) for signed-in users, keeping the QR-style icon and
+  direct link to `/dashboard/patients`.
+- Added demo-only family cross-chat authorization behind `DEMO_FAMILY_CROSS_CHAT`.
+  When enabled, connected accepted-pairing graphs up to 5 members can
+  communicate across the group for real-life demo testing; when disabled (or if
+  the graph is larger), legacy direct pairing chat behavior is preserved.
+- Chat room/user list previews now show the latest message plus a compact
+  relative timestamp (for example `2m siden`) in both `CommunicateThread`
+  and `ChatDrawer`, improving scanability of recent conversations.
+- Chat UI labels and sender/status text are now language-aware (EN/NO) in both
+  thread and drawer views.
+- Chat icon sentence rendering now uses translated icon labels (`tIcon`) with
+  custom label override priority, preventing English fallback names while the
+  app language is Norwegian.
 - In the Type tab, quick phrases now remain visible after selecting a phrase,
   so users can tap multiple quick phrases in sequence without the strip
   disappearing.

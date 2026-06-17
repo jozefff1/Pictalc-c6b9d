@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface ThreadIcon {
   id: string;
@@ -29,7 +30,20 @@ interface RoomUser {
   role: string;
   relationship?: string;
   isOnline?: boolean;
+  lastMessage?: string | null;
+  lastMessageAt?: string | null;
   lastActiveAt?: string | null;
+}
+
+function getPreviewWithTime(
+  message: string | null | undefined,
+  timestamp: string | null | undefined,
+  emptyLabel: string,
+  formatRelativeTime: (iso?: string | null) => string
+) {
+  const preview = message || emptyLabel;
+  if (!timestamp) return preview;
+  return `${preview} · ${formatRelativeTime(timestamp)}`;
 }
 
 interface Props {
@@ -73,6 +87,7 @@ function playChime() {
 }
 
 export default function CommunicateThread({ currentUserId, iconLabels, collapsed = false, onToggleCollapse, onRoomLoaded, onNewMessage }: Props) {
+  const { t, tIcon } = useLanguage();
   const [rooms, setRooms] = useState<RoomUser[]>([]);
   const [activeRoom, setActiveRoom] = useState<RoomUser | null>(null);
   const [msgs, setMsgs] = useState<ThreadMessage[]>([]);
@@ -88,7 +103,11 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
   const collapsedRef = useRef(collapsed);
   const currentUserIdRef = useRef(currentUserId);
 
-  const getLabel = useCallback((icon: ThreadIcon) => iconLabels[icon.id] || icon.name, [iconLabels]);
+  const getLabel = useCallback((icon: ThreadIcon) => {
+    if (iconLabels[icon.id]) return iconLabels[icon.id];
+    const translated = tIcon(icon.id);
+    return translated !== icon.id ? translated : icon.name;
+  }, [iconLabels, tIcon]);
 
   useEffect(() => {
     onRoomLoadedRef.current = onRoomLoaded;
@@ -107,14 +126,14 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
   }, [currentUserId]);
 
   const formatLastActive = useCallback((iso?: string | null) => {
-    if (!iso) return 'Offline';
+    if (!iso) return t('chat.offline');
     const deltaMs = Date.now() - new Date(iso).getTime();
     const mins = Math.max(1, Math.round(deltaMs / 60000));
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 60) return `${mins}m ${t('chat.ago')}`;
     const hours = Math.round(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.round(hours / 24)}d ago`;
-  }, []);
+    if (hours < 24) return `${hours}h ${t('chat.ago')}`;
+    return `${Math.round(hours / 24)}d ${t('chat.ago')}`;
+  }, [t]);
 
   // Load paired rooms
   useEffect(() => {
@@ -241,10 +260,10 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
       >
         <span className="text-base">💬</span>
         <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
-          {activeRoom ? `You ↔ ${activeRoom.name}` : 'Chat'}
+          {activeRoom ? `${t('chat.you')} ↔ ${activeRoom.name}` : t('chat.title')}
           {msgs.length > 0 && (
             <span className="ml-1.5 text-xs text-gray-400 font-normal">
-              · {msgs.length} message{msgs.length !== 1 ? 's' : ''}
+              · {msgs.length} {msgs.length !== 1 ? t('chat.messages') : t('chat.message')}
             </span>
           )}
         </span>
@@ -256,7 +275,7 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
             {unreadCount}
           </span>
         )}
-        <span className="shrink-0 text-gray-400 text-xs">▼ Open</span>
+        <span className="shrink-0 text-gray-400 text-xs">▼ {t('chat.open')}</span>
       </button>
     );
   }
@@ -270,17 +289,26 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
             <button
               key={r.userId}
               onClick={() => setActiveRoom(r)}
-              className={`shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors min-w-36 ${
                 activeRoom?.userId === r.userId
                   ? 'bg-primary text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-primary/10'
               }`}
             >
-              <span className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center font-bold text-[10px]">
-                {r.name[0]?.toUpperCase() ?? '?'}
-              </span>
-              <span className={`w-1.5 h-1.5 rounded-full ${r.isOnline ? 'bg-green-400' : 'bg-gray-400'}`} />
-              {r.name}
+              <div className="flex items-start gap-2">
+                <span className="w-4 h-4 mt-0.5 rounded-full bg-white/30 flex items-center justify-center font-bold text-[10px] shrink-0">
+                  {r.name[0]?.toUpperCase() ?? '?'}
+                </span>
+                <div className="min-w-0 text-left">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${r.isOnline ? 'bg-green-400' : 'bg-gray-400'}`} />
+                    <span className="truncate">{r.name}</span>
+                  </div>
+                  <div className={`truncate text-[10px] ${activeRoom?.userId === r.userId ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {getPreviewWithTime(r.lastMessage, r.lastMessageAt, t('chat.noMessages'), formatLastActive)}
+                  </div>
+                </div>
+              </div>
             </button>
           ))}
         </div>
@@ -289,13 +317,13 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
       {/* Participants bar + close button */}
       {activeRoom && (
         <div className="flex items-center gap-2 px-4 py-1.5 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800 shrink-0">
-          <span className="font-medium text-gray-700 dark:text-gray-300">You</span>
+          <span className="font-medium text-gray-700 dark:text-gray-300">{t('chat.you')}</span>
           <span>↔</span>
           <span className="font-medium text-gray-700 dark:text-gray-300">{activeRoom.name}</span>
           <span className="ml-auto flex items-center gap-2">
             <span className="flex items-center gap-1">
               <span className={`w-1.5 h-1.5 rounded-full ${activeRoom.isOnline ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
-              {activeRoom.isOnline ? 'Online' : `Last active ${formatLastActive(activeRoom.lastActiveAt)}`}
+              {activeRoom.isOnline ? t('chat.online') : `${t('chat.lastActive')} ${formatLastActive(activeRoom.lastActiveAt)}`}
             </span>
             {activeRoom.relationship && (
               <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 capitalize">
@@ -308,7 +336,7 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs px-1.5 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 aria-label="Collapse chat"
               >
-                ▲ Close
+                ▲ {t('chat.close')}
               </button>
             )}
           </span>
@@ -322,7 +350,7 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
       >
         {msgs.length === 0 && !loadingRooms && activeRoom && (
           <div className="text-center text-xs text-gray-400 dark:text-gray-500 pt-8">
-            No messages yet — build a sentence and tap <strong>Send</strong> to start
+            {t('chat.noMessages')} — {t('chat.buildSentence')} <strong>{t('chat.send')}</strong> {t('chat.toStart')}
           </div>
         )}
 
@@ -339,7 +367,7 @@ export default function CommunicateThread({ currentUserId, iconLabels, collapsed
                 {/* Sender name for received messages */}
                 {!isMine && (
                   <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 px-1">
-                    {msg.senderName ?? activeRoom?.name ?? 'Unknown'}
+                    {msg.senderName ?? activeRoom?.name ?? t('chat.unknown')}
                   </span>
                 )}
 

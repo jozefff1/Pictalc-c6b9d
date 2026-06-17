@@ -2,26 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAuth } from '@/lib/auth/requireAuth';
 import { db } from '@/lib/db/client';
-import { messages, pairings, users } from '@/lib/db/schema';
+import { messages, users } from '@/lib/db/schema';
 import { eq, or, and, gt, desc } from 'drizzle-orm';
-
-// Verify a pairing exists between two users (either direction)
-async function isPaired(userA: string, userB: string): Promise<boolean> {
-  const [row] = await db
-    .select({ id: pairings.id })
-    .from(pairings)
-    .where(
-      and(
-        eq(pairings.status, 'accepted'),
-        or(
-          and(eq(pairings.guardianId, userA), eq(pairings.childId, userB)),
-          and(eq(pairings.guardianId, userB), eq(pairings.childId, userA))
-        )
-      )
-    )
-    .limit(1);
-  return !!row;
-}
+import { canChatWithUser } from '@/lib/auth/chatAccess';
 
 // GET /api/messages?withUserId=<uuid>&since=<ISO>&limit=<n>
 export async function GET(request: NextRequest) {
@@ -39,7 +22,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Validate pairing
-  if (!(await isPaired(userId, withUserId))) {
+  if (!(await canChatWithUser(userId, withUserId))) {
     return NextResponse.json({ error: 'Not paired with this user' }, { status: 403 });
   }
 
@@ -108,7 +91,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Must be paired
-  if (!(await isPaired(userId, recipientId))) {
+  if (!(await canChatWithUser(userId, recipientId))) {
     return NextResponse.json({ error: 'Not paired with this user' }, { status: 403 });
   }
 

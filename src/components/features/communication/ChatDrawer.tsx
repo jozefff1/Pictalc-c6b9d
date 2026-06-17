@@ -36,6 +36,8 @@ interface PairedUser {
   pairingRole: 'supervisor' | 'supervised';
   relationship?: string;
   isOnline?: boolean;
+  lastMessage?: string | null;
+  lastMessageAt?: string | null;
   lastActiveAt?: string | null;
 }
 
@@ -47,7 +49,7 @@ interface Props {
 const POLL_INTERVAL = 3000; // 3 seconds
 
 export default function ChatDrawer({ currentUserId, onClose }: Props) {
-  const { language } = useLanguage();
+  const { language, t, tIcon } = useLanguage();
   const { labels } = useIconLabels(language);
 
   // Current sentence from Redux store
@@ -76,6 +78,8 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
           pairingRole: 'supervisor' | 'supervised';
           relationship?: string;
           isOnline?: boolean;
+          lastMessage?: string | null;
+          lastMessageAt?: string | null;
           lastActiveAt?: string | null;
         }) => ({
           id: room.userId,
@@ -84,6 +88,8 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
           pairingRole: room.pairingRole,
           relationship: room.relationship,
           isOnline: room.isOnline,
+          lastMessage: room.lastMessage,
+          lastMessageAt: room.lastMessageAt,
           lastActiveAt: room.lastActiveAt,
         }));
         setPairedUsers(list);
@@ -94,13 +100,19 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
   }, []);
 
   const formatLastActive = (iso?: string | null) => {
-    if (!iso) return 'Offline';
+    if (!iso) return t('chat.offline');
     const deltaMs = Date.now() - new Date(iso).getTime();
     const mins = Math.max(1, Math.round(deltaMs / 60000));
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 60) return `${mins}m ${t('chat.ago')}`;
     const hours = Math.round(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.round(hours / 24)}d ago`;
+    if (hours < 24) return `${hours}h ${t('chat.ago')}`;
+    return `${Math.round(hours / 24)}d ${t('chat.ago')}`;
+  };
+
+  const getPreviewWithTime = (message?: string | null, timestamp?: string | null) => {
+    const preview = message || t('chat.noMessages');
+    if (!timestamp) return preview;
+    return `${preview} · ${formatLastActive(timestamp)}`;
   };
 
   // Fetch full history when selected user changes
@@ -156,7 +168,11 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
     }
   }, [msgs]);
 
-  const getIconLabel = (icon: Icon) => labels[icon.id] || icon.name;
+  const getIconLabel = (icon: Icon) => {
+    if (labels[icon.id]) return labels[icon.id];
+    const translated = tIcon(icon.id);
+    return translated !== icon.id ? translated : icon.name;
+  };
 
   const sendMessage = async (content: MessageContent) => {
     if (!selectedUser) return;
@@ -212,7 +228,7 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-lg">💬</span>
-          <span className="font-semibold text-sm">Chat</span>
+          <span className="font-semibold text-sm">{t('chat.title')}</span>
           {selectedUser && (
             <span className="text-xs text-gray-500 dark:text-gray-400">· {selectedUser.name}</span>
           )}
@@ -232,17 +248,26 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
             <button
               key={u.id}
               onClick={() => setSelectedUser(u)}
-              className={`shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors min-w-36 ${
                 selectedUser?.id === u.id
                   ? 'bg-primary text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-primary/10'
               }`}
             >
-              <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold">
-                {u.name?.[0]?.toUpperCase() ?? '?'}
-              </span>
-              <span className={`w-1.5 h-1.5 rounded-full ${u.isOnline ? 'bg-green-400' : 'bg-gray-400'}`} />
-              {u.name}
+              <div className="flex items-start gap-2">
+                <span className="w-5 h-5 mt-0.5 rounded-full bg-white/20 flex items-center justify-center font-bold shrink-0">
+                  {u.name?.[0]?.toUpperCase() ?? '?'}
+                </span>
+                <div className="min-w-0 text-left">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${u.isOnline ? 'bg-green-400' : 'bg-gray-400'}`} />
+                    <span className="truncate">{u.name}</span>
+                  </div>
+                  <div className={`truncate text-[10px] ${selectedUser?.id === u.id ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {getPreviewWithTime(u.lastMessage, u.lastMessageAt)}
+                  </div>
+                </div>
+              </div>
             </button>
           ))}
         </div>
@@ -253,11 +278,11 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-3">
           <div className="text-4xl">🔗</div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            No paired users yet. Go to{' '}
+            {t('chat.noPairedUsers')} {t('chat.goTo')}{' '}
             <Link href="/dashboard/patients" className="text-primary hover:underline">
-              Patients
+              {t('chat.patients')}
             </Link>{' '}
-            to send an invite.
+            {t('chat.toSendInvite')}
           </p>
         </div>
       )}
@@ -265,7 +290,7 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
       {/* Select a user prompt */}
       {!loadingPaired && pairedUsers.length > 1 && !selectedUser && (
         <div className="flex-1 flex items-center justify-center p-6 text-center">
-          <p className="text-sm text-gray-400">Select a person above to start chatting</p>
+          <p className="text-sm text-gray-400">{t('chat.selectPerson')}</p>
         </div>
       )}
 
@@ -275,7 +300,7 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
           <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-xs flex items-center justify-between text-gray-500 dark:text-gray-400">
             <span className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${selectedUser.isOnline ? 'bg-green-400' : 'bg-gray-400'}`} />
-              {selectedUser.isOnline ? 'Online' : `Last active ${formatLastActive(selectedUser.lastActiveAt)}`}
+              {selectedUser.isOnline ? t('chat.online') : `${t('chat.lastActive')} ${formatLastActive(selectedUser.lastActiveAt)}`}
             </span>
             {selectedUser.relationship && (
               <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 capitalize">
@@ -290,7 +315,7 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
           >
             {msgs.length === 0 && (
               <div className="text-center text-xs text-gray-400 dark:text-gray-500 pt-6">
-                No messages yet. Send your first sentence!
+                {t('chat.noMessagesYet')} {t('chat.sendFirstSentence')}
               </div>
             )}
 
@@ -338,7 +363,7 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
                                   )}
                                 </div>
                                 <span className={`text-[9px] text-center leading-tight max-w-10 truncate ${isMine ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
-                                  {labels[icon.id] || icon.name}
+                                  {getIconLabel(icon)}
                                 </span>
                               </div>
                             ))}
@@ -374,11 +399,11 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
                 <span className="flex items-center gap-1.5 truncate">
                   <span>📤</span>
                   <span className="truncate">
-                    Send: &ldquo;{sentence.map(getIconLabel).join(' ')}&rdquo;
+                    {t('chat.sendLabel')}: &ldquo;{sentence.map(getIconLabel).join(' ')}&rdquo;
                   </span>
                 </span>
                 <span className="shrink-0 text-xs bg-primary text-white rounded-lg px-2 py-0.5">
-                  {sending ? '…' : 'Send'}
+                  {sending ? '…' : t('chat.send')}
                 </span>
               </button>
             )}
@@ -390,7 +415,7 @@ export default function ChatDrawer({ currentUserId, onClose }: Props) {
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type a reply…"
+                placeholder={t('chat.typeReply')}
                 className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <button

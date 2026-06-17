@@ -1,10 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth/requireAuth';
 import { db } from '@/lib/db/client';
-import { communicationSessions, messages, pairings, users } from '@/lib/db/schema';
+import { communicationSessions, messages, users } from '@/lib/db/schema';
 import { eq, or, and, gt, desc } from 'drizzle-orm';
+import { canChatWithUser, getAllowedChatPeers } from '@/lib/auth/chatAccess';
 
 const ONLINE_WINDOW_MS = 5 * 60 * 1000;
+
+function getMessagePreview(content: unknown): string | null {
+  if (!content || typeof content !== 'object') return null;
+  const payload = content as {
+    type?: 'text' | 'icons';
+    text?: string;
+    sentence?: string;
+  };
+
+  if (payload.type === 'text' && payload.text?.trim()) {
+    return payload.text.trim();
+  }
+
+  if (payload.type === 'icons' && payload.sentence?.trim()) {
+    return payload.sentence.trim();
+  }
+
+  return null;
+}
 
 // GET /api/messages/room
 // Returns the merged conversation thread between the current user and a specific
@@ -26,30 +46,25 @@ export async function GET(request: NextRequest) {
 
   if (!roomUserId) {
     // No room specified — return list of paired users the caller can open a room with
-    const rows = await db
-      .select({
-        pairingId: pairings.id,
-        guardianId: pairings.guardianId,
-        childId: pairings.childId,
-        relationship: pairings.relationship,
-        otherName: users.name,
-        otherRole: users.role,
-      })
-      .from(pairings)
-      .leftJoin(
-        users,
-        or(
-          and(eq(pairings.guardianId, userId), eq(users.id, pairings.childId)),
-          and(eq(pairings.childId, userId), eq(users.id, pairings.guardianId))
-        )
-      )
-      .where(and(eq(pairings.status, 'accepted'), or(eq(pairings.guardianId, userId), eq(pairings.childId, userId))));
+    const peers = await getAllowedChatPeers(userId);
 
-    const rooms = await Promise.all(rows.map(async (r) => {
-      const otherUserId = r.guardianId === userId ? r.childId : r.guardianId;
+    const rooms = await Promise.all(peers.map(async (peer) => {
+      const otherUserId = peer.userId;
+
+      const [otherUser] = await db
+        .select({
+          name: users.name,
+          role: users.role,
+        })
+        .from(users)
+        .where(eq(users.id, otherUserId))
+        .limit(1);
 
       const [latestMessage] = await db
-        .select({ createdAt: messages.createdAt })
+        .select({
+          createdAt: messages.createdAt,
+          content: messages.content,
+        })
         .from(messages)
         .where(
           or(
@@ -72,13 +87,14 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
 
       return {
-        pairingId: r.pairingId,
         userId: otherUserId,
-        name: r.otherName ?? 'Unknown',
-        role: r.otherRole ?? 'user',
-        relationship: r.relationship,
-        pairingRole: r.guardianId === userId ? 'supervisor' : 'supervised',
+        name: otherUser?.name ?? 'Unknown',
+        role: otherUser?.role ?? 'user',
+        relationship: peer.relationship,
+        pairingRole: peer.pairingRole,
         isOnline: latestActivityDate ? (Date.now() - latestActivityDate.getTime()) <= ONLINE_WINDOW_MS : false,
+        lastMessage: getMessagePreview(latestMessage?.content) ?? null,
+        lastMessageAt: latestMessage?.createdAt?.toISOString() ?? null,
         lastActiveAt: latestActivityDate?.toISOString() ?? null,
       };
     }));
@@ -103,6 +119,12 @@ export async function GET(request: NextRequest) {
             relationship: existing.relationship || room.relationship,
             pairingRole: existing.pairingRole,
             isOnline: existing.isOnline || room.isOnline,
+            lastMessage: room.lastMessageAt && (!existing.lastMessageAt || Date.parse(room.lastMessageAt) >= Date.parse(existing.lastMessageAt))
+              ? room.lastMessage
+              : existing.lastMessage,
+            lastMessageAt: room.lastMessageAt && (!existing.lastMessageAt || Date.parse(room.lastMessageAt) >= Date.parse(existing.lastMessageAt))
+              ? room.lastMessageAt
+              : existing.lastMessageAt,
             lastActiveAt: roomTs >= existingTs ? room.lastActiveAt : existing.lastActiveAt,
           }
         );
@@ -113,6 +135,9 @@ export async function GET(request: NextRequest) {
 
     dedupedRooms.sort((a, b) => {
       if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
+      const aMsgTs = a.lastMessageAt ? Date.parse(a.lastMessageAt) : 0;
+      const bMsgTs = b.lastMessageAt ? Date.parse(b.lastMessageAt) : 0;
+      if (aMsgTs !== bMsgTs) return bMsgTs - aMsgTs;
       const aTs = a.lastActiveAt ? Date.parse(a.lastActiveAt) : 0;
       const bTs = b.lastActiveAt ? Date.parse(b.lastActiveAt) : 0;
       if (aTs !== bTs) return bTs - aTs;
@@ -122,22 +147,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ rooms: dedupedRooms });
   }
 
-  // Verify pairing exists
-  const [pairing] = await db
-    .select({ id: pairings.id })
-    .from(pairings)
-    .where(
-      and(
-        eq(pairings.status, 'accepted'),
-        or(
-          and(eq(pairings.guardianId, userId), eq(pairings.childId, roomUserId)),
-          and(eq(pairings.guardianId, roomUserId), eq(pairings.childId, userId))
-        )
-      )
-    )
-    .limit(1);
-
-  if (!pairing) {
+  if (!(await canChatWithUser(userId, roomUserId))) {
     return NextResponse.json({ error: 'Not paired with this user' }, { status: 403 });
   }
 

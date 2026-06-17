@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
@@ -150,6 +151,16 @@ export default function CommunicatePage() {
           compact={true}
           onSend={hasPairedUsers && session?.user?.id ? handleSendToThread : undefined}
           sendDisabled={sentence.length === 0 || sending}
+          inlineActions={session?.user?.id ? (
+            <Link
+              href="/dashboard/patients"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+              title="Open pairing and QR invite options"
+            >
+              <span>▦</span>
+              Pairing
+            </Link>
+          ) : undefined}
         />
       </div>
 
